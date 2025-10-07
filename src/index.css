@@ -234,8 +234,9 @@
     display: table-header-group;
   }
 
+  /* Remove o tfoot do fluxo de repetição para aparecer apenas no final */
   .payroll-table tfoot {
-    display: table-footer-group;
+    display: table-row-group;
   }
 
   .payroll-table tbody tr {
@@ -244,7 +245,7 @@
     widows: 3;
   }
 
-  /* Garante que o total apareça apenas uma vez */
+  /* Garante que o total apareça apenas uma vez no final */
   .payroll-table tfoot tr {
     page-break-before: avoid;
     page-break-after: avoid;
