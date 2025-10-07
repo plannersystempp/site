@@ -51,10 +51,12 @@ export const PayrollReportPage: React.FC = () => {
       {/* Conteúdo do relatório */}
       <div className="print-section p-8 max-w-[210mm] mx-auto">
         {/* Cabeçalho */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-2">Relatório de Folha de Pagamento</h1>
-          <h2 className="text-lg text-muted-foreground mb-1">{selectedEvent?.name}</h2>
-          <h3 className="text-md text-muted-foreground">{activeTeam?.name}</h3>
+        <div className="mb-8 text-center">
+          <h1 className="payroll-report-title">SIGE - Sistema de Gestão de Eventos</h1>
+          <h2 className="payroll-report-subtitle">Relatório de Folha de Pagamento</h2>
+          <div className="payroll-report-info">
+            Evento: {selectedEvent?.name} | Equipe: {activeTeam?.name} | Data: {new Date().toLocaleDateString('pt-BR')}
+          </div>
         </div>
 
         {/* Tabela */}
@@ -63,26 +65,30 @@ export const PayrollReportPage: React.FC = () => {
             <thead>
               <tr>
                 <th className="payroll-th">Nome</th>
-                <th className="payroll-th">Tipo</th>
-                <th className="payroll-th text-right">Valor Total</th>
-                <th className="payroll-th text-center">Status</th>
+                <th className="payroll-th text-right">Cachê</th>
+                <th className="payroll-th text-right">Hora Extra</th>
+                <th className="payroll-th text-right">Total</th>
               </tr>
             </thead>
             <tbody>
               {payrollDetails.map((item, index) => (
                 <tr key={index} className={index % 2 === 0 ? 'payroll-row-even' : 'payroll-row-odd'}>
-                  <td className="payroll-td">{item.personName}</td>
-                  <td className="payroll-td">{item.personType}</td>
+                  <td className="payroll-td">
+                    <div className="payroll-person-name">{item.personName}</div>
+                    <div className="payroll-person-type">{item.personType}</div>
+                  </td>
+                  <td className="payroll-td text-right">{formatCurrency(item.cachePay)}</td>
+                  <td className="payroll-td text-right">{formatCurrency(item.overtimePay)}</td>
                   <td className="payroll-td text-right">{formatCurrency(item.totalPay)}</td>
-                  <td className="payroll-td text-center">{item.paid ? 'Pago' : 'Pendente'}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="payroll-total-row">
-                <td colSpan={2} className="payroll-td font-bold">Total Geral:</td>
-                <td className="payroll-td text-right font-bold">{formatCurrency(totalGeral)}</td>
+                <td className="payroll-td font-bold">TOTAL GERAL:</td>
                 <td className="payroll-td"></td>
+                <td className="payroll-td"></td>
+                <td className="payroll-td text-right font-bold">{formatCurrency(totalGeral)}</td>
               </tr>
             </tfoot>
           </table>

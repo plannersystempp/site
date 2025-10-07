@@ -143,10 +143,44 @@
     display: block !important;
   }
 
+  /* Estilos de cabeçalho do relatório */
+  .payroll-report-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    color: black !important;
+  }
+
+  .payroll-report-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: black !important;
+  }
+
+  .payroll-report-info {
+    font-size: 11px;
+    color: black !important;
+    margin-top: 0.5rem;
+  }
+
+  /* Estilos de nome e tipo de profissional */
+  .payroll-person-name {
+    font-weight: bold;
+    color: black !important;
+  }
+
+  .payroll-person-type {
+    font-size: 10px;
+    color: #22c55e !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   /* Estilos específicos da tabela de folha de pagamento */
   .payroll-table-container {
     width: 100%;
-    margin-top: 0.5rem;
+    margin-top: 1rem;
   }
 
   .payroll-table {
@@ -156,23 +190,25 @@
   }
 
   .payroll-th {
-    border: 1px solid #333;
-    padding: 6px 4px;
-    background-color: #f5f5f5 !important;
+    border: 1px solid #e5e7eb;
+    padding: 8px 6px;
+    background-color: #f9fafb !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
     font-weight: bold;
     text-align: left;
+    color: black !important;
   }
 
   .payroll-td {
-    border: 1px solid #333;
-    padding: 5px 4px;
+    border: 1px solid #e5e7eb;
+    padding: 6px;
     page-break-inside: avoid;
+    color: black !important;
   }
 
   .payroll-row-even {
-    background-color: #fafafa !important;
+    background-color: #f9fafb !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -187,11 +223,10 @@
 
   .payroll-total-row .payroll-td {
     border-top: 2px solid #333 !important;
-    padding: 8px 4px;
+    padding: 10px 6px;
     font-weight: bold;
-    background-color: #f0f0f0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    background-color: white !important;
+    color: black !important;
   }
 
   /* Evita quebras de página indesejadas */
