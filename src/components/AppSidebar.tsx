@@ -82,7 +82,7 @@ export const AppSidebar = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b p-4">
+      <SidebarHeader className="p-4">
         <Link to="/app" className="block">
           <div className="flex items-center gap-2">
             <img 
@@ -185,7 +185,7 @@ export const AppSidebar = () => {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-4 space-y-2">
+      <SidebarFooter className="p-4 space-y-2">
         <Button
           variant="ghost"
           size="sm"
