@@ -112,31 +112,42 @@ const Dashboard = () => {
           // Check if all personnel have complete payments
           let allPaid = true;
           
-          for (const [personnelId, personAllocations] of Object.entries(groupedAllocations)) {
-            const person = personnelMap.get(personnelId);
-            if (!person) continue;
+          // Não marcar como completo se não há work_records E não há payroll_closings
+          if (workLogs.length === 0 && closings.length === 0) {
+            allPaid = false;
+          } else {
+            for (const [personnelId, personAllocations] of Object.entries(groupedAllocations)) {
+              const person = personnelMap.get(personnelId);
+              if (!person) continue;
 
-            // Filter data for this person
-            const personWorkLogs = workLogs.filter(log => log.employee_id === personnelId);
-            const personAbsences = (absences as any[]).filter((absence: any) => 
-              (personAllocations as any[]).some((allocation: any) => allocation.id === absence.assignment_id)
-            );
-            const paymentRecords = closings.filter(closing => closing.personnel_id === personnelId);
+              // Filter data for this person
+              const personWorkLogs = workLogs.filter(log => log.employee_id === personnelId);
+              const personAbsences = (absences as any[]).filter((absence: any) => 
+                (personAllocations as any[]).some((allocation: any) => allocation.id === absence.assignment_id)
+              );
+              const paymentRecords = closings.filter(closing => closing.personnel_id === personnelId);
 
-            // Calculate using same logic as usePayrollData
-            const totalPay = PayrollCalc.calculateTotalPay(
-              personAllocations as any,
-              person as any,
-              personWorkLogs as any,
-              personAbsences as any
-            );
-            const totalPaidAmount = PayrollCalc.calculateTotalPaid(paymentRecords as any);
-            const pendingAmount = PayrollCalc.calculatePendingAmount(totalPay, totalPaidAmount);
+              // Calculate using same logic as usePayrollData
+              const totalPay = PayrollCalc.calculateTotalPay(
+                personAllocations as any,
+                person as any,
+                personWorkLogs as any,
+                personAbsences as any
+              );
+              const totalPaidAmount = PayrollCalc.calculateTotalPaid(paymentRecords as any);
+              const pendingAmount = PayrollCalc.calculatePendingAmount(totalPay, totalPaidAmount);
 
-            // If any person has pending amount, event is not complete
-            if (pendingAmount > 0) {
-              allPaid = false;
-              break;
+              // Não marcar como completo se existe totalPay > 0 mas totalPaidAmount === 0
+              if (totalPay > 0 && totalPaidAmount === 0) {
+                allPaid = false;
+                break;
+              }
+
+              // If any person has pending amount, event is not complete
+              if (pendingAmount > 0) {
+                allPaid = false;
+                break;
+              }
             }
           }
 
@@ -206,12 +217,12 @@ const Dashboard = () => {
     return startDate > currentDate;
   }).slice(0, 5);
 
-  // Pagamentos próximos nos próximos 30 dias (D+0 a D+30) - excluindo eventos com pagamentos completos
+  // Pagamentos próximos nos próximos 15 dias (D+0 a D+15) - excluindo eventos com pagamentos completos
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const thirtyDaysFromNow = new Date();
-  thirtyDaysFromNow.setDate(today.getDate() + 30);
-  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+  const fifteenDaysFromNow = new Date();
+  fifteenDaysFromNow.setDate(today.getDate() + 15);
+  fifteenDaysFromNow.setHours(23, 59, 59, 999);
 
   const upcomingPayments = events
     .filter(event => {
@@ -221,22 +232,25 @@ const Dashboard = () => {
       // Excluir eventos com pagamentos completos
       if (eventsWithCompletePayments.has(event.id)) return false;
       
-      // Incluir eventos com status 'concluido_pagamento_pendente' sempre
+      // Incluir eventos com status 'concluido_pagamento_pendente' sempre (independente da data)
       if (event.status === 'concluido_pagamento_pendente') return true;
       
       // Excluir apenas eventos explicitamente marcados como 'concluido' (totalmente pagos)
       if (event.status === 'concluido') return false;
       
-      // Incluir TODOS os eventos com payment_due_date ou end_date
-      // (incluindo atrasados, em andamento, planejados)
+      // Para outros eventos, verificar se payment_due_date está dentro da janela de 15 dias
+      // Sem limite no passado (inclui atrasados)
       const dueDate = event.payment_due_date 
         ? new Date(event.payment_due_date + 'T12:00:00')
         : event.end_date 
           ? new Date(event.end_date + 'T12:00:00')
           : null;
       
-      // Se tem data de vencimento ou data de término, incluir
-      return dueDate !== null;
+      // Se não tem data de vencimento nem data de término, excluir
+      if (!dueDate) return false;
+      
+      // Incluir se está dentro da janela: sem limite passado, até D+15
+      return dueDate <= fifteenDaysFromNow;
     })
     .sort((a, b) => {
       // Eventos com status 'concluido_pagamento_pendente' aparecem primeiro
@@ -436,7 +450,7 @@ const Dashboard = () => {
             {upcomingPayments.length === 0 ? (
               <EmptyState
                 title="Nenhum pagamento próximo"
-                description="Não há pagamentos pendentes ou com vencimento nos próximos 30 dias."
+                description="Não há pagamentos pendentes ou com vencimento nos próximos 15 dias."
               />
             ) : (
               <div className="space-y-2">
