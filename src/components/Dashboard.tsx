@@ -215,32 +215,35 @@ const Dashboard = () => {
 
   const upcomingPayments = events
     .filter(event => {
+      // Excluir eventos cancelados
+      if (event.status === 'cancelado') return false;
+      
       // Excluir eventos com pagamentos completos
       if (eventsWithCompletePayments.has(event.id)) return false;
       
-      // Incluir eventos com status 'concluido_pagamento_pendente' independente da data de vencimento
+      // Incluir eventos com status 'concluido_pagamento_pendente' sempre
       if (event.status === 'concluido_pagamento_pendente') return true;
       
-      // Excluir eventos marcados explicitamente como 'concluido' (pagos)
+      // Excluir apenas eventos explicitamente marcados como 'concluido' (totalmente pagos)
       if (event.status === 'concluido') return false;
       
-      // Para outros eventos, verificar payment_due_date ou usar end_date como fallback
+      // Incluir TODOS os eventos com payment_due_date ou end_date
+      // (incluindo atrasados, em andamento, planejados)
       const dueDate = event.payment_due_date 
         ? new Date(event.payment_due_date + 'T12:00:00')
         : event.end_date 
           ? new Date(event.end_date + 'T12:00:00')
           : null;
       
-      if (!dueDate) return false;
-      
-      return dueDate >= today && dueDate <= thirtyDaysFromNow;
+      // Se tem data de vencimento ou data de término, incluir
+      return dueDate !== null;
     })
     .sort((a, b) => {
       // Eventos com status 'concluido_pagamento_pendente' aparecem primeiro
       if (a.status === 'concluido_pagamento_pendente' && b.status !== 'concluido_pagamento_pendente') return -1;
       if (b.status === 'concluido_pagamento_pendente' && a.status !== 'concluido_pagamento_pendente') return 1;
       
-      // Depois ordenar por data de vencimento (mais próximos primeiro)
+      // Depois ordenar por data de vencimento (atrasados e mais próximos primeiro)
       const dateA = a.payment_due_date 
         ? new Date(a.payment_due_date) 
         : a.end_date 
