@@ -14,6 +14,7 @@ import { NoTeamSelected } from './shared/NoTeamSelected';
 import { SkeletonCard } from './shared/SkeletonCard';
 import { QuickActions } from './dashboard/QuickActions';
 import { formatDateShort } from '@/utils/dateUtils';
+import * as PayrollCalc from './payroll/payrollCalculations';
 
 const Dashboard = () => {
   const { events, personnel, functions, loading } = useEnhancedData();
@@ -56,36 +57,89 @@ const Dashboard = () => {
     const checkCompletePayments = async () => {
       if (!events.length || isSuperAdmin) return;
 
-      const eventIds = events.map(e => e.id);
       const completeEvents = new Set<string>();
 
       // Check each event for complete payments
       for (const event of events) {
-        if (event.status !== 'concluido_pagamento_pendente') continue;
-
         try {
-          // Get all allocations for this event
-          const { data: allocations } = await supabase
+          // Get allocations first to get personnel IDs
+          const { data: allocationsData } = await supabase
             .from('personnel_allocations')
-            .select('personnel_id')
+            .select('*')
             .eq('event_id', event.id);
 
-          if (!allocations?.length) continue;
+          const allocations = allocationsData || [];
+          if (!allocations.length) continue;
 
-          // Get unique personnel
-          const uniquePersonnel = [...new Set(allocations.map(a => a.personnel_id))];
+          // Get all other data needed for calculations
+          const [workLogsData, closingsData, absencesData, personnelData] = await Promise.all([
+            supabase
+              .from('work_records')
+              .select('*')
+              .eq('event_id', event.id),
+            supabase
+              .from('payroll_closings')
+              .select('*')
+              .eq('event_id', event.id),
+            supabase
+              .from('absences')
+              .select(`
+                *,
+                personnel_allocations!inner(event_id)
+              `)
+              .eq('personnel_allocations.event_id', event.id),
+            supabase
+              .from('personnel')
+              .select('*')
+              .in('id', allocations.map(a => a.personnel_id))
+          ]);
 
-          // Get all payments for this event
-          const { data: payments } = await supabase
-            .from('payroll_closings')
-            .select('personnel_id')
-            .eq('event_id', event.id);
+          const workLogs = workLogsData.data || [];
+          const closings = closingsData.data || [];
+          const absences = absencesData.data || [];
+          const personnelMap = new Map((personnelData.data || []).map(p => [p.id, p]));
 
-          const paidPersonnel = new Set(payments?.map(p => p.personnel_id) || []);
+          // Group allocations by personnel_id
+          const groupedAllocations = allocations.reduce((acc, allocation) => {
+            const personnelId = allocation.personnel_id;
+            if (!acc[personnelId]) {
+              acc[personnelId] = [];
+            }
+            acc[personnelId].push(allocation);
+            return acc;
+          }, {} as Record<string, any[]>);
 
-          // Check if all personnel have been paid
-          const allPaid = uniquePersonnel.every(personnelId => paidPersonnel.has(personnelId));
+          // Check if all personnel have complete payments
+          let allPaid = true;
           
+          for (const [personnelId, personAllocations] of Object.entries(groupedAllocations)) {
+            const person = personnelMap.get(personnelId);
+            if (!person) continue;
+
+            // Filter data for this person
+            const personWorkLogs = workLogs.filter(log => log.employee_id === personnelId);
+            const personAbsences = (absences as any[]).filter((absence: any) => 
+              (personAllocations as any[]).some((allocation: any) => allocation.id === absence.assignment_id)
+            );
+            const paymentRecords = closings.filter(closing => closing.personnel_id === personnelId);
+
+            // Calculate using same logic as usePayrollData
+            const totalPay = PayrollCalc.calculateTotalPay(
+              personAllocations as any,
+              person as any,
+              personWorkLogs as any,
+              personAbsences as any
+            );
+            const totalPaidAmount = PayrollCalc.calculateTotalPaid(paymentRecords as any);
+            const pendingAmount = PayrollCalc.calculatePendingAmount(totalPay, totalPaidAmount);
+
+            // If any person has pending amount, event is not complete
+            if (pendingAmount > 0) {
+              allPaid = false;
+              break;
+            }
+          }
+
           if (allPaid) {
             completeEvents.add(event.id);
           }
@@ -152,12 +206,12 @@ const Dashboard = () => {
     return startDate > currentDate;
   }).slice(0, 5);
 
-  // Pagamentos próximos nos próximos 15 dias (D+0 a D+15) - excluindo eventos com pagamentos completos
+  // Pagamentos próximos nos próximos 30 dias (D+0 a D+30) - excluindo eventos com pagamentos completos
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const fifteenDaysFromNow = new Date();
-  fifteenDaysFromNow.setDate(today.getDate() + 15);
-  fifteenDaysFromNow.setHours(23, 59, 59, 999);
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
 
   const upcomingPayments = events
     .filter(event => {
@@ -167,11 +221,19 @@ const Dashboard = () => {
       // Incluir eventos com status 'concluido_pagamento_pendente' independente da data de vencimento
       if (event.status === 'concluido_pagamento_pendente') return true;
       
-      // Para outros eventos, verificar se têm payment_due_date nos próximos 15 dias
-      if (!event.payment_due_date || event.status === 'concluido') return false;
+      // Excluir eventos marcados explicitamente como 'concluido' (pagos)
+      if (event.status === 'concluido') return false;
       
-      const dueDate = new Date(event.payment_due_date + 'T12:00:00');
-      return dueDate >= today && dueDate <= fifteenDaysFromNow;
+      // Para outros eventos, verificar payment_due_date ou usar end_date como fallback
+      const dueDate = event.payment_due_date 
+        ? new Date(event.payment_due_date + 'T12:00:00')
+        : event.end_date 
+          ? new Date(event.end_date + 'T12:00:00')
+          : null;
+      
+      if (!dueDate) return false;
+      
+      return dueDate >= today && dueDate <= thirtyDaysFromNow;
     })
     .sort((a, b) => {
       // Eventos com status 'concluido_pagamento_pendente' aparecem primeiro
@@ -179,8 +241,16 @@ const Dashboard = () => {
       if (b.status === 'concluido_pagamento_pendente' && a.status !== 'concluido_pagamento_pendente') return 1;
       
       // Depois ordenar por data de vencimento (mais próximos primeiro)
-      const dateA = a.payment_due_date ? new Date(a.payment_due_date) : new Date('9999-12-31');
-      const dateB = b.payment_due_date ? new Date(b.payment_due_date) : new Date('9999-12-31');
+      const dateA = a.payment_due_date 
+        ? new Date(a.payment_due_date) 
+        : a.end_date 
+          ? new Date(a.end_date)
+          : new Date('9999-12-31');
+      const dateB = b.payment_due_date 
+        ? new Date(b.payment_due_date) 
+        : b.end_date 
+          ? new Date(b.end_date)
+          : new Date('9999-12-31');
       return dateA.getTime() - dateB.getTime();
     });
 
@@ -363,31 +433,39 @@ const Dashboard = () => {
             {upcomingPayments.length === 0 ? (
               <EmptyState
                 title="Nenhum pagamento próximo"
-                description="Não há pagamentos pendentes ou com vencimento nos próximos 15 dias."
+                description="Não há pagamentos pendentes ou com vencimento nos próximos 30 dias."
               />
             ) : (
               <div className="space-y-2">
-                {upcomingPayments.map(event => (
-                  <button 
-                    key={event.id} 
-                    className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors border-red-200 bg-red-50/30 cursor-pointer"
-                    onClick={() => navigate(`/app/folha?eventId=${event.id}`)}
-                  >
-                    <div className="flex-1 min-w-0 text-left">
-                      <h4 className="font-medium truncate">{event.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {event.status === 'concluido_pagamento_pendente' 
-                          ? 'Pagamento pendente' 
-                          : `Vence: ${formatDateShort(event.payment_due_date)}`
-                        }
-                      </p>
-                    </div>
-                    <Badge className="bg-red-100 text-red-800">
-                      <AlertCircle className="h-4 w-4" />
-                      <span className="ml-1 hidden sm:inline">Pendente</span>
-                    </Badge>
-                  </button>
-                ))}
+                {upcomingPayments.map(event => {
+                  const displayDate = event.payment_due_date 
+                    ? formatDateShort(event.payment_due_date)
+                    : event.end_date 
+                      ? formatDateShort(event.end_date)
+                      : 'Data não definida';
+                  
+                  return (
+                    <button 
+                      key={event.id} 
+                      className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors border-red-200 bg-red-50/30 cursor-pointer"
+                      onClick={() => navigate(`/app/folha/${event.id}`)}
+                    >
+                      <div className="flex-1 min-w-0 text-left">
+                        <h4 className="font-medium truncate">{event.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {event.status === 'concluido_pagamento_pendente' 
+                            ? 'Pagamento pendente' 
+                            : `Vence: ${displayDate}`
+                          }
+                        </p>
+                      </div>
+                      <Badge className="bg-red-100 text-red-800">
+                        <AlertCircle className="h-4 w-4" />
+                        <span className="ml-1 hidden sm:inline">Pendente</span>
+                      </Badge>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </CardContent>
