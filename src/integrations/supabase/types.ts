@@ -1,0 +1,996 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
+  public: {
+    Tables: {
+      absences: {
+        Row: {
+          assignment_id: string
+          created_at: string | null
+          id: string
+          logged_by_id: string | null
+          notes: string | null
+          team_id: string
+          work_date: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string | null
+          id?: string
+          logged_by_id?: string | null
+          notes?: string | null
+          team_id: string
+          work_date: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string | null
+          id?: string
+          logged_by_id?: string | null
+          notes?: string | null
+          team_id?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "absences_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "personnel_allocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absences_logged_by_id_fkey"
+            columns: ["logged_by_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          team_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_divisions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          event_id: string
+          id: string
+          name: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          event_id: string
+          id?: string
+          name: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          event_id?: string
+          id?: string
+          name?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_divisions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_divisions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          client_contact_phone: string | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          location: string | null
+          name: string
+          payment_due_date: string | null
+          setup_end_date: string | null
+          setup_start_date: string | null
+          start_date: string | null
+          status: string
+          team_id: string
+        }
+        Insert: {
+          client_contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          payment_due_date?: string | null
+          setup_end_date?: string | null
+          setup_start_date?: string | null
+          start_date?: string | null
+          status?: string
+          team_id: string
+        }
+        Update: {
+          client_contact_phone?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          payment_due_date?: string | null
+          setup_end_date?: string | null
+          setup_start_date?: string | null
+          start_date?: string | null
+          status?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      freelancer_ratings: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          freelancer_id: string
+          id: string
+          rated_by_id: string | null
+          rating: number
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          freelancer_id: string
+          id?: string
+          rated_by_id?: string | null
+          rating: number
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          freelancer_id?: string
+          id?: string
+          rated_by_id?: string | null
+          rating?: number
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_ratings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelancer_ratings_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelancer_ratings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      functions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "functions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      logs_checklist: {
+        Row: {
+          acao: string
+          demanda_id: string | null
+          detalhes: Json | null
+          id: string
+          item_id: string | null
+          timestamp: string | null
+          usuario: string
+        }
+        Insert: {
+          acao: string
+          demanda_id?: string | null
+          detalhes?: Json | null
+          id?: string
+          item_id?: string | null
+          timestamp?: string | null
+          usuario: string
+        }
+        Update: {
+          acao?: string
+          demanda_id?: string | null
+          detalhes?: Json | null
+          id?: string
+          item_id?: string | null
+          timestamp?: string | null
+          usuario?: string
+        }
+        Relationships: []
+      }
+      payroll_closings: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          personnel_id: string
+          team_id: string
+          total_amount_paid: number
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          personnel_id: string
+          team_id: string
+          total_amount_paid?: number
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          personnel_id?: string
+          team_id?: string
+          total_amount_paid?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_closings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_closings_personnel_id_fkey"
+            columns: ["personnel_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_closings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personnel: {
+        Row: {
+          cnpj: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string | null
+          event_cache: number | null
+          id: string
+          monthly_salary: number | null
+          name: string
+          overtime_rate: number | null
+          phone: string | null
+          pix_key_encrypted: string | null
+          team_id: string
+          type: string
+        }
+        Insert: {
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          event_cache?: number | null
+          id?: string
+          monthly_salary?: number | null
+          name: string
+          overtime_rate?: number | null
+          phone?: string | null
+          pix_key_encrypted?: string | null
+          team_id: string
+          type: string
+        }
+        Update: {
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          event_cache?: number | null
+          id?: string
+          monthly_salary?: number | null
+          name?: string
+          overtime_rate?: number | null
+          phone?: string | null
+          pix_key_encrypted?: string | null
+          team_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personnel_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personnel_allocations: {
+        Row: {
+          created_at: string | null
+          division_id: string
+          event_id: string
+          event_specific_cache: number | null
+          function_name: string
+          id: string
+          personnel_id: string
+          team_id: string
+          work_days: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          division_id: string
+          event_id: string
+          event_specific_cache?: number | null
+          function_name: string
+          id?: string
+          personnel_id: string
+          team_id: string
+          work_days?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          division_id?: string
+          event_id?: string
+          event_specific_cache?: number | null
+          function_name?: string
+          id?: string
+          personnel_id?: string
+          team_id?: string
+          work_days?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personnel_allocations_division_id_fkey"
+            columns: ["division_id"]
+            isOneToOne: false
+            referencedRelation: "event_divisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_allocations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_allocations_personnel_id_fkey"
+            columns: ["personnel_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_allocations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personnel_functions: {
+        Row: {
+          created_at: string | null
+          function_id: string
+          personnel_id: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          function_id: string
+          personnel_id: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          function_id?: string
+          personnel_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personnel_functions_function_id_fkey"
+            columns: ["function_id"]
+            isOneToOne: false
+            referencedRelation: "functions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_functions_personnel_id_fkey"
+            columns: ["personnel_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_functions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          joined_at: string | null
+          joined_with_code: string | null
+          role: string
+          status: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string | null
+          joined_with_code?: string | null
+          role: string
+          status?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string | null
+          joined_with_code?: string | null
+          role?: string
+          status?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          cnpj: string | null
+          created_at: string | null
+          id: string
+          invite_code: string
+          name: string
+          owner_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string | null
+          id?: string
+          invite_code: string
+          name: string
+          owner_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string | null
+          id?: string
+          invite_code?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_approved: boolean
+          name: string | null
+          role: string
+          terms_accepted_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_approved?: boolean
+          name?: string | null
+          role?: string
+          terms_accepted_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_approved?: boolean
+          name?: string | null
+          role?: string
+          terms_accepted_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      work_records: {
+        Row: {
+          created_at: string | null
+          date_logged: string | null
+          employee_id: string
+          event_id: string
+          hours_worked: number | null
+          id: string
+          overtime_hours: number | null
+          paid: boolean | null
+          team_id: string
+          total_pay: number | null
+          work_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_logged?: string | null
+          employee_id: string
+          event_id: string
+          hours_worked?: number | null
+          id?: string
+          overtime_hours?: number | null
+          paid?: boolean | null
+          team_id: string
+          total_pay?: number | null
+          work_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_logged?: string | null
+          employee_id?: string
+          event_id?: string
+          hours_worked?: number | null
+          id?: string
+          overtime_hours?: number | null
+          paid?: boolean | null
+          team_id?: string
+          total_pay?: number | null
+          work_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_records_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_records_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      ensure_user_profile: {
+        Args: { p_email: string; p_name: string; p_user_id: string }
+        Returns: string
+      }
+      get_all_functions_with_teams: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          team_id: string
+          team_name: string
+        }[]
+      }
+      get_all_users_for_superadmin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          email: string
+          is_approved: boolean
+          last_sign_in_at: string
+          name: string
+          role: string
+          team_id: string
+          team_name: string
+          user_id: string
+        }[]
+      }
+      get_audit_logs_for_superadmin: {
+        Args: {
+          action_filter?: string
+          end_date?: string
+          search_text?: string
+          start_date?: string
+          team_filter?: string
+        }
+        Returns: {
+          action: string
+          created_at: string
+          id: string
+          new_values: Json
+          old_values: Json
+          record_id: string
+          table_name: string
+          team_name: string
+          user_email: string
+          user_name: string
+        }[]
+      }
+      get_audit_logs_for_superadmin_enriched: {
+        Args: {
+          action_filter?: string
+          end_date?: string
+          search_text?: string
+          start_date?: string
+          team_filter?: string
+        }
+        Returns: {
+          action: string
+          action_summary: string
+          changed_fields: Json
+          created_at: string
+          entity_name: string
+          id: string
+          new_values: Json
+          old_values: Json
+          record_id: string
+          table_name: string
+          team_name: string
+          user_email: string
+          user_name: string
+        }[]
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_personnel_redacted: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cnpj_masked: string
+          cpf_masked: string
+          created_at: string
+          email_masked: string
+          id: string
+          name: string
+          phone_masked: string
+          salary_range: string
+          team_id: string
+          type: string
+        }[]
+      }
+      get_public_teams: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cnpj: string
+          id: string
+          name: string
+        }[]
+      }
+      get_team_by_invite_code: {
+        Args: { invite_code_input: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      get_team_statistics: {
+        Args: { team_id_param: string }
+        Returns: Json
+      }
+      get_user_role_in_team: {
+        Args: { check_team_id: string }
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_team_member: {
+        Args:
+          | { check_team_id: string }
+          | { check_team_id: string; check_user_id: string }
+        Returns: boolean
+      }
+      join_team_by_invite_code: {
+        Args: { p_invite_code: string }
+        Returns: Json
+      }
+      request_team_access: {
+        Args: {
+          invite_code_input: string
+          request_user_id: string
+          requested_role?: string
+        }
+        Returns: {
+          member_status: string
+          team_id: string
+          team_name: string
+        }[]
+      }
+      setup_company_for_current_user: {
+        Args: { p_company_cnpj?: string; p_company_name: string }
+        Returns: Json
+      }
+      update_event_statuses: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      validate_password: {
+        Args: { password: string }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

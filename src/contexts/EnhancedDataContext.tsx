@@ -1,0 +1,1171 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
+import { useTeam } from './TeamContext';
+import { useToast } from '@/hooks/use-toast';
+import { fetchPersonnelByRole, type PersonnelRedacted } from '@/services/personnelService';
+
+// Exportando as interfaces para uso em outros componentes
+export interface Event {
+  id: string;
+  team_id: string;
+  name: string;
+  description?: string;
+  start_date?: string;
+  end_date?: string;
+  payment_due_date?: string;
+  location?: string;
+  client_contact_phone?: string;
+  setup_start_date?: string;
+  setup_end_date?: string;
+  status?: 'planejado' | 'em_andamento' | 'concluido' | 'cancelado' | 'concluido_pagamento_pendente';
+  user_id: string;
+  created_at: string;
+}
+
+export interface Personnel {
+  id: string;
+  team_id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  type: 'fixo' | 'freelancer';
+  monthly_salary?: number;
+  event_cache?: number;
+  overtime_rate?: number;
+  cpf?: string;
+  cnpj?: string;
+  created_at: string;
+  functions?: Func[]; // Array of associated functions
+  // Redacted fields for coordinators
+  email_masked?: string;
+  phone_masked?: string;
+  cpf_masked?: string;
+  cnpj_masked?: string;
+  salary_range?: string;
+}
+
+export interface Func {
+  id: string;
+  team_id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface Division {
+  id: string;
+  team_id: string;
+  event_id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface Assignment {
+  id: string;
+  team_id: string;
+  event_id: string;
+  division_id: string;
+  personnel_id: string;
+  function_name: string;
+  work_days: string[];
+  event_specific_cache?: number;
+  created_at: string;
+}
+
+export interface WorkRecord {
+  id: string;
+  team_id: string;
+  employee_id: string;
+  event_id: string;
+  work_date: string;
+  hours_worked: number;
+  overtime_hours: number;
+  total_pay: number;
+  created_at: string;
+}
+
+interface PersonnelFormData {
+  name: string;
+  email: string;
+  phone: string;
+  type: 'fixo' | 'freelancer';
+  monthly_salary: number;
+  event_cache: number;
+  overtime_rate: number;
+  cpf: string;
+  cnpj: string;
+  functionIds: string[]; // Array of function IDs instead of single function_id
+  pixKey?: string; // PIX key field (handled separately)
+}
+
+// Helper function to sanitize personnel data for database operations
+const sanitizePersonnelData = (data: PersonnelFormData | Partial<PersonnelFormData>) => {
+  const { functionIds, pixKey, ...sanitized } = data;
+  // Ensure type is converted to string for database
+  if (sanitized.type) {
+    (sanitized as any).type = sanitized.type as string;
+  }
+  return sanitized as any; // Use any to bypass strict type checking for database operations
+};
+
+interface EnhancedDataContextType {
+  events: Event[];
+  personnel: Personnel[];
+  functions: Func[];
+  divisions: Division[];
+  assignments: Assignment[];
+  workLogs: WorkRecord[];
+  loading: boolean;
+  addEvent: (event: Omit<Event, 'id' | 'created_at' | 'team_id'>) => Promise<string | null>;
+  updateEvent: (event: Event) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
+  addPersonnel: (personnel: PersonnelFormData) => Promise<string | null>;
+  updatePersonnel: (id: string, personnel: Partial<PersonnelFormData>) => Promise<void>;
+  deletePersonnel: (id: string) => Promise<void>;
+  addFunction: (func: Omit<Func, 'id' | 'created_at' | 'team_id'>) => Promise<string | null>;
+  updateFunction: (func: Func) => Promise<void>;
+  deleteFunction: (id: string) => Promise<void>;
+  addDivision: (division: Omit<Division, 'id' | 'created_at' | 'team_id'>) => Promise<string | null>;
+  updateDivision: (division: Division) => Promise<void>;
+  deleteDivision: (id: string) => Promise<void>;
+  addAssignment: (assignment: Omit<Assignment, 'id' | 'created_at' | 'team_id'>) => Promise<void>;
+  deleteAssignment: (id: string) => Promise<void>;
+  addWorkLog: (workLog: Omit<WorkRecord, 'id' | 'created_at' | 'team_id'>) => Promise<void>;
+  updateWorkLog: (workLog: WorkRecord) => Promise<void>;
+  deleteWorkLog: (id: string) => Promise<void>;
+}
+
+const EnhancedDataContext = createContext<EnhancedDataContextType | undefined>(undefined);
+
+// Type guard to check if an object is a valid data object (not an error)
+const isValidDataObject = (obj: any): obj is Record<string, any> => {
+  return obj && typeof obj === 'object' && !obj.error && !obj.message && !obj.code;
+};
+
+export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [personnel, setPersonnel] = useState<Personnel[]>([]);
+  const [functions, setFunctions] = useState<Func[]>([]);
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [workLogs, setWorkLogs] = useState<WorkRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const { user } = useAuth();
+  const { activeTeam } = useTeam();
+  const { toast } = useToast();
+
+  const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]> => {
+    console.log('Fetching personnel with functions for team:', teamId);
+    
+    try {
+      // Use the personnel service that handles role-based access
+      const personnelData = await fetchPersonnelByRole(teamId);
+      console.log('Personnel data fetched:', personnelData.length, 'records');
+      
+      // Fetch personnel functions associations (safe to fetch for all roles)
+      const { data: personnelFunctionsData, error: personnelFunctionsError } = await supabase
+        .from('personnel_functions')
+        .select(`
+          personnel_id,
+          function_id,
+          functions:function_id (
+            id,
+            name,
+            description
+          )
+        `)
+        .eq('team_id', teamId);
+
+      if (personnelFunctionsError) {
+        console.error('Error fetching personnel functions:', personnelFunctionsError);
+        // Continue without functions rather than failing completely
+      }
+
+      // Map personnel with their functions
+      const personnelWithFunctions: Personnel[] = personnelData.map(person => {
+        const personFunctions = (personnelFunctionsData || [])
+          .filter(pf => pf.personnel_id === person.id)
+          .map(pf => pf.functions)
+          .filter(f => f != null) as Func[];
+
+        return {
+          ...person,
+          functions: personFunctions,
+          type: (person.type === 'fixo' || person.type === 'freelancer') ? person.type : 'freelancer',
+          monthly_salary: person.monthly_salary || 0,
+          event_cache: person.event_cache || 0,
+          overtime_rate: person.overtime_rate || 0,
+        };
+      });
+
+      console.log('Personnel with functions processed:', personnelWithFunctions.length, 'records');
+      return personnelWithFunctions;
+    } catch (error) {
+      console.error('Error in fetchPersonnelWithFunctions:', error);
+      return [];
+    }
+  };
+
+  const initializeData = async () => {
+    if (!user) {
+      console.log('User not available');
+      return;
+    }
+
+    // Super admins não precisam de equipe ativa - podem ver todos os dados
+    const isSuperAdmin = user.role === 'superadmin';
+    if (!activeTeam && !isSuperAdmin) {
+      console.log('Active team not available and user is not super admin');
+      return;
+    }
+
+    try {
+      // Only set loading true for the very first data fetch
+      if (!isInitialized) {
+        setLoading(true);
+      }
+      console.log('Initializing data for:', isSuperAdmin ? 'super admin (all teams)' : `team: ${activeTeam?.id}`);
+
+      // Para super admins, buscar todos os dados sem filtro de team_id
+      // Para usuários normais, filtrar por team_id
+      const [
+        eventsResult,
+        functionsResult,
+        divisionsResult,
+        assignmentsResult,
+        workRecordsResult
+      ] = await Promise.all([
+        isSuperAdmin 
+          ? supabase.from('events').select('*')
+          : supabase.from('events').select('*').eq('team_id', activeTeam!.id),
+        isSuperAdmin 
+          ? supabase.from('functions').select('*')
+          : supabase.from('functions').select('*').eq('team_id', activeTeam!.id),
+        isSuperAdmin 
+          ? supabase.from('event_divisions').select('*')
+          : supabase.from('event_divisions').select('*').eq('team_id', activeTeam!.id),
+        isSuperAdmin 
+          ? supabase.from('personnel_allocations').select('*')
+          : supabase.from('personnel_allocations').select('*').eq('team_id', activeTeam!.id),
+        isSuperAdmin 
+          ? supabase.from('work_records').select('*')
+          : supabase.from('work_records').select('*').eq('team_id', activeTeam!.id)
+      ]);
+
+      // Fetch personnel with functions using the new method
+      const personnelWithFunctions = isSuperAdmin 
+        ? [] // TODO: Implement super admin personnel fetch if needed
+        : await fetchPersonnelWithFunctions(activeTeam!.id);
+
+      // Process events
+      if (eventsResult.data && Array.isArray(eventsResult.data)) {
+        const validEvents: Event[] = [];
+        
+        for (const event of eventsResult.data) {
+          if (isValidDataObject(event)) {
+            validEvents.push({
+              id: event.id || '',
+              team_id: event.team_id || (activeTeam?.id || ''),
+              name: event.name || '',
+              description: event.description || '',
+              start_date: event.start_date || '',
+              end_date: event.end_date || '',
+              payment_due_date: event.payment_due_date || '',
+              setup_start_date: event.setup_start_date || '',
+              setup_end_date: event.setup_end_date || '',
+              location: event.location || '',
+              client_contact_phone: event.client_contact_phone || '',
+              status: event.status as 'planejado' | 'em_andamento' | 'concluido' | 'cancelado' || 'planejado',
+              user_id: '',
+              created_at: event.created_at || ''
+            });
+          }
+        }
+        setEvents(validEvents);
+      } else {
+        setEvents([]);
+      }
+      
+      // Set personnel with functions
+      setPersonnel(personnelWithFunctions);
+      
+      // Process functions
+      if (functionsResult.data && Array.isArray(functionsResult.data)) {
+        const validFunctions: Func[] = [];
+        
+        for (const func of functionsResult.data) {
+          if (isValidDataObject(func)) {
+            validFunctions.push({
+              id: func.id || '',
+              team_id: func.team_id || (activeTeam?.id || ''),
+              name: func.name || '',
+              description: func.description || '',
+              created_at: func.created_at || ''
+            });
+          }
+        }
+        setFunctions(validFunctions);
+      } else {
+        setFunctions([]);
+      }
+      
+      // Process divisions
+      if (divisionsResult.data && Array.isArray(divisionsResult.data)) {
+        const validDivisions: Division[] = [];
+        
+        for (const division of divisionsResult.data) {
+          if (isValidDataObject(division)) {
+            validDivisions.push({
+              id: division.id || '',
+              team_id: division.team_id || (activeTeam?.id || ''),
+              event_id: division.event_id || '',
+              name: division.name || '',
+              description: division.description || '',
+              created_at: division.created_at || ''
+            });
+          }
+        }
+        setDivisions(validDivisions);
+      } else {
+        setDivisions([]);
+      }
+      
+      // Process assignments
+      if (assignmentsResult.data && Array.isArray(assignmentsResult.data)) {
+        const validAssignments: Assignment[] = [];
+        
+        for (const assignment of assignmentsResult.data) {
+          if (isValidDataObject(assignment)) {
+            validAssignments.push({
+              id: assignment.id || '',
+              team_id: assignment.team_id || (activeTeam?.id || ''),
+              event_id: assignment.event_id || '',
+              division_id: assignment.division_id || '',
+              personnel_id: assignment.personnel_id || '',
+              function_name: assignment.function_name || '',
+              work_days: assignment.work_days || [],
+              event_specific_cache: assignment.event_specific_cache || undefined,
+              created_at: assignment.created_at || ''
+            });
+          }
+        }
+        setAssignments(validAssignments);
+      } else {
+        setAssignments([]);
+      }
+      
+      // Process work records
+      if (workRecordsResult.data && Array.isArray(workRecordsResult.data)) {
+        const validWorkRecords: WorkRecord[] = [];
+        
+        for (const record of workRecordsResult.data) {
+          if (isValidDataObject(record)) {
+            validWorkRecords.push({
+              id: record.id || '',
+              team_id: record.team_id || (activeTeam?.id || ''),
+              employee_id: record.employee_id || '',
+              event_id: record.event_id || '',
+              work_date: record.work_date || '',
+              hours_worked: record.hours_worked || 0,
+              overtime_hours: record.overtime_hours || 0,
+              total_pay: record.total_pay || 0,
+              created_at: record.created_at || ''
+            });
+          }
+        }
+        setWorkLogs(validWorkRecords);
+        console.log('Work records loaded:', validWorkRecords.length, validWorkRecords);
+      } else {
+        setWorkLogs([]);
+        console.log('No work records found');
+      }
+
+      console.log('Data initialization completed successfully');
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('Error initializing data:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar dados da equipe",
+        variant: "destructive"
+      });
+    } finally {
+      // Only set loading false if it was set true (i.e., first initialization)
+      if (!isInitialized) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const addEvent = async (event: Omit<Event, 'id' | 'created_at' | 'team_id'>): Promise<string | null> => {
+    if (!user || !activeTeam) {
+      toast({
+        title: "Erro",
+        description: !user ? "Usuário não autenticado" : "Selecione uma equipe ativa",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      // CORREÇÃO: Remove user_id da inserção, apenas adiciona team_id
+      const { user_id, ...eventWithoutUserId } = event;
+      const dataToInsert = {
+        ...eventWithoutUserId,
+        team_id: activeTeam.id
+      };
+
+      const { data, error } = await supabase
+        .from('events')
+        .insert([dataToInsert])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data && isValidDataObject(data)) {
+        const newEvent: Event = {
+          id: data.id,
+          team_id: activeTeam?.id || '',
+          name: data.name,
+          description: data.description,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          payment_due_date: data.payment_due_date,
+          setup_start_date: data.setup_start_date,
+          setup_end_date: data.setup_end_date,
+          location: data.location,
+          client_contact_phone: data.client_contact_phone,
+          status: data.status as 'planejado' | 'em_andamento' | 'concluido' | 'cancelado' | 'concluido_pagamento_pendente' || 'planejado',
+          user_id: '',
+          created_at: data.created_at
+        };
+        // CORREÇÃO: Atualiza o estado local com o novo evento
+        setEvents(prevEvents => [newEvent, ...prevEvents]);
+        return data.id as string;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error adding event:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao adicionar evento",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const updateEvent = async (event: Event): Promise<void> => {
+    if (!activeTeam) return;
+
+    try {
+      // 1. Envia a atualização para o banco
+      const { error } = await supabase
+        .from('events')
+        .update({ 
+          name: event.name, 
+          description: event.description,
+          start_date: event.start_date, 
+          end_date: event.end_date,
+          payment_due_date: event.payment_due_date,
+          location: event.location,
+          client_contact_phone: event.client_contact_phone,
+          setup_start_date: event.setup_start_date,
+          setup_end_date: event.setup_end_date,
+          status: event.status
+        })
+        .eq('id', event.id)
+        .eq('team_id', activeTeam.id);
+
+      if (error) throw error;
+
+      // 2. ATUALIZAÇÃO OTIMISTA: Atualiza o estado local imediatamente
+      setEvents(prevEvents =>
+        prevEvents.map(e => (e.id === event.id ? event : e))
+      );
+
+      toast({
+        title: "Sucesso",
+        description: "Evento atualizado com sucesso!",
+      });
+
+    } catch (error) {
+      console.error('Error updating event:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar evento",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteEvent = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setEvents(prevEvents => prevEvents.filter(event => event.id !== id));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir evento",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addPersonnel = async (personnelData: PersonnelFormData): Promise<string | null> => {
+    if (!user || !activeTeam) {
+      toast({
+        title: "Erro de Contexto",
+        description: "Nenhuma equipe ativa selecionada. Por favor, selecione uma equipe.",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      // Extract function IDs and sanitize data for database
+      const { functionIds } = personnelData;
+      const sanitizedPersonnelData = sanitizePersonnelData(personnelData);
+
+      // Insert personnel record
+      const { data: newPersonnel, error: personnelError } = await supabase
+        .from('personnel')
+        .insert({ ...sanitizedPersonnelData, team_id: activeTeam.id })
+        .select()
+        .single();
+
+      if (personnelError) throw personnelError;
+
+      // Insert function associations
+      if (functionIds.length > 0) {
+        const functionAssociations = functionIds.map(functionId => ({
+          personnel_id: newPersonnel.id,
+          function_id: functionId,
+          team_id: activeTeam.id
+        }));
+
+        const { error: functionsError } = await supabase
+          .from('personnel_functions')
+          .insert(functionAssociations);
+
+        if (functionsError) {
+          // If function associations fail, clean up the personnel record
+          await supabase.from('personnel').delete().eq('id', newPersonnel.id);
+          throw functionsError;
+        }
+      }
+
+      // Refresh personnel list to get updated data with functions
+      const updatedPersonnel = await fetchPersonnelWithFunctions(activeTeam.id);
+      setPersonnel(updatedPersonnel);
+
+      toast({
+        title: "Sucesso",
+        description: "Profissional adicionado com sucesso!",
+      });
+
+      return newPersonnel.id;
+
+    } catch (error: any) {
+      console.error('Error adding personnel:', error);
+      toast({
+        title: "Falha ao Adicionar",
+        description: error.message || "Não foi possível adicionar o profissional.",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const updatePersonnel = async (id: string, personnelData: Partial<PersonnelFormData>): Promise<void> => {
+    if (!activeTeam) return;
+
+    try {
+      // Extract function IDs and sanitize data for database
+      const { functionIds } = personnelData;
+      const sanitizedPersonnelData = sanitizePersonnelData(personnelData);
+
+      // Update personnel record
+      const { error: personnelError } = await supabase
+        .from('personnel')
+        .update(sanitizedPersonnelData)
+        .eq('id', id)
+        .eq('team_id', activeTeam.id);
+
+      if (personnelError) throw personnelError;
+
+      // Update function associations if functionIds is provided
+      if (functionIds !== undefined) {
+        // Delete existing associations
+        const { error: deleteError } = await supabase
+          .from('personnel_functions')
+          .delete()
+          .eq('personnel_id', id)
+          .eq('team_id', activeTeam.id);
+
+        if (deleteError) throw deleteError;
+
+        // Insert new associations
+        if (functionIds.length > 0) {
+          const functionAssociations = functionIds.map(functionId => ({
+            personnel_id: id,
+            function_id: functionId,
+            team_id: activeTeam.id
+          }));
+
+          const { error: insertError } = await supabase
+            .from('personnel_functions')
+            .insert(functionAssociations);
+
+          if (insertError) throw insertError;
+        }
+      }
+
+      // Refresh personnel list to get updated data with functions
+      const updatedPersonnel = await fetchPersonnelWithFunctions(activeTeam.id);
+      setPersonnel(updatedPersonnel);
+
+      toast({
+        title: "Sucesso",
+        description: "Profissional atualizado com sucesso!",
+      });
+
+    } catch (error) {
+      console.error('Error updating personnel:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar pessoa",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deletePersonnel = async (id: string): Promise<void> => {
+    try {
+      // The CASCADE delete will automatically remove personnel_functions records
+      const { error } = await supabase
+        .from('personnel')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setPersonnel(prevPersonnel => prevPersonnel.filter(personnel => personnel.id !== id));
+    } catch (error) {
+      console.error('Error deleting personnel:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir pessoa",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addFunction = async (functionData: Omit<Func, 'id' | 'team_id' | 'created_at'>): Promise<string | null> => {
+    // 1. Validação: Garante que um usuário e uma equipe ativa existam.
+    if (!user || !activeTeam) {
+      toast({
+        title: "Erro de Contexto",
+        description: "Nenhuma equipe ativa selecionada. Por favor, selecione uma equipe.",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      // 2. CORREÇÃO: Remove user_id da inserção, apenas adiciona team_id
+      const dataToInsert = {
+        ...functionData,
+        team_id: activeTeam.id
+      };
+
+      // 3. Insere o registro completo no banco de dados.
+      const { data, error } = await supabase
+        .from('functions')
+        .insert([dataToInsert])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // 4. CORREÇÃO: Atualização Otimista - adiciona no início da lista
+      setFunctions(prev => [data as Func, ...prev]);
+
+      toast({
+        title: "Sucesso",
+        description: "Função criada com sucesso!",
+      });
+
+      return data.id;
+
+    } catch (error: any) {
+      console.error('Error adding function:', error);
+      toast({
+        title: "Falha ao Adicionar",
+        description: error.message || "Não foi possível adicionar a função.",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const updateFunction = async (func: Func): Promise<void> => {
+    if (!activeTeam) return;
+
+    try {
+      // 1. Envia a atualização para o banco
+      const { error } = await supabase
+        .from('functions')
+        .update({ name: func.name, description: func.description })
+        .eq('id', func.id)
+        .eq('team_id', activeTeam.id);
+
+      if (error) throw error;
+
+      // 2. ATUALIZAÇÃO OTIMISTA: Atualiza o estado local imediatamente
+      setFunctions(prevFunctions =>
+        prevFunctions.map(f => (f.id === func.id ? func : f))
+      );
+
+      toast({
+        title: "Sucesso",
+        description: "Função atualizada com sucesso!",
+      });
+
+    } catch (error) {
+      console.error('Error updating function:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar função",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteFunction = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('functions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setFunctions(prevFunctions => prevFunctions.filter(func => func.id !== id));
+    } catch (error) {
+      console.error('Error deleting function:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir função",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addDivision = async (division: Omit<Division, 'id' | 'created_at' | 'team_id'>): Promise<string | null> => {
+    if (!user) {
+      console.error('AddDivision: User not available');
+      return null;
+    }
+    
+    if (!activeTeam) {
+      console.error('AddDivision: Active team not available');
+      return null;
+    }
+
+    try {
+      console.log('=== AddDivision: Starting division creation ===');
+      console.log('Division data:', division);
+      console.log('User ID:', user.id);
+      console.log('Active team ID:', activeTeam.id);
+      
+      const divisionWithTeam = { 
+        ...division, 
+        team_id: activeTeam.id
+      };
+      
+      console.log('Division data for DB:', divisionWithTeam);
+      
+      const { data, error } = await supabase
+        .from('event_divisions')
+        .insert([divisionWithTeam])
+        .select()
+        .single();
+        
+      console.log('Division insert result:', { data, error });
+
+      if (error) {
+        console.error('Division insert error:', error);
+        
+        // Tratamento específico para violação de constraint de unicidade
+        if (error.code === '23505' && error.message?.includes('unique_division_name_per_event')) {
+          toast({
+            title: "Divisão duplicada",
+            description: "Uma divisão com este nome já existe para este evento.",
+            variant: "destructive",
+          });
+          return null;
+        }
+        
+        throw error;
+      }
+
+      if (data && isValidDataObject(data)) {
+        const newDivision: Division = {
+          id: data.id,
+          team_id: activeTeam.id,
+          event_id: data.event_id,
+          name: data.name,
+          description: data.description,
+          created_at: data.created_at
+        };
+        console.log('Division created successfully:', newDivision);
+        setDivisions(prevDivisions => [newDivision, ...prevDivisions]);
+        return data.id as string;
+      } else {
+        console.error('Invalid division data returned:', data);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error adding division:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao adicionar divisão",
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const updateDivision = async (division: Division): Promise<void> => {
+    if (!activeTeam) return;
+
+    try {
+      // 1. Envia a atualização para o banco
+      const { error } = await supabase
+        .from('event_divisions')
+        .update({ name: division.name, description: division.description })
+        .eq('id', division.id)
+        .eq('team_id', activeTeam.id);
+
+      if (error) throw error;
+
+      // 2. ATUALIZAÇÃO OTIMISTA: Atualiza o estado local imediatamente
+      setDivisions(prevDivisions =>
+        prevDivisions.map(d => (d.id === division.id ? division : d))
+      );
+
+      toast({
+        title: "Sucesso",
+        description: "Divisão atualizada com sucesso!",
+      });
+
+    } catch (error) {
+      console.error('Error updating division:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar divisão",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteDivision = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('event_divisions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setDivisions(prevDivisions => prevDivisions.filter(division => division.id !== id));
+    } catch (error) {
+      console.error('Error deleting division:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir divisão",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addAssignment = async (assignmentData: Omit<Assignment, 'id' | 'created_at' | 'team_id'>): Promise<void> => {
+    if (!user || !activeTeam) {
+      toast({ 
+        title: "Erro", 
+        description: "Usuário ou equipe não selecionada.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    try {
+      console.log('=== EnhancedDataContext: Starting assignment creation ===');
+      console.log('Assignment data received:', assignmentData);
+      
+      // 1. CORREÇÃO: Remove user_id da inserção, apenas adiciona team_id
+      const newAssignmentData = { 
+        ...assignmentData, 
+        team_id: activeTeam.id
+      };
+      
+      console.log('Prepared assignment data for DB:', newAssignmentData);
+
+      // 2. Insere no banco de dados e usa .select().single() para obter o registro completo de volta
+      const { data: newAssignment, error } = await supabase
+        .from('personnel_allocations')
+        .insert([newAssignmentData])
+        .select()
+        .single();
+        
+      console.log('Database insert result:', { data: newAssignment, error });
+
+      if (error) {
+        console.error('Database error:', error);
+        // Se houver um erro de chave duplicada (mesma pessoa no mesmo evento)
+        if (error.code === '23505') {
+          throw new Error("Esta pessoa já está alocada neste evento.");
+        }
+        if (error.message?.includes('Esta pessoa já está alocada')) {
+          throw new Error(error.message);
+        }
+        throw error;
+      }
+
+      // 3. ATUALIZAÇÃO OTIMISTA: Adiciona o novo registro diretamente ao estado local
+      if (newAssignment && isValidDataObject(newAssignment)) {
+        console.log('Assignment created successfully, updating local state');
+        const formattedAssignment: Assignment = {
+          id: newAssignment.id,
+          team_id: activeTeam.id,
+          event_id: newAssignment.event_id,
+          division_id: newAssignment.division_id,
+          personnel_id: newAssignment.personnel_id,
+          function_name: newAssignment.function_name,
+          work_days: newAssignment.work_days || [],
+          event_specific_cache: newAssignment.event_specific_cache || undefined,
+          created_at: newAssignment.created_at
+        };
+        
+        console.log('Adding assignment to local state:', formattedAssignment);
+        setAssignments(currentAssignments => {
+          const updated = [formattedAssignment, ...currentAssignments];
+          console.log('Updated assignments list:', updated);
+          return updated;
+        });
+      } else {
+        console.error('No assignment data returned from database or invalid data:', newAssignment);
+        throw new Error('Dados inválidos retornados do banco de dados');
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Alocação criada com sucesso!",
+      });
+
+    } catch (error: any) {
+      console.error('Error adding assignment:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao criar alocação.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteAssignment = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('personnel_allocations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setAssignments(prevAssignments => prevAssignments.filter(assignment => assignment.id !== id));
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir alocação",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addWorkLog = async (workLog: Omit<WorkRecord, 'id' | 'created_at' | 'team_id'>): Promise<void> => {
+    if (!user || !activeTeam) return;
+
+    try {
+      // CORREÇÃO: Remove user_id da inserção, apenas adiciona team_id
+      const dataToInsert = {
+        ...workLog,
+        team_id: activeTeam.id
+      };
+
+      const { data, error } = await supabase
+        .from('work_records')
+        .insert([dataToInsert])
+        .select()
+        .single();
+  
+      if (error) {
+        console.error('Error adding work log:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao adicionar lançamento de horas",
+          variant: "destructive"
+        });
+        return;
+      }
+  
+      if (data && isValidDataObject(data)) {
+        const newWorkLog: WorkRecord = {
+          id: data.id,
+          team_id: activeTeam?.id || '',
+          employee_id: data.employee_id,
+          event_id: data.event_id,
+          work_date: data.work_date,
+          hours_worked: data.hours_worked,
+          overtime_hours: data.overtime_hours,
+          total_pay: data.total_pay,
+          created_at: data.created_at
+        };
+        setWorkLogs(prevWorkLogs => [newWorkLog, ...prevWorkLogs]);
+      } else {
+        console.error('Invalid data object returned after insert:', data);
+        toast({
+          title: "Erro",
+          description: "Falha ao adicionar lançamento de horas: dados inválidos",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error adding work log:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao adicionar lançamento de horas",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateWorkLog = async (workLog: WorkRecord): Promise<void> => {
+    if (!activeTeam) return;
+
+    try {
+      // 1. Envia a atualização para o banco
+      const { error } = await supabase
+        .from('work_records')
+        .update({
+          employee_id: workLog.employee_id,
+          event_id: workLog.event_id,
+          work_date: workLog.work_date,
+          hours_worked: workLog.hours_worked,
+          overtime_hours: workLog.overtime_hours,
+          total_pay: workLog.total_pay
+        })
+        .eq('id', workLog.id)
+        .eq('team_id', activeTeam.id);
+
+      if (error) throw error;
+
+      // 2. ATUALIZAÇÃO OTIMISTA: Atualiza o estado local imediatamente
+      setWorkLogs(prevWorkLogs =>
+        prevWorkLogs.map(w => (w.id === workLog.id ? workLog : w))
+      );
+
+      toast({
+        title: "Sucesso",
+        description: "Lançamento de horas atualizado com sucesso!",
+      });
+
+    } catch (error) {
+      console.error('Error updating work log:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar lançamento de horas",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteWorkLog = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('work_records')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setWorkLogs(prevWorkLogs => prevWorkLogs.filter(workLog => workLog.id !== id));
+    } catch (error) {
+      console.error('Error deleting work log:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir lançamento de horas",
+        variant: "destructive"
+      });
+    }
+  };
+
+  useEffect(() => {
+    initializeData();
+  }, [user, activeTeam]);
+
+  const value: EnhancedDataContextType = {
+    events,
+    personnel,
+    functions,
+    divisions,
+    assignments,
+    workLogs,
+    loading,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    addPersonnel,
+    updatePersonnel,
+    deletePersonnel,
+    addFunction,
+    updateFunction,
+    deleteFunction,
+    addDivision,
+    updateDivision,
+    deleteDivision,
+    addAssignment,
+    deleteAssignment,
+    addWorkLog,
+    updateWorkLog,
+    deleteWorkLog,
+  };
+
+  return (
+    <EnhancedDataContext.Provider value={value}>
+      {children}
+    </EnhancedDataContext.Provider>
+  );
+};
+
+export const useEnhancedData = () => {
+  const context = useContext(EnhancedDataContext);
+  if (context === undefined) {
+    throw new Error('useEnhancedData must be used within an EnhancedDataProvider');
+  }
+  return context;
+};

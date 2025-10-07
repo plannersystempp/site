@@ -1,0 +1,540 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  * {
+    background: transparent !important;
+    color: black !important;
+  }
+}
+
+@media screen {
+  .print-only {
+    display: none;
+  }
+}
+
+/* Regras de impressão otimizadas para A4 retrato */
+@media print {
+  /* Configuração da página */
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm 1cm;
+  }
+
+  /* Esconde tudo por padrão */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Mostra apenas a seção de impressão e seus filhos */
+  .print-section, .print-section * {
+    visibility: visible;
+  }
+
+  /* Posiciona a seção de impressão para ocupar toda a página */
+  .print-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Remove margens e define um estilo limpo */
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: white !important;
+    color: black !important;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  /* Esconde elementos desnecessários na impressão */
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Mostra elementos apenas na impressão */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Estilos específicos da tabela de folha de pagamento */
+  .payroll-table-container {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .payroll-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .payroll-th {
+    border: 1px solid #333;
+    padding: 6px 4px;
+    background-color: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  .payroll-td {
+    border: 1px solid #333;
+    padding: 5px 4px;
+    page-break-inside: avoid;
+  }
+
+  .payroll-row-even {
+    background-color: #fafafa !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .payroll-row-odd {
+    background-color: white !important;
+  }
+
+  .payroll-total-row {
+    border-top: 2px solid #333 !important;
+  }
+
+  .payroll-total-row .payroll-td {
+    border-top: 2px solid #333 !important;
+    padding: 8px 4px;
+    font-weight: bold;
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Evita quebras de página indesejadas */
+  .payroll-table thead {
+    display: table-header-group;
+  }
+
+  .payroll-table tfoot {
+    display: table-footer-group;
+  }
+
+  .payroll-table tbody tr {
+    page-break-inside: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Garante que o total apareça apenas uma vez */
+  .payroll-table tfoot tr {
+    page-break-before: avoid;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Força quebra de página */
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Remove espaços extras e otimiza layout */
+  h1, h2, h3 {
+    margin: 0.25rem 0;
+    page-break-after: avoid;
+  }
+
+  /* Evita páginas vazias */
+  .print-section {
+    page-break-after: avoid;
+  }
+}
+
+/* Design system for SIGE - Sistema de Gestão de Eventos */
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 237 72% 59%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 237 72% 59%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 237 72% 65%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 237 72% 50%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Custom SIGE colors */
+    --success: 142 76% 36%;
+    --warning: 45 93% 47%;
+    --info: 221 83% 53%;
+    --dashboard-bg: 240 10% 3.9%;
+    --chart-blue: 217 91% 60%;
+    --chart-green: 142 69% 58%;
+    --chart-orange: 25 95% 53%;
+    --chart-purple: 262 83% 58%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .animate-counter {
+    animation: counter 2s ease-out forwards;
+  }
+
+  @keyframes counter {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Mobile optimizations to prevent auto-zoom */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Prevent auto-zoom on inputs in mobile */
+input, select, textarea {
+  font-size: 16px;
+}
+
+/* Mobile responsive layout fixes */
+@media screen and (max-width: 768px) {
+  .container, .page-wrapper {
+    width: 100%;
+    max-width: 100vw;
+    padding: 0.5rem;
+  }
+  
+  /* Ensure all cards and components are responsive */
+  .card, [class*="card"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Fix for tables and wide content */
+  .table-container, table {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  /* Responsive buttons and form elements */
+  button, .button {
+    min-height: 44px; /* Touch-friendly */
+  }
+  
+  /* Prevent horizontal scroll */
+  body, html, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}
+
+/* REMOÇÃO COMPLETA DO BADGE LOVABLE - CSS ROBUSTO E ESPECÍFICO */
+/* Esta seção deve permanecer no final do arquivo para máxima prioridade */
+
+/* Seletores básicos para elementos com "lovable" */
+a[href*="lovable.dev"],
+a[href*="lovable"],
+iframe[src*="lovable.dev"],
+iframe[src*="lovable"],
+div[style*="Edit with Lovable"],
+div[style*="lovable"],
+.lovable-badge,
+#lovable-badge,
+*[class*="lovable" i],
+*[id*="lovable" i],
+*[data-testid*="lovable" i],
+*[aria-label*="lovable" i],
+*[title*="lovable" i],
+*[alt*="lovable" i],
+*[data-label*="lovable" i] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -99999px !important;
+  top: -99999px !important;
+  z-index: -99999 !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remover elementos fixos suspeitos no canto inferior direito */
+*[style*="position: fixed"][style*="bottom:"],
+*[style*="position: fixed"][style*="bottom "],
+*[style*="position:fixed"][style*="bottom:"],
+*[style*="position:fixed"][style*="bottom "] {
+  display: none !important;
+}
+
+/* Elementos com posicionamento fixo que possam ser badges */
+div[style*="position: fixed"][style*="right:"][style*="bottom:"],
+div[style*="position:fixed"][style*="right:"][style*="bottom:"],
+a[style*="position: fixed"][style*="right:"][style*="bottom:"],
+a[style*="position:fixed"][style*="right:"][style*="bottom:"] {
+  display: none !important;
+}
+
+/* Elementos com z-index alto (típico de badges flutuantes) */
+*[style*="z-index: 999"],
+*[style*="z-index:999"],
+*[style*="z-index: 9999"],
+*[style*="z-index:9999"] {
+  display: none !important;
+}
+
+/* Elementos pequenos e fixos (típicos de badges) */
+*[style*="position: fixed"][style*="width: 80px"],
+*[style*="position: fixed"][style*="width:80px"],
+*[style*="position: fixed"][style*="height: 80px"],
+*[style*="position: fixed"][style*="height:80px"] {
+  display: none !important;
+}
+
+/* Classes CSS comuns de badges */
+.edit-badge,
+.editor-badge,
+.dev-badge,
+.floating-badge,
+.corner-badge,
+.bottom-right-badge,
+.external-link-badge {
+  display: none !important;
+}
+
+/* IDs comuns de badges */
+#edit-badge,
+#editor-badge,
+#dev-badge,
+#floating-badge,
+#corner-badge,
+#bottom-right-badge,
+#external-link-badge {
+  display: none !important;
+}
+
+/* Forçar remoção de elementos com texto "Lovable" ou "Edit" */
+*:not(script):not(style):not(title):not(meta) {
+  &:has-text("lovable"),
+  &:has-text("Lovable"),
+  &:has-text("LOVABLE"),
+  &:has-text("Edit with"),
+  &:has-text("Edit in") {
+    display: none !important;
+  }
+}
+
+/* Pseudo-elementos que possam conter badges */
+*::before,
+*::after {
+  content: none !important;
+}
+
+/* Remover qualquer elemento que contenha "lovable" em atributos específicos */
+*[class*="lovable" i],
+*[id*="lovable" i],
+*[data-testid*="lovable" i],
+*[aria-label*="lovable" i] {
+  display: none !important;
+}
+
+/* Última tentativa - ocultar elementos muito específicos */
+body > div:last-child[style*="position: fixed"],
+body > div:last-child[style*="position:fixed"],
+body > a:last-child[style*="position: fixed"],
+body > a:last-child[style*="position:fixed"] {
+  display: none !important;
+}
+
+/* Garantir que nenhum elemento "lovable" seja visível */
+[class*="lovable" i]:not(script):not(style),
+[id*="lovable" i]:not(script):not(style),
+[data-*="lovable" i]:not(script):not(style) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}

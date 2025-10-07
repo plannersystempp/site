@@ -1,0 +1,154 @@
+
+import { useAuth } from '@/contexts/AuthContext';
+import { useTeam } from '@/contexts/TeamContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { formatCurrency } from '@/utils/formatters';
+import { EventData } from './types';
+
+export const usePayrollActions = (
+  selectedEventId: string,
+  setEventData: React.Dispatch<React.SetStateAction<EventData>>
+) => {
+  const { user } = useAuth();
+  const { activeTeam } = useTeam();
+  const { toast } = useToast();
+
+  const handleRegisterPayment = async (personnelId: string, totalAmount: number, notes?: string) => {
+    if (!user || !activeTeam) return;
+
+    const confirmation = window.confirm(
+      `Confirma o registro de pagamento de ${formatCurrency(totalAmount)}?`
+    );
+
+    if (!confirmation) return;
+
+    try {
+        const { data, error } = await supabase
+        .from('payroll_closings')
+        .insert([{
+          event_id: selectedEventId,
+          personnel_id: personnelId,
+          total_amount_paid: totalAmount,
+          team_id: activeTeam.id,
+          notes: notes || null
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setEventData(prev => ({
+        ...prev,
+        closings: [...prev.closings, {
+          id: data.id,
+          event_id: selectedEventId,
+          personnel_id: personnelId,
+          total_amount_paid: totalAmount,
+          paid_at: data.paid_at,
+          team_id: activeTeam.id,
+          created_at: data.created_at,
+          notes: notes || undefined
+        }]
+      }));
+
+      toast({
+        title: "Sucesso",
+        description: "Pagamento registrado com sucesso",
+      });
+    } catch (error) {
+      console.error('Error registering payment:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao registrar pagamento",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRegisterPartialPayment = async (personnelId: string, amount: number, notes: string) => {
+    if (!user || !activeTeam) return;
+
+    const confirmation = window.confirm(
+      `Confirma o registro de pagamento parcial de ${formatCurrency(amount)}?`
+    );
+
+    if (!confirmation) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('payroll_closings')
+        .insert([{
+          event_id: selectedEventId,
+          personnel_id: personnelId,
+          total_amount_paid: amount,
+          team_id: activeTeam.id,
+          notes: notes || null
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setEventData(prev => ({
+        ...prev,
+        closings: [...prev.closings, {
+          id: data.id,
+          event_id: selectedEventId,
+          personnel_id: personnelId,
+          total_amount_paid: amount,
+          paid_at: data.paid_at,
+          team_id: activeTeam.id,
+          created_at: data.created_at,
+          notes: notes || undefined
+        }]
+      }));
+
+      toast({
+        title: "Sucesso",
+        description: "Pagamento parcial registrado com sucesso",
+      });
+    } catch (error) {
+      console.error('Error registering partial payment:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao registrar pagamento parcial",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCancelPayment = async (paymentId: string, personName: string) => {
+    try {
+      const { error } = await supabase
+        .from('payroll_closings')
+        .delete()
+        .eq('id', paymentId);
+
+      if (error) throw error;
+
+      setEventData(prev => ({
+        ...prev,
+        closings: prev.closings.filter(closing => closing.id !== paymentId)
+      }));
+
+      toast({
+        title: "Sucesso",
+        description: `Pagamento de ${personName} foi cancelado com sucesso`,
+      });
+    } catch (error) {
+      console.error('Error canceling payment:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao cancelar pagamento",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return {
+    handleRegisterPayment,
+    handleRegisterPartialPayment,
+    handleCancelPayment
+  };
+};

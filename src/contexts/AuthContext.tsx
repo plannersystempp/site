@@ -1,0 +1,222 @@
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { Session } from '@supabase/supabase-js';
+import type { AppUser, AuthContextType } from '@/types/auth';
+import { loginUser, signupUser, logoutUser } from '@/services/authService';
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const handleAuthChange = (event: string, session: Session | null) => {
+      console.log('Auth state change:', event, session?.user?.email);
+      
+      if (!mounted) return;
+
+      // Only sync state updates here to avoid deadlocks
+      setSession(session);
+      
+      if (session?.user) {
+        console.log('User authenticated, deferring profile fetch');
+        // Defer the async profile fetch to avoid deadlocks
+        setTimeout(() => {
+          if (mounted) {
+            fetchUserProfile(session.user.id, session.user.email);
+          }
+        }, 0);
+      } else {
+        console.log('No session user, setting user to null');
+        setUser(null);
+        setIsLoading(false);
+      }
+    };
+
+    const fetchUserProfile = async (userId: string, userEmail: string | undefined) => {
+      if (!mounted) return;
+      
+      try {
+        console.log('Fetching user profile for:', userEmail);
+        
+        // Use maybeSingle to avoid errors when no profile exists
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (!mounted) return;
+
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          // Try to create profile using RPC function
+          const { error: createError } = await supabase.rpc('ensure_user_profile', {
+            p_user_id: userId,
+            p_email: userEmail || '',
+            p_name: userEmail || 'Usuário'
+          });
+          
+          if (createError) {
+            console.error('Error creating user profile:', createError);
+            setUser(null);
+          } else {
+            // Retry fetching after creation
+            setTimeout(() => {
+              if (mounted) {
+                fetchUserProfile(userId, userEmail);
+              }
+            }, 100);
+          }
+          return;
+        }
+
+        if (profile) {
+          // Combinar dados de autenticação com perfil
+          const enhancedUser: AppUser = {
+            id: userId,
+            email: userEmail || '',
+            role: profile.role as AppUser['role'],
+            name: profile.name || userEmail || 'Usuário',
+            isApproved: profile.is_approved
+          };
+          
+          console.log('Enhanced user created:', enhancedUser);
+          setUser(enhancedUser);
+        } else {
+          console.log('No profile found for user, creating one');
+          // Create profile using RPC function
+          const { error: createError } = await supabase.rpc('ensure_user_profile', {
+            p_user_id: userId,
+            p_email: userEmail || '',
+            p_name: userEmail || 'Usuário'
+          });
+          
+          if (createError) {
+            console.error('Error creating user profile:', createError);
+            setUser(null);
+          } else {
+            // Retry fetching after creation
+            setTimeout(() => {
+              if (mounted) {
+                fetchUserProfile(userId, userEmail);
+              }
+            }, 100);
+          }
+        }
+      } catch (error) {
+        console.error('Error in fetchUserProfile:', error);
+        setUser(null);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    const initializeAuth = async () => {
+      try {
+        console.log('Initializing auth...');
+        
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (error.message?.includes('refresh_token_not_found')) {
+            console.log('Refresh token not found - user will need to login again');
+          }
+        }
+
+        console.log('Initial session retrieved:', session?.user?.email);
+        handleAuthChange('INITIAL_SESSION', session);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      handleAuthChange(event, session);
+    });
+
+    // Initialize auth
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    console.log('Login attempt for:', email);
+    try {
+      const result = await loginUser(email, password);
+      if (result.error) {
+        console.error('Login error:', result.error);
+      } else {
+        console.log('Login successful');
+      }
+      return result;
+    } catch (error) {
+      console.error('Login exception:', error);
+      return { error };
+    }
+  };
+
+  const signup = async (email: string, password: string, name: string) => {
+    console.log('Signup attempt for:', email);
+    try {
+      const result = await signupUser(email, password, name);
+      if (result.error) {
+        console.error('Signup error:', result.error);
+      } else {
+        console.log('Signup successful');
+      }
+      return result;
+    } catch (error) {
+      console.error('Signup exception:', error);
+      return { error };
+    }
+  };
+
+  const logout = async () => {
+    console.log('Logout attempt');
+    setIsLoading(true);
+    try {
+      await logoutUser();
+      console.log('Logout successful');
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  console.log('Auth state:', { user: user?.email, role: user?.role, isLoading });
+
+  return (
+    <AuthContext.Provider value={{ user, session, login, signup, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};

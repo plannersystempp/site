@@ -1,0 +1,528 @@
+
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useEnhancedData } from '@/contexts/EnhancedDataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone } from 'lucide-react';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { AllocationManager } from './AllocationManager';
+import { EventForm } from './EventForm';
+import { formatDateBR } from '@/utils/dateUtils';
+import { FreelancerRating } from '@/components/personnel/FreelancerRating';
+import { SkeletonCard } from '@/components/shared/SkeletonCard';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { AbsenceHistory } from './AbsenceHistory';
+
+export const EventDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { events, assignments, personnel, functions, workLogs, divisions, loading, deleteEvent } = useEnhancedData();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [showEditForm, setShowEditForm] = useState(false);
+
+  const event = events.find(e => e.id === id);
+  
+  // Only show skeleton on initial load, not on background refreshes
+  if (loading && events.length === 0) {
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+        </div>
+        
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-64 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-10 w-24 bg-muted rounded animate-pulse" />
+            <div className="h-10 w-32 bg-muted rounded animate-pulse" />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <SkeletonCard showSubtitle={false} />
+          <SkeletonCard showSubtitle={false} />
+          <SkeletonCard showSubtitle={false} />
+          <SkeletonCard showSubtitle={false} />
+        </div>
+        
+        <SkeletonCard />
+      </div>
+    );
+  }
+  
+  if (!event) {
+    return (
+      <div className="p-4 md:p-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Evento não encontrado</h1>
+          <Button onClick={() => navigate('/app/eventos')}>
+            Voltar para Eventos
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const eventAssignments = assignments.filter(a => a.event_id === event.id);
+  const uniquePersonnel = new Set(eventAssignments.map(a => a.personnel_id));
+  const eventWorkLogs = workLogs.filter(log => 
+    eventAssignments.some(assignment => 
+      assignment.personnel_id === log.employee_id && assignment.event_id === log.event_id
+    )
+  );
+
+  const totalOvertimeHours = eventWorkLogs.reduce((sum, log) => sum + log.overtime_hours, 0);
+
+  const handleDeleteEvent = async () => {
+    try {
+      await deleteEvent(event.id);
+      toast({
+        title: "Sucesso",
+        description: "Evento excluído com sucesso!",
+      });
+      navigate('/app/eventos');
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir evento",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 print-section">
+      <div className="flex items-center gap-4 no-print">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => navigate('/app/eventos')}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-xl md:text-3xl font-bold">{event.name}</h1>
+            <StatusBadge status={event.status || 'planejado'} />
+          </div>
+          <div className="space-y-1">
+            {event.location && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+                <span className="font-medium text-foreground">{event.location}</span>
+              </div>
+            )}
+            {event.client_contact_phone && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Phone className="w-4 h-4" />
+                <span className="font-medium text-foreground">{event.client_contact_phone}</span>
+              </div>
+            )}
+            {event.payment_due_date && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Vencimento do pagamento: <span className="font-medium text-foreground">{formatDateBR(event.payment_due_date)}</span></span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex gap-2 no-print">
+          {/* Botão secundário - Imprimir (outline) */}
+          <Button variant="outline" onClick={() => window.print()}>
+            <Printer className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Imprimir</span>
+          </Button>
+          {user?.role === 'admin' && (
+            <>
+              {/* Botão de Deletar (destructive) */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Excluir</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Evento</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir o evento "{event.name}"? 
+                      Esta ação não pode ser desfeita e removerá todas as alocações e registros relacionados.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              {/* Botão primário - Editar (solid) */}
+              <Button variant="default" onClick={() => setShowEditForm(true)}>
+                <Settings2 className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Editar</span>
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+
+      {/* Print-only simplified layout */}
+      <div className="print-only space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">{event.name}</h1>
+          <div className="text-lg text-muted-foreground">Detalhes do Evento</div>
+        </div>
+
+        {/* Event Information Table */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4 border-b pb-2">Informações do Evento</h2>
+          <table className="w-full border-collapse border border-gray-300">
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50 w-1/3">Status</td>
+                <td className="border border-gray-300 px-4 py-2">{event.status || 'planejado'}</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Data de Início</td>
+                <td className="border border-gray-300 px-4 py-2">{formatDateBR(event.start_date)}</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Data de Fim</td>
+                <td className="border border-gray-300 px-4 py-2">{formatDateBR(event.end_date)}</td>
+              </tr>
+              {event.location && (
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Local</td>
+                  <td className="border border-gray-300 px-4 py-2">{event.location}</td>
+                </tr>
+              )}
+              {event.client_contact_phone && (
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Contato do Cliente</td>
+                  <td className="border border-gray-300 px-4 py-2">{event.client_contact_phone}</td>
+                </tr>
+              )}
+              {event.payment_due_date && (
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Vencimento do Pagamento</td>
+                  <td className="border border-gray-300 px-4 py-2">{formatDateBR(event.payment_due_date)}</td>
+                </tr>
+              )}
+              {(event.setup_start_date || event.setup_end_date) && (
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Período de Montagem</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {event.setup_start_date && event.setup_end_date 
+                      ? `${formatDateBR(event.setup_start_date)} - ${formatDateBR(event.setup_end_date)}`
+                      : event.setup_start_date 
+                        ? `A partir de ${formatDateBR(event.setup_start_date)}`
+                        : `Até ${formatDateBR(event.setup_end_date!)}`
+                    }
+                  </td>
+                </tr>
+              )}
+              {event.description && (
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Descrição</td>
+                  <td className="border border-gray-300 px-4 py-2">{event.description}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Statistics Table */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4 border-b pb-2">Estatísticas</h2>
+          <table className="w-full border-collapse border border-gray-300">
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50 w-1/2">Pessoas Alocadas</td>
+                <td className="border border-gray-300 px-4 py-2">{uniquePersonnel.size}</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Total de Alocações</td>
+                <td className="border border-gray-300 px-4 py-2">{eventAssignments.length}</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Horas Extras Registradas</td>
+                <td className="border border-gray-300 px-4 py-2">{totalOvertimeHours}h</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-4 py-2 font-medium bg-gray-50">Lançamentos de Horas</td>
+                <td className="border border-gray-300 px-4 py-2">{eventWorkLogs.length}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Allocations by Division */}
+        {eventAssignments.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xl font-bold mb-4 border-b pb-2">Alocação de Pessoal</h2>
+            {(() => {
+              // Helper function to format work days as day numbers only
+              const formatWorkDays = (workDays: string[]) => {
+                if (!workDays || workDays.length === 0) return 'N/A';
+                return workDays
+                  .map(dateStr => new Date(dateStr).getDate().toString())
+                  .join(', ');
+              };
+
+              // Get event divisions and group assignments by division
+              const eventDivisions = divisions.filter(d => d.event_id === event.id);
+              const assignmentsByDivision = eventDivisions.map(division => ({
+                division,
+                assignments: eventAssignments.filter(a => a.division_id === division.id)
+              })).filter(group => group.assignments.length > 0);
+
+              return assignmentsByDivision.map(({ division, assignments }) => (
+                <div key={division.id} className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3 text-gray-700">{division.name}</h3>
+                  <table className="w-full border-collapse border border-gray-300 mb-4">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border border-gray-300 px-4 py-2 text-left">Nome</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Função</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Tipo</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Dias de Trabalho</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {assignments.map((assignment) => {
+                        const person = personnel.find(p => p.id === assignment.personnel_id);
+                        if (!person) return null;
+
+                        return (
+                          <tr key={assignment.id}>
+                            <td className="border border-gray-300 px-4 py-2">{person.name}</td>
+                            <td className="border border-gray-300 px-4 py-2">{assignment.function_name}</td>
+                            <td className="border border-gray-300 px-4 py-2 capitalize">{person.type}</td>
+                            <td className="border border-gray-300 px-4 py-2">
+                              {formatWorkDays(assignment.work_days)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ));
+            })()}
+          </div>
+        )}
+      </div>
+
+      {/* Regular UI - hidden on print */}
+      <div className="no-print">
+        {/* Grade 2x2 expandida para os cards de informação */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-4">
+          <Card>
+            <CardHeader className="pb-1 md:pb-2">
+              <CardTitle className="text-sm md:text-base font-medium flex items-center gap-2 md:gap-3">
+                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">Data de Início</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm md:text-base font-semibold">{formatDateBR(event.start_date)}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-1 md:pb-2">
+              <CardTitle className="text-sm md:text-base font-medium flex items-center gap-2 md:gap-3">
+                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">Data de Fim</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm md:text-base font-semibold">{formatDateBR(event.end_date)}</p>
+            </CardContent>
+          </Card>
+
+          {(event.setup_start_date || event.setup_end_date) && (
+            <Card>
+              <CardHeader className="pb-1 md:pb-2">
+                <CardTitle className="text-sm md:text-base font-medium flex items-center gap-2 md:gap-3">
+                  <Settings2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <span className="truncate">Montagem</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <p className="text-sm md:text-base font-semibold">
+                  {event.setup_start_date && event.setup_end_date 
+                    ? `${formatDateBR(event.setup_start_date)} - ${formatDateBR(event.setup_end_date)}`
+                    : event.setup_start_date 
+                      ? `A partir de ${formatDateBR(event.setup_start_date)}`
+                      : `Até ${formatDateBR(event.setup_end_date!)}`
+                  }
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader className="pb-1 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium flex items-center gap-1 md:gap-2">
+                <Users className="w-3 md:w-4 h-3 md:h-4 text-muted-foreground" />
+                <span className="truncate">Pessoas</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm md:text-base font-semibold">{uniquePersonnel.size}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-1 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium flex items-center gap-1 md:gap-2">
+                <Clock className="w-3 md:w-4 h-3 md:h-4 text-muted-foreground" />
+                <span className="truncate">H. Extras</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm md:text-base font-semibold">{totalOvertimeHours}h</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="allocations" className="mt-8 space-y-6">
+          <TabsList className={`grid w-full h-10 md:h-12 ${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsTrigger value="allocations" className="text-sm">Alocações</TabsTrigger>
+            <TabsTrigger value="overview" className="text-sm">Visão Geral</TabsTrigger>
+            {user?.role === 'admin' && (
+              <TabsTrigger value="absences" className="text-sm">Faltas</TabsTrigger>
+            )}
+          </TabsList>
+
+          <TabsContent value="allocations" forceMount>
+            <AllocationManager eventId={event.id} />
+          </TabsContent>
+
+          <TabsContent value="overview">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resumo do Evento</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-2">Informações Básicas</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Status:</span>
+                          <StatusBadge status={event.status || 'planejado'} />
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Criado em:</span>
+                          <span>{new Date(event.created_at).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-2">Estatísticas</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total de Alocações:</span>
+                          <span>{eventAssignments.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Pessoas Únicas:</span>
+                          <span>{uniquePersonnel.size}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Lançamentos de Horas:</span>
+                          <span>{eventWorkLogs.length}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Avaliações de Freelancers */}
+              {event.end_date && new Date(event.end_date) < new Date() && (user?.role === 'admin' || user?.role === 'coordinator') && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Avaliação de Freelancers</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {eventAssignments
+                        .filter(assignment => {
+                          const person = personnel.find(p => p.id === assignment.personnel_id);
+                          return person?.type === 'freelancer';
+                        })
+                        .map((assignment) => {
+                          const person = personnel.find(p => p.id === assignment.personnel_id);
+                          if (!person) return null;
+
+                          return (
+                            <div key={assignment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                              <div>
+                                <h4 className="font-medium">{person.name}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Função: {assignment.function_name}
+                                </p>
+                              </div>
+                              <FreelancerRating
+                                eventId={event.id}
+                                freelancerId={person.id}
+                                freelancerName={person.name}
+                              />
+                            </div>
+                          );
+                        })}
+                      {eventAssignments.filter(assignment => {
+                        const person = personnel.find(p => p.id === assignment.personnel_id);
+                        return person?.type === 'freelancer';
+                      }).length === 0 && (
+                        <p className="text-center text-muted-foreground py-4">
+                          Nenhum freelancer foi alocado neste evento.
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          {user?.role === 'admin' && (
+            <TabsContent value="absences">
+              <AbsenceHistory eventId={event.id} />
+            </TabsContent>
+          )}
+        </Tabs>
+      </div>
+
+      {showEditForm && (
+        <EventForm
+          event={event}
+          onClose={() => setShowEditForm(false)}
+          onSuccess={() => setShowEditForm(false)}
+        />
+      )}
+    </div>
+  );
+};
