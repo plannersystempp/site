@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.52.1'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
           console.log(`Successfully deleted user: ${userId}`);
         }
 
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error deleting user ${userId}:`, error);
         errors.push({ userId, error: error.message });
       }
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in delete-users-by-superadmin:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),

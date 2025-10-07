@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
       }
     )
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in update-event-status function:', error)
     
     return new Response(
