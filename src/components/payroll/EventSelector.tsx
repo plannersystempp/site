@@ -20,20 +20,20 @@ const getStatusConfig = (status: string, paymentDueDate?: string) => {
     return {
       label: 'Em Andamento',
       variant: 'default' as const,
-      className: 'bg-primary text-primary-foreground'
+      className: 'bg-indigo-500 text-white'
     };
   }
   if (status === 'concluido' || status === 'concluido_pagamento_pendente') {
     return {
       label: 'Concluído',
       variant: 'secondary' as const,
-      className: 'bg-secondary text-secondary-foreground'
+      className: 'bg-gray-400 text-white'
     };
   }
   return {
     label: 'Planejado',
     variant: 'outline' as const,
-    className: 'bg-muted text-muted-foreground'
+    className: 'border-gray-300 text-gray-600'
   };
 };
 
@@ -43,7 +43,7 @@ const getPaymentStatus = (status: string, paymentDueDate?: string) => {
   if (status === 'concluido_pagamento_pendente' || (isPastDue && status !== 'concluido')) {
     return {
       label: 'Pagamento Devido',
-      className: 'bg-destructive text-destructive-foreground'
+      className: 'bg-red-500 text-white'
     };
   }
   return null;
@@ -116,23 +116,23 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
           return (
             <Card 
               key={event.id}
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                isSelected ? 'ring-2 ring-primary' : ''
+              className={`cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 ${
+                isSelected ? 'ring-2 ring-primary border-primary' : 'border-border'
               }`}
               onClick={() => onEventChange(event.id)}
             >
-              <CardContent className="p-4 space-y-3">
-                {/* Event Name */}
+              <CardContent className="p-3 space-y-2.5">
+                {/* Event Name with Chevron */}
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-base line-clamp-2 flex-1">
+                  <h3 className="font-semibold text-base line-clamp-2 flex-1 text-foreground">
                     {event.name}
                   </h3>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                 </div>
 
                 {/* Date */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5" />
                   <span>
                     {event.start_date && formatDateBR(event.start_date)}
                     {event.end_date && event.start_date !== event.end_date && 
@@ -140,8 +140,8 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
                   </span>
                 </div>
 
-                {/* Status Badges */}
-                <div className="flex flex-wrap gap-2">
+                {/* Status Badges - Horizontal */}
+                <div className="flex flex-wrap gap-1.5">
                   <Badge className={statusConfig.className}>
                     {statusConfig.label}
                   </Badge>
@@ -153,39 +153,41 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
                   )}
                 </div>
 
-                {/* Payment Due Date */}
+                {/* Additional Info */}
+                {(event.location || event.client_contact_phone) && (
+                  <div className="text-xs text-muted-foreground space-y-0.5 pt-1">
+                    {event.location && (
+                      <p className="line-clamp-1">📍 {event.location}</p>
+                    )}
+                    {event.client_contact_phone && (
+                      <p className="line-clamp-1">📞 {event.client_contact_phone}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Payment Due Date - Highlighted */}
                 {event.payment_due_date && (
-                  <div className={`flex items-center gap-2 text-sm ${
-                    isPastDue ? 'text-destructive font-medium' : 'text-muted-foreground'
+                  <div className={`flex items-center gap-1.5 text-xs pt-1 ${
+                    isPastDue ? 'text-red-600 font-bold' : 'text-muted-foreground'
                   }`}>
-                    <Clock className="h-4 w-4" />
+                    <Clock className="h-3.5 w-3.5" />
                     <span>Vencimento: {formatDateBR(event.payment_due_date)}</span>
                   </div>
                 )}
 
-                {/* Additional Info */}
-                {(event.location || event.client_contact_phone) && (
-                  <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-                    {event.location && (
-                      <p className="line-clamp-1">Local: {event.location}</p>
-                    )}
-                    {event.client_contact_phone && (
-                      <p className="line-clamp-1">Contato: {event.client_contact_phone}</p>
-                    )}
-                  </div>
-                )}
-
                 {/* Click Action */}
-                <button 
-                  className="text-sm text-primary hover:underline flex items-center gap-1 w-full justify-start pt-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEventChange(event.id);
-                  }}
-                >
-                  Clique para abrir folha
-                  <ChevronRight className="h-3 w-3" />
-                </button>
+                <div className="pt-1 border-t border-border/50">
+                  <button 
+                    className="text-xs text-primary hover:text-primary/80 hover:underline flex items-center gap-1 w-full justify-start transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventChange(event.id);
+                    }}
+                  >
+                    Clique para abrir folha
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
               </CardContent>
             </Card>
           );
