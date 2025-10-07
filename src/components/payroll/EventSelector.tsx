@@ -1,8 +1,9 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calculator } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search, Calendar, ChevronRight, Clock, DollarSign } from 'lucide-react';
 import { formatDateBR } from '@/utils/dateUtils';
 import type { Event } from '@/contexts/DataContext';
 
@@ -12,33 +13,190 @@ interface EventSelectorProps {
   onEventChange: (eventId: string) => void;
 }
 
+const getStatusConfig = (status: string, paymentDueDate?: string) => {
+  const isPastDue = paymentDueDate && new Date(paymentDueDate) < new Date();
+  
+  if (status === 'em_andamento') {
+    return {
+      label: 'Em Andamento',
+      variant: 'default' as const,
+      className: 'bg-primary text-primary-foreground'
+    };
+  }
+  if (status === 'concluido' || status === 'concluido_pagamento_pendente') {
+    return {
+      label: 'Concluído',
+      variant: 'secondary' as const,
+      className: 'bg-secondary text-secondary-foreground'
+    };
+  }
+  return {
+    label: 'Planejado',
+    variant: 'outline' as const,
+    className: 'bg-muted text-muted-foreground'
+  };
+};
+
+const getPaymentStatus = (status: string, paymentDueDate?: string) => {
+  const isPastDue = paymentDueDate && new Date(paymentDueDate) < new Date();
+  
+  if (status === 'concluido_pagamento_pendente' || (isPastDue && status !== 'concluido')) {
+    return {
+      label: 'Pagamento Devido',
+      className: 'bg-destructive text-destructive-foreground'
+    };
+  }
+  return null;
+};
+
 export const EventSelector: React.FC<EventSelectorProps> = ({
   events,
   selectedEventId,
   onEventChange
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const filteredEvents = useMemo(() => {
+    return events.filter(event => {
+      const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.location?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    }).sort((a, b) => {
+      const dateA = new Date(a.start_date || '');
+      const dateB = new Date(b.start_date || '');
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [events, searchTerm, statusFilter]);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="w-5 h-5" />
-          Seleção de Evento
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Select value={selectedEventId} onValueChange={onEventChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione um evento para calcular a folha" />
+    <div className="space-y-4">
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar eventos por nome..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {events.map((event) => (
-              <SelectItem key={event.id} value={event.id}>
-                {event.name} - {formatDateBR(event.start_date)}
-              </SelectItem>
-            ))}
+            <SelectItem value="all">Todos os Status</SelectItem>
+            <SelectItem value="planejado">Planejado</SelectItem>
+            <SelectItem value="em_andamento">Em Andamento</SelectItem>
+            <SelectItem value="concluido">Concluído</SelectItem>
+            <SelectItem value="concluido_pagamento_pendente">Pagamento Pendente</SelectItem>
           </SelectContent>
         </Select>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Event Count */}
+      <p className="text-sm text-muted-foreground">
+        {filteredEvents.length} {filteredEvents.length === 1 ? 'evento encontrado' : 'eventos encontrados'}
+      </p>
+
+      {/* Events Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredEvents.map((event) => {
+          const statusConfig = getStatusConfig(event.status, event.payment_due_date);
+          const paymentStatus = getPaymentStatus(event.status, event.payment_due_date);
+          const isSelected = selectedEventId === event.id;
+          const isPastDue = event.payment_due_date && new Date(event.payment_due_date) < new Date();
+
+          return (
+            <Card 
+              key={event.id}
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                isSelected ? 'ring-2 ring-primary' : ''
+              }`}
+              onClick={() => onEventChange(event.id)}
+            >
+              <CardContent className="p-4 space-y-3">
+                {/* Event Name */}
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="font-semibold text-base line-clamp-2 flex-1">
+                    {event.name}
+                  </h3>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                </div>
+
+                {/* Date */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>
+                    {event.start_date && formatDateBR(event.start_date)}
+                    {event.end_date && event.start_date !== event.end_date && 
+                      ` - ${formatDateBR(event.end_date)}`}
+                  </span>
+                </div>
+
+                {/* Status Badges */}
+                <div className="flex flex-wrap gap-2">
+                  <Badge className={statusConfig.className}>
+                    {statusConfig.label}
+                  </Badge>
+                  {paymentStatus && (
+                    <Badge className={paymentStatus.className}>
+                      <DollarSign className="h-3 w-3 mr-1" />
+                      {paymentStatus.label}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Payment Due Date */}
+                {event.payment_due_date && (
+                  <div className={`flex items-center gap-2 text-sm ${
+                    isPastDue ? 'text-destructive font-medium' : 'text-muted-foreground'
+                  }`}>
+                    <Clock className="h-4 w-4" />
+                    <span>Vencimento: {formatDateBR(event.payment_due_date)}</span>
+                  </div>
+                )}
+
+                {/* Additional Info */}
+                {(event.location || event.client_contact_phone) && (
+                  <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+                    {event.location && (
+                      <p className="line-clamp-1">Local: {event.location}</p>
+                    )}
+                    {event.client_contact_phone && (
+                      <p className="line-clamp-1">Contato: {event.client_contact_phone}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Click Action */}
+                <button 
+                  className="text-sm text-primary hover:underline flex items-center gap-1 w-full justify-start pt-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEventChange(event.id);
+                  }}
+                >
+                  Clique para abrir folha
+                  <ChevronRight className="h-3 w-3" />
+                </button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredEvents.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>Nenhum evento encontrado</p>
+        </div>
+      )}
+    </div>
   );
 };
