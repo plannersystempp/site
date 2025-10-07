@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -54,6 +55,7 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
   selectedEventId,
   onEventChange
 }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -119,7 +121,7 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
               className={`cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 ${
                 isSelected ? 'ring-2 ring-primary border-primary' : 'border-border'
               }`}
-              onClick={() => onEventChange(event.id)}
+              onClick={() => navigate(`/app/folha/${event.id}`)}
             >
               <CardContent className="p-3 space-y-2.5">
                 {/* Event Name with Chevron */}
@@ -177,16 +179,10 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
 
                 {/* Click Action */}
                 <div className="pt-1 border-t border-border/50">
-                  <button 
-                    className="text-xs text-primary hover:text-primary/80 hover:underline flex items-center gap-1 w-full justify-start transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEventChange(event.id);
-                    }}
-                  >
+                  <p className="text-xs text-primary flex items-center gap-1">
                     Clique para abrir folha
                     <ChevronRight className="h-3 w-3" />
-                  </button>
+                  </p>
                 </div>
               </CardContent>
             </Card>

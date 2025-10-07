@@ -23,6 +23,7 @@ import { ManageEvents } from './components/events/ManageEvents';
 import { EventDetail } from './components/events/EventDetail';
 import { EstimatedCosts } from './components/costs/EstimatedCosts';
 import { PayrollManager } from './components/payroll/PayrollManager';
+import { PayrollEventView } from './components/payroll/PayrollEventView';
 import { PayrollReportPage } from './pages/PayrollReportPage';
 import { Settings } from './components/admin/Settings';
 import { SettingsPage } from './components/SettingsPage';
@@ -374,6 +375,7 @@ const AppContent = () => {
               <Route path="/eventos/:id" element={<EventDetail />} />
               <Route path="/custos" element={<EstimatedCosts />} />
               <Route path="/folha" element={<PayrollManager />} />
+              <Route path="/folha/:eventId" element={<PayrollEventView />} />
               <Route path="/equipe" element={<TeamManagement />} />
               <Route path="/configuracoes" element={<SettingsPage />} />
               {user.role === 'admin' && (
