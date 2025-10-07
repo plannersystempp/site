@@ -112,8 +112,8 @@ const Dashboard = () => {
           // Check if all personnel have complete payments
           let allPaid = true;
           
-          // Não marcar como completo se não há work_records E não há payroll_closings
-          if (workLogs.length === 0 && closings.length === 0) {
+          // Se há alocações mas não há work_records E não há closings, há pagamento pendente
+          if (allocations.length > 0 && workLogs.length === 0 && closings.length === 0) {
             allPaid = false;
           } else {
             for (const [personnelId, personAllocations] of Object.entries(groupedAllocations)) {
@@ -137,8 +137,8 @@ const Dashboard = () => {
               const totalPaidAmount = PayrollCalc.calculateTotalPaid(paymentRecords as any);
               const pendingAmount = PayrollCalc.calculatePendingAmount(totalPay, totalPaidAmount);
 
-              // Não marcar como completo se existe totalPay > 0 mas totalPaidAmount === 0
-              if (totalPay > 0 && totalPaidAmount === 0) {
+              // Se há closings mas nenhum pagamento foi feito, há pagamento pendente
+              if (closings.length > 0 && totalPaidAmount === 0) {
                 allPaid = false;
                 break;
               }
@@ -226,20 +226,16 @@ const Dashboard = () => {
 
   const upcomingPayments = events
     .filter(event => {
-      // Excluir eventos cancelados
+      // Excluir apenas eventos cancelados
       if (event.status === 'cancelado') return false;
       
-      // Excluir eventos com pagamentos completos
+      // Excluir apenas eventos com pagamentos REALMENTE completos
       if (eventsWithCompletePayments.has(event.id)) return false;
       
-      // Incluir eventos com status 'concluido_pagamento_pendente' sempre (independente da data)
+      // Incluir eventos com status 'concluido_pagamento_pendente' sempre
       if (event.status === 'concluido_pagamento_pendente') return true;
       
-      // Excluir apenas eventos explicitamente marcados como 'concluido' (totalmente pagos)
-      if (event.status === 'concluido') return false;
-      
-      // Para outros eventos, verificar se payment_due_date está dentro da janela de 15 dias
-      // Sem limite no passado (inclui atrasados)
+      // Para outros eventos (incluindo 'concluido'), verificar data de vencimento
       const dueDate = event.payment_due_date 
         ? new Date(event.payment_due_date + 'T12:00:00')
         : event.end_date 
@@ -249,7 +245,7 @@ const Dashboard = () => {
       // Se não tem data de vencimento nem data de término, excluir
       if (!dueDate) return false;
       
-      // Incluir se está dentro da janela: sem limite passado, até D+15
+      // Incluir se vencimento <= D+15 (sem limite no passado para incluir atrasados)
       return dueDate <= fifteenDaysFromNow;
     })
     .sort((a, b) => {
