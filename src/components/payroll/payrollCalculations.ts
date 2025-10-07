@@ -1,0 +1,361 @@
+/**
+ * Funções puras para cálculo de folha de pagamento
+ * 
+ * Este módulo contém toda a lógica de negócio para cálculo de pagamentos,
+ * isolada do React para facilitar testes e manutenção.
+ */
+
+/**
+ * Interface flexível para dados de pessoal
+ * Compatível com diferentes fontes de dados
+ */
+export interface PersonnelData {
+  id: string;
+  name: string;
+  type: 'fixo' | 'freelancer';
+  event_cache?: number;
+  monthly_salary?: number;
+  overtime_rate?: number;
+  [key: string]: any;
+}
+
+/**
+ * Representa uma alocação de pessoal em um evento
+ */
+export interface AllocationData {
+  id: string;
+  personnel_id: string;
+  event_id: string;
+  work_days: string[];
+  event_specific_cache?: number | null;
+  [key: string]: any;
+}
+
+/**
+ * Representa um registro de trabalho (horas extras)
+ */
+export interface WorkLogData {
+  id: string;
+  employee_id: string;
+  event_id: string;
+  hours_worked: number;
+  overtime_hours: number;
+  [key: string]: any;
+}
+
+/**
+ * Representa uma ausência/falta
+ */
+export interface AbsenceData {
+  id: string;
+  assignment_id: string;
+  work_date: string;
+  notes?: string;
+  logged_by_name?: string;
+  created_at?: string;
+  [key: string]: any;
+}
+
+/**
+ * Representa um registro de pagamento
+ */
+export interface PaymentRecord {
+  id: string;
+  personnel_id: string;
+  total_amount_paid: number;
+  paid_at?: string;
+  created_at?: string;
+  notes?: string;
+  [key: string]: any;
+}
+
+/**
+ * Calcula o total de dias únicos de trabalho em todas as alocações
+ * 
+ * @param allocations - Array de alocações do mesmo pessoal no mesmo evento
+ * @returns Número total de dias únicos (sem duplicatas)
+ * 
+ * @example
+ * // Pessoa alocada em 2 divisões com dias sobrepostos:
+ * // Divisão A: ['2024-01-15', '2024-01-16']
+ * // Divisão B: ['2024-01-16', '2024-01-17']
+ * // Retorna: 3 (dias únicos: 15, 16, 17)
+ */
+export function calculateUniqueWorkDays(allocations: AllocationData[]): number {
+  const uniqueDays = new Set<string>();
+  
+  for (const allocation of allocations) {
+    const workDays = allocation.work_days || [];
+    workDays.forEach(day => uniqueDays.add(day));
+  }
+  
+  return uniqueDays.size;
+}
+
+/**
+ * Calcula o total de dias efetivamente trabalhados (descontando faltas)
+ * 
+ * Regra de negócio: Dias trabalhados = Dias únicos alocados - Faltas registradas
+ * 
+ * @param allocations - Array de alocações do pessoal
+ * @param absences - Array de ausências/faltas
+ * @returns Número de dias trabalhados (nunca negativo)
+ * 
+ * @example
+ * // 5 dias alocados, 2 faltas = 3 dias trabalhados
+ * calculateWorkedDays([allocation], [absence1, absence2]) // => 3
+ */
+export function calculateWorkedDays(
+  allocations: AllocationData[],
+  absences: AbsenceData[]
+): number {
+  const totalUniqueDays = calculateUniqueWorkDays(allocations);
+  const totalAbsences = absences.length;
+  
+  // Garante que nunca retorna negativo
+  return Math.max(0, totalUniqueDays - totalAbsences);
+}
+
+/**
+ * Determina a taxa diária de cachê a ser utilizada
+ * 
+ * Ordem de prioridade:
+ * 1. event_specific_cache (valor específico definido para este evento)
+ * 2. person.event_cache (valor padrão da pessoa)
+ * 
+ * @param allocations - Alocações do pessoal (primeira alocação contém event_specific_cache)
+ * @param person - Dados do pessoal
+ * @returns Taxa diária de cachê
+ */
+export function getDailyCacheRate(
+  allocations: AllocationData[],
+  person: PersonnelData
+): number {
+  const firstAllocation = allocations[0];
+  
+  // Prioriza event_specific_cache se existir e for maior que 0
+  if (firstAllocation?.event_specific_cache && firstAllocation.event_specific_cache > 0) {
+    return firstAllocation.event_specific_cache;
+  }
+  
+  // Caso contrário, usa o cachê padrão da pessoa
+  return person.event_cache || 0;
+}
+
+/**
+ * Calcula o pagamento de cachê baseado em dias trabalhados
+ * 
+ * Fórmula: Cachê Total = Taxa Diária × Dias Trabalhados
+ * 
+ * @param allocations - Alocações do pessoal
+ * @param person - Dados do pessoal
+ * @param absences - Ausências registradas
+ * @returns Valor total de cachê a pagar
+ * 
+ * @example
+ * // Taxa: R$ 200/dia, 5 dias trabalhados
+ * calculateCachePay(allocations, person, []) // => 1000
+ * 
+ * // Taxa: R$ 200/dia, 5 dias alocados, 1 falta
+ * calculateCachePay(allocations, person, [absence]) // => 800 (4 dias × R$ 200)
+ */
+export function calculateCachePay(
+  allocations: AllocationData[],
+  person: PersonnelData,
+  absences: AbsenceData[]
+): number {
+  const workedDays = calculateWorkedDays(allocations, absences);
+  const dailyRate = getDailyCacheRate(allocations, person);
+  
+  return workedDays * dailyRate;
+}
+
+/**
+ * Calcula o total de horas extras trabalhadas
+ * 
+ * @param workLogs - Registros de trabalho
+ * @returns Total de horas extras
+ */
+export function calculateTotalOvertimeHours(workLogs: WorkLogData[]): number {
+  return workLogs.reduce((sum, log) => sum + (log.overtime_hours || 0), 0);
+}
+
+/**
+ * Calcula o total de horas regulares trabalhadas
+ * 
+ * @param workLogs - Registros de trabalho
+ * @returns Total de horas regulares
+ */
+export function calculateTotalRegularHours(workLogs: WorkLogData[]): number {
+  return workLogs.reduce((sum, log) => sum + (log.hours_worked || 0), 0);
+}
+
+/**
+ * Calcula o pagamento de horas extras
+ * 
+ * Fórmula: Pagamento HE = Total Horas Extras × Taxa Hora Extra
+ * 
+ * @param workLogs - Registros de trabalho
+ * @param person - Dados do pessoal
+ * @returns Valor total de horas extras
+ * 
+ * @example
+ * // 10 horas extras × R$ 50/hora = R$ 500
+ * calculateOvertimePay([workLog], person) // => 500
+ */
+export function calculateOvertimePay(
+  workLogs: WorkLogData[],
+  person: PersonnelData
+): number {
+  const totalOvertimeHours = calculateTotalOvertimeHours(workLogs);
+  const overtimeRate = person.overtime_rate || 0;
+  
+  return totalOvertimeHours * overtimeRate;
+}
+
+/**
+ * Calcula o salário base para funcionários fixos
+ * 
+ * Regra: Apenas funcionários do tipo 'fixo' têm salário base
+ * 
+ * @param person - Dados do pessoal
+ * @returns Salário base (0 para freelancers)
+ */
+export function calculateBaseSalary(person: PersonnelData): number {
+  if (person.type === 'fixo') {
+    return person.monthly_salary || 0;
+  }
+  return 0;
+}
+
+/**
+ * Calcula o pagamento total bruto
+ * 
+ * Fórmula: Total = Salário Base + Cachê + Horas Extras
+ * 
+ * Componentes:
+ * - Salário Base: Apenas para funcionários fixos
+ * - Cachê: Dias trabalhados × Taxa diária
+ * - Horas Extras: Total de horas × Taxa hora extra
+ * 
+ * @param allocations - Alocações do pessoal
+ * @param person - Dados do pessoal
+ * @param workLogs - Registros de trabalho
+ * @param absences - Ausências registradas
+ * @returns Valor total bruto a pagar
+ */
+export function calculateTotalPay(
+  allocations: AllocationData[],
+  person: PersonnelData,
+  workLogs: WorkLogData[],
+  absences: AbsenceData[]
+): number {
+  const baseSalary = calculateBaseSalary(person);
+  const cachePay = calculateCachePay(allocations, person, absences);
+  const overtimePay = calculateOvertimePay(workLogs, person);
+  
+  return baseSalary + cachePay + overtimePay;
+}
+
+/**
+ * Calcula o total já pago baseado nos registros de pagamento
+ * 
+ * @param paymentRecords - Registros de pagamentos realizados
+ * @returns Total já pago
+ */
+export function calculateTotalPaid(paymentRecords: PaymentRecord[]): number {
+  return paymentRecords.reduce(
+    (sum, record) => sum + (record.total_amount_paid || 0),
+    0
+  );
+}
+
+/**
+ * Calcula o valor pendente a pagar
+ * 
+ * Fórmula: Pendente = Total Bruto - Total Pago
+ * 
+ * @param totalPay - Valor total bruto
+ * @param totalPaid - Valor já pago
+ * @returns Valor pendente (nunca negativo)
+ */
+export function calculatePendingAmount(
+  totalPay: number,
+  totalPaid: number
+): number {
+  return Math.max(0, totalPay - totalPaid);
+}
+
+/**
+ * Verifica se o pagamento está completo
+ * 
+ * Critérios:
+ * - Algum pagamento foi realizado (totalPaid > 0)
+ * - Não há valor pendente (pendingAmount = 0)
+ * 
+ * @param totalPaid - Total já pago
+ * @param pendingAmount - Valor pendente
+ * @returns true se o pagamento está completo
+ */
+export function isPaymentComplete(
+  totalPaid: number,
+  pendingAmount: number
+): boolean {
+  return pendingAmount === 0 && totalPaid > 0;
+}
+
+/**
+ * Processa ausências para formato de exibição
+ * 
+ * @param absences - Ausências brutas do banco
+ * @returns Ausências formatadas para exibição
+ */
+export function processAbsences(absences: AbsenceData[]): Array<{
+  id: string;
+  work_date: string;
+  logged_by_name: string;
+  notes: string;
+  created_at: string;
+}> {
+  return absences.map(absence => ({
+    id: absence.id.toString(),
+    work_date: absence.work_date,
+    logged_by_name: absence.logged_by_name || 'Sistema',
+    notes: absence.notes || '',
+    created_at: absence.created_at || ''
+  }));
+}
+
+/**
+ * Processa histórico de pagamentos para formato de exibição
+ * 
+ * @param paymentRecords - Registros de pagamento do banco
+ * @returns Histórico formatado para exibição
+ */
+export function processPaymentHistory(paymentRecords: PaymentRecord[]): Array<{
+  id: string;
+  amount: number;
+  paidAt: string;
+  notes: string;
+}> {
+  return paymentRecords.map(record => ({
+    id: record.id,
+    amount: record.total_amount_paid || 0,
+    paidAt: record.paid_at || record.created_at || '',
+    notes: record.notes || ''
+  }));
+}
+
+/**
+ * Verifica se há cachê específico definido para o evento
+ * 
+ * @param allocations - Alocações do pessoal
+ * @returns true se há event_specific_cache definido
+ */
+export function hasEventSpecificCache(allocations: AllocationData[]): boolean {
+  const firstAllocation = allocations[0];
+  return !!(
+    firstAllocation?.event_specific_cache && 
+    firstAllocation.event_specific_cache > 0
+  );
+}
