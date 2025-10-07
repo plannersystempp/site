@@ -103,6 +103,45 @@ export type Database = {
           },
         ]
       }
+      backup_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          error_message: string | null
+          file_size: number | null
+          id: string
+          operation_type: string
+          records_count: Json | null
+          restore_mode: string | null
+          status: string
+          tables_affected: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          file_size?: number | null
+          id?: string
+          operation_type: string
+          records_count?: Json | null
+          restore_mode?: string | null
+          status: string
+          tables_affected?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          file_size?: number | null
+          id?: string
+          operation_type?: string
+          records_count?: Json | null
+          restore_mode?: string | null
+          status?: string
+          tables_affected?: string[] | null
+        }
+        Relationships: []
+      }
       event_divisions: {
         Row: {
           created_at: string | null
@@ -145,12 +184,198 @@ export type Database = {
           },
         ]
       }
+      event_payroll: {
+        Row: {
+          absences_count: number | null
+          adjustments: number | null
+          cache_pay: number | null
+          cache_rate: number | null
+          calculated_at: string | null
+          created_at: string | null
+          event_id: string
+          id: string
+          is_finalized: boolean | null
+          last_modified_by: string | null
+          notes: string | null
+          overtime_hours: number | null
+          overtime_pay: number | null
+          overtime_rate: number | null
+          payment_status: string | null
+          person_name: string
+          person_type: string
+          personnel_id: string
+          regular_hours: number | null
+          remaining_balance: number | null
+          team_id: string
+          total_gross: number | null
+          total_paid: number | null
+          updated_at: string | null
+          work_days: number | null
+        }
+        Insert: {
+          absences_count?: number | null
+          adjustments?: number | null
+          cache_pay?: number | null
+          cache_rate?: number | null
+          calculated_at?: string | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          is_finalized?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
+          overtime_hours?: number | null
+          overtime_pay?: number | null
+          overtime_rate?: number | null
+          payment_status?: string | null
+          person_name: string
+          person_type: string
+          personnel_id: string
+          regular_hours?: number | null
+          remaining_balance?: number | null
+          team_id: string
+          total_gross?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+          work_days?: number | null
+        }
+        Update: {
+          absences_count?: number | null
+          adjustments?: number | null
+          cache_pay?: number | null
+          cache_rate?: number | null
+          calculated_at?: string | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          is_finalized?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
+          overtime_hours?: number | null
+          overtime_pay?: number | null
+          overtime_rate?: number | null
+          payment_status?: string | null
+          person_name?: string
+          person_type?: string
+          personnel_id?: string
+          regular_hours?: number | null
+          remaining_balance?: number | null
+          team_id?: string
+          total_gross?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+          work_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_payroll_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_payroll_personnel_id_fkey"
+            columns: ["personnel_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_payroll_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_supplier_costs: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string
+          event_id: string
+          id: string
+          notes: string | null
+          paid_amount: number | null
+          payment_date: string | null
+          payment_status: string | null
+          quantity: number | null
+          supplier_id: string | null
+          supplier_name: string
+          team_id: string
+          total_amount: number | null
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description: string
+          event_id: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number | null
+          payment_date?: string | null
+          payment_status?: string | null
+          quantity?: number | null
+          supplier_id?: string | null
+          supplier_name: string
+          team_id: string
+          total_amount?: number | null
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string
+          event_id?: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number | null
+          payment_date?: string | null
+          payment_status?: string | null
+          quantity?: number | null
+          supplier_id?: string | null
+          supplier_name?: string
+          team_id?: string
+          total_amount?: number | null
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_supplier_costs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_supplier_costs_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_supplier_costs_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           client_contact_phone: string | null
           created_at: string | null
           description: string | null
           end_date: string | null
+          event_revenue: number | null
           id: string
           location: string | null
           name: string
@@ -166,6 +391,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           end_date?: string | null
+          event_revenue?: number | null
           id?: string
           location?: string | null
           name: string
@@ -181,6 +407,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           end_date?: string | null
+          event_revenue?: number | null
           id?: string
           location?: string | null
           name?: string
@@ -315,6 +542,50 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string | null
+          read: boolean | null
+          team_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string | null
+          read?: boolean | null
+          team_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string | null
+          read?: boolean | null
+          team_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_closings: {
         Row: {
           created_at: string | null
@@ -370,9 +641,158 @@ export type Database = {
           },
         ]
       }
+      payroll_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          created_by: string | null
+          event_payroll_id: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          team_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          created_by?: string | null
+          event_payroll_id: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          team_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          created_by?: string | null
+          event_payroll_id?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          team_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_payments_event_payroll_id_fkey"
+            columns: ["event_payroll_id"]
+            isOneToOne: false
+            referencedRelation: "event_payroll"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_sheets: {
+        Row: {
+          absences_count: number | null
+          adjustments: number | null
+          base_salary: number | null
+          cache_pay: number | null
+          cache_rate: number | null
+          calculated_at: string | null
+          created_at: string | null
+          event_id: string
+          id: string
+          is_finalized: boolean | null
+          last_modified_by: string | null
+          notes: string | null
+          overtime_hours: number | null
+          overtime_pay: number | null
+          overtime_rate: number | null
+          payment_status: string | null
+          person_name: string
+          person_type: string
+          personnel_id: string
+          regular_hours: number | null
+          remaining_balance: number | null
+          team_id: string
+          total_gross: number | null
+          total_paid: number | null
+          updated_at: string | null
+          work_days: number | null
+        }
+        Insert: {
+          absences_count?: number | null
+          adjustments?: number | null
+          base_salary?: number | null
+          cache_pay?: number | null
+          cache_rate?: number | null
+          calculated_at?: string | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          is_finalized?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
+          overtime_hours?: number | null
+          overtime_pay?: number | null
+          overtime_rate?: number | null
+          payment_status?: string | null
+          person_name: string
+          person_type: string
+          personnel_id: string
+          regular_hours?: number | null
+          remaining_balance?: number | null
+          team_id: string
+          total_gross?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+          work_days?: number | null
+        }
+        Update: {
+          absences_count?: number | null
+          adjustments?: number | null
+          base_salary?: number | null
+          cache_pay?: number | null
+          cache_rate?: number | null
+          calculated_at?: string | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          is_finalized?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
+          overtime_hours?: number | null
+          overtime_pay?: number | null
+          overtime_rate?: number | null
+          payment_status?: string | null
+          person_name?: string
+          person_type?: string
+          personnel_id?: string
+          regular_hours?: number | null
+          remaining_balance?: number | null
+          team_id?: string
+          total_gross?: number | null
+          total_paid?: number | null
+          updated_at?: string | null
+          work_days?: number | null
+        }
+        Relationships: []
+      }
       personnel: {
         Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip_code: string | null
           cnpj: string | null
+          convert_overtime_to_daily: boolean | null
           cpf: string | null
           created_at: string | null
           email: string | null
@@ -381,13 +801,24 @@ export type Database = {
           monthly_salary: number | null
           name: string
           overtime_rate: number | null
+          overtime_threshold_hours: number | null
           phone: string | null
+          phone_secondary: string | null
+          photo_url: string | null
           pix_key_encrypted: string | null
           team_id: string
           type: string
         }
         Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           cnpj?: string | null
+          convert_overtime_to_daily?: boolean | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
@@ -396,13 +827,24 @@ export type Database = {
           monthly_salary?: number | null
           name: string
           overtime_rate?: number | null
+          overtime_threshold_hours?: number | null
           phone?: string | null
+          phone_secondary?: string | null
+          photo_url?: string | null
           pix_key_encrypted?: string | null
           team_id: string
           type: string
         }
         Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           cnpj?: string | null
+          convert_overtime_to_daily?: boolean | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
@@ -411,7 +853,10 @@ export type Database = {
           monthly_salary?: number | null
           name?: string
           overtime_rate?: number | null
+          overtime_threshold_hours?: number | null
           phone?: string | null
+          phone_secondary?: string | null
+          photo_url?: string | null
           pix_key_encrypted?: string | null
           team_id?: string
           type?: string
@@ -491,6 +936,63 @@ export type Database = {
           },
         ]
       }
+      personnel_documents: {
+        Row: {
+          created_at: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          personnel_id: string
+          team_id: string
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          personnel_id: string
+          team_id: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          personnel_id?: string
+          team_id?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personnel_documents_personnel_id_fkey"
+            columns: ["personnel_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_documents_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personnel_functions: {
         Row: {
           created_at: string | null
@@ -527,6 +1029,155 @@ export type Database = {
           },
           {
             foreignKeyName: "personnel_functions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_items: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          item_name: string
+          price: number | null
+          supplier_id: string
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          item_name: string
+          price?: number | null
+          supplier_id: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          item_name?: string
+          price?: number | null
+          supplier_id?: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_ratings: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          rated_by: string
+          rating: number
+          supplier_id: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          rated_by: string
+          rating: number
+          supplier_id: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          rated_by?: string
+          rating?: number
+          supplier_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_ratings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_ratings_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_ratings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          average_rating: number | null
+          contact_person: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          team_id: string
+          total_ratings: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_rating?: number | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          team_id: string
+          total_ratings?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_rating?: number | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          team_id?: string
+          total_ratings?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
@@ -573,6 +1224,8 @@ export type Database = {
         Row: {
           cnpj: string | null
           created_at: string | null
+          default_convert_overtime_to_daily: boolean | null
+          default_overtime_threshold_hours: number | null
           id: string
           invite_code: string
           name: string
@@ -582,6 +1235,8 @@ export type Database = {
         Insert: {
           cnpj?: string | null
           created_at?: string | null
+          default_convert_overtime_to_daily?: boolean | null
+          default_overtime_threshold_hours?: number | null
           id?: string
           invite_code: string
           name: string
@@ -591,6 +1246,8 @@ export type Database = {
         Update: {
           cnpj?: string | null
           created_at?: string | null
+          default_convert_overtime_to_daily?: boolean | null
+          default_overtime_threshold_hours?: number | null
           id?: string
           invite_code?: string
           name?: string
@@ -598,6 +1255,56 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      user_notification_preferences: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          event_updates: boolean | null
+          id: string
+          payment_received: boolean | null
+          payment_reminders: boolean | null
+          push_subscription: Json | null
+          team_id: string | null
+          team_invites: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          event_updates?: boolean | null
+          id?: string
+          payment_received?: boolean | null
+          payment_reminders?: boolean | null
+          push_subscription?: Json | null
+          team_id?: string | null
+          team_invites?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          event_updates?: boolean | null
+          id?: string
+          payment_received?: boolean | null
+          payment_reminders?: boolean | null
+          push_subscription?: Json | null
+          team_id?: string | null
+          team_invites?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notification_preferences_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {
@@ -704,8 +1411,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_event_status_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          current_status: string
+          end_date: string
+          event_id: string
+          event_name: string
+          has_allocations: boolean
+          has_pending_payments: boolean
+          suggested_status: string
+        }[]
+      }
       ensure_user_profile: {
         Args: { p_email: string; p_name: string; p_user_id: string }
+        Returns: string
+      }
+      finalize_payroll_sheet: {
+        Args: { p_sheet_id: string }
+        Returns: boolean
+      }
+      generate_event_payroll_sheets: {
+        Args: { p_event_id: string }
+        Returns: number
+      }
+      generate_payroll_sheet: {
+        Args: { p_event_id: string; p_personnel_id: string }
         Returns: string
       }
       get_all_functions_with_teams: {
