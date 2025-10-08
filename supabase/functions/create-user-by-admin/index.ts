@@ -174,28 +174,67 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('User profile created');
 
-    // Add to team (idempotent)
-    const { error: teamError } = await supabaseAdmin
-      .from('team_members')
-      .upsert({
-        team_id: team_id,
-        user_id: userId,
-        role: role,
-        status: 'approved'
-      }, { onConflict: 'team_id,user_id' });
+    // Add to team with retry logic (idempotent)
+    let teamMemberAdded = false;
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    if (teamError) {
-      console.error('Team member error:', teamError);
+    while (!teamMemberAdded && retryCount < maxRetries) {
+      const { data: teamMemberData, error: teamError } = await supabaseAdmin
+        .from('team_members')
+        .upsert({
+          team_id: team_id,
+          user_id: userId,
+          role: role,
+          status: 'approved'
+        }, { 
+          onConflict: 'team_id,user_id',
+          ignoreDuplicates: false 
+        })
+        .select();
+
+      if (teamError) {
+        console.error(`Team member error (attempt ${retryCount + 1}):`, teamError);
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          return new Response(JSON.stringify({ 
+            error: 'Failed to add user to team after retries', 
+            details: teamError.message 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 500));
+        continue;
+      }
+
+      teamMemberAdded = true;
+      console.log('User added to team:', teamMemberData);
+    }
+
+    // Verify team membership was created
+    const { data: verifyMember, error: verifyError } = await supabaseAdmin
+      .from('team_members')
+      .select('user_id, team_id, role, status')
+      .eq('team_id', team_id)
+      .eq('user_id', userId)
+      .single();
+
+    if (verifyError || !verifyMember) {
+      console.error('Verification failed - user not in team_members:', verifyError);
       return new Response(JSON.stringify({ 
-        error: 'Failed to add user to team', 
-        details: teamError.message 
+        error: 'User created but failed to add to team', 
+        details: 'Verification failed after team member creation',
+        userId: userId
       }), {
-        status: 400,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('User added to team');
+    console.log('Team membership verified:', verifyMember);
 
     // Log the action for audit
     await supabaseAdmin

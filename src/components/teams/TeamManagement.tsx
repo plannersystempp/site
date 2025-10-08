@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign } from 'lucide-react';
+import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { NoTeamSelected } from '@/components/shared/NoTeamSelected';
@@ -244,14 +244,25 @@ export const TeamManagement: React.FC = () => {
           </div>
         </div>
         
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Cadastrar Usuário
-            </Button>
-          </DialogTrigger>
-        </Dialog>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={fetchMembers}
+            disabled={loading}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar Lista
+          </Button>
+          
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Cadastrar Usuário
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
       </div>
 
       {/* Seção de Solicitações Pendentes */}

@@ -121,9 +121,35 @@ export const CreateUserByAdmin: React.FC<CreateUserByAdminProps> = ({
 
       if (error) throw error;
 
+      // Verify user was added to team_members
+      if (data?.userId) {
+        const { data: teamMemberCheck, error: checkError } = await supabase
+          .from('team_members')
+          .select('user_id, team_id, status')
+          .eq('team_id', activeTeam.id)
+          .eq('user_id', data.userId)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Error verifying team membership:', checkError);
+        }
+
+        if (!teamMemberCheck) {
+          toast({
+            title: "Aviso",
+            description: "Usuário criado mas não foi adicionado à equipe. Contate o suporte.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('Team membership confirmed:', teamMemberCheck);
+      }
+
       toast({
         title: "Sucesso",
-        description: "Usuário criado com sucesso",
+        description: "Usuário criado e adicionado à equipe com sucesso",
       });
 
       setFormData({
