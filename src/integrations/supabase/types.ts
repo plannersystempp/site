@@ -1072,18 +1072,21 @@ export type Database = {
         Row: {
           created_at: string | null
           function_id: string
+          is_primary: boolean
           personnel_id: string
           team_id: string
         }
         Insert: {
           created_at?: string | null
           function_id: string
+          is_primary?: boolean
           personnel_id: string
           team_id: string
         }
         Update: {
           created_at?: string | null
           function_id?: string
+          is_primary?: boolean
           personnel_id?: string
           team_id?: string
         }

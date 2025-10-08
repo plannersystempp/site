@@ -39,11 +39,21 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
     } else {
       next = [...selectedFunctionIds, functionId];
     }
-    onSelectionChange(next);
+    
+    // Auto-selecionar como primária se for a única função
     if (next.length === 1) {
+      onSelectionChange(next);
       onPrimaryChange?.(next[0]);
-    } else if (!next.includes(primaryFunctionId || '')) {
-      onPrimaryChange?.(null);
+    }
+    // Se removeu a função primária e ainda há outras funções, definir a primeira como primária
+    else if (!next.includes(primaryFunctionId || '') && next.length > 0) {
+      onSelectionChange(next);
+      onPrimaryChange?.(next[0]);
+    } else {
+      onSelectionChange(next);
+      if (next.length === 0) {
+        onPrimaryChange?.(null);
+      }
     }
   };
 
@@ -73,21 +83,23 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
           {selectedFunctions.map(func => (
             <Badge 
               key={func.id} 
-              variant="secondary" 
+              variant={primaryFunctionId === func.id ? "default" : "secondary"}
               className="px-2 py-1 text-sm flex items-center gap-1"
             >
-              {func.name}
               {primaryFunctionId === func.id && (
-                <span className="ml-1 text-primary">Principal</span>
+                <Star className="w-3 h-3 fill-current" />
               )}
-              <button
-                type="button"
-                onClick={() => setPrimary(func.id)}
-                title="Definir como principal"
-                className="ml-1 hover:bg-muted rounded-full p-0.5"
-              >
-                <Star className={`w-3 h-3 ${primaryFunctionId === func.id ? 'text-primary' : 'text-muted-foreground'}`} />
-              </button>
+              {func.name}
+              {primaryFunctionId !== func.id && selectedFunctions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setPrimary(func.id)}
+                  title="Definir como principal"
+                  className="ml-1 hover:bg-muted rounded-full p-0.5 transition-colors"
+                >
+                  <Star className="w-3 h-3 text-muted-foreground hover:text-yellow-500" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => removeFunction(func.id)}
@@ -97,6 +109,11 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
               </button>
             </Badge>
           ))}
+          {selectedFunctions.length > 1 && !primaryFunctionId && (
+            <span className="text-xs text-amber-600 dark:text-amber-500 self-center">
+              ⚠️ Selecione uma função principal
+            </span>
+          )}
         </div>
       )}
 
@@ -148,9 +165,9 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
                       type="button"
                       onClick={(e) => { e.stopPropagation(); setPrimary(func.id); }}
                       title="Definir como principal"
-                      className="ml-2 hover:bg-muted rounded-full p-1"
+                      className="ml-2 hover:bg-muted rounded-full p-1 transition-colors"
                     >
-                      <Star className={`h-4 w-4 ${primaryFunctionId === func.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <Star className={`h-4 w-4 ${primaryFunctionId === func.id ? 'text-primary fill-current' : 'text-muted-foreground hover:text-yellow-500'}`} />
                     </button>
                     {selectedFunctionIds.includes(func.id) && (
                       <Check className="h-4 w-4 text-primary" />

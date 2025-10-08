@@ -42,17 +42,27 @@ export const useMultipleSelection = (
         // Remove person
         return prev.filter(sp => sp.personnel.id !== person.id);
       } else {
-        // Add person with their primary function first, then fallback
+        // Add person - SEMPRE prioriza primaryFunctionId se existir
         let defaultFunction = '';
-        if (person.functions && person.functions.length > 0) {
-          if (person.primaryFunctionId) {
-            defaultFunction = person.functions.find(f => f.id === person.primaryFunctionId)?.name || person.functions[0].name;
-          } else {
-            defaultFunction = person.functions[0].name;
+        
+        // 1ª prioridade: função primária do personnel
+        if (person.primaryFunctionId && person.functions) {
+          const primaryFunc = person.functions.find(f => f.id === person.primaryFunctionId);
+          if (primaryFunc) {
+            defaultFunction = primaryFunc.name;
           }
-        } else {
-          defaultFunction = availableFunctions[0]?.name || '';
         }
+        
+        // 2ª prioridade: primeira função do personnel
+        if (!defaultFunction && person.functions && person.functions.length > 0) {
+          defaultFunction = person.functions[0].name;
+        }
+        
+        // 3ª prioridade: primeira função disponível no evento
+        if (!defaultFunction && availableFunctions.length > 0) {
+          defaultFunction = availableFunctions[0].name;
+        }
+        
         return [...prev, { personnel: person, selectedFunction: defaultFunction }];
       }
     });
@@ -80,16 +90,25 @@ export const useMultipleSelection = (
       const newSelections = filteredPersonnel
         .filter(person => !isPersonSelected(person.id))
         .map(person => {
-          // Use primary function first
+          // SEMPRE prioriza primaryFunctionId
           let defaultFunction = '';
-          if (person.functions && person.functions.length > 0) {
-            if (person.primaryFunctionId) {
-              defaultFunction = person.functions.find(f => f.id === person.primaryFunctionId)?.name || person.functions[0].name;
-            } else {
-              defaultFunction = person.functions[0].name;
+          
+          // 1ª prioridade: função primária
+          if (person.primaryFunctionId && person.functions) {
+            const primaryFunc = person.functions.find(f => f.id === person.primaryFunctionId);
+            if (primaryFunc) {
+              defaultFunction = primaryFunc.name;
             }
-          } else {
-            defaultFunction = availableFunctions[0]?.name || '';
+          }
+          
+          // 2ª prioridade: primeira função do personnel
+          if (!defaultFunction && person.functions && person.functions.length > 0) {
+            defaultFunction = person.functions[0].name;
+          }
+          
+          // 3ª prioridade: primeira função disponível
+          if (!defaultFunction && availableFunctions.length > 0) {
+            defaultFunction = availableFunctions[0].name;
           }
           
           return {
