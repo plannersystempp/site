@@ -1513,6 +1513,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_orphan_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          email: string
+          has_profile: boolean
+          has_team: boolean
+          metadata: Json
+          user_id: string
+        }[]
+      }
       get_personnel_redacted: {
         Args: Record<PropertyKey, never>
         Returns: {
