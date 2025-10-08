@@ -15,6 +15,7 @@ interface PersonnelFormData {
   phone: string;
   type: 'fixo' | 'freelancer';  
   functionIds: string[];
+  primaryFunctionId: string;
   monthly_salary: number;
   event_cache: number;
   overtime_rate: number;
@@ -142,12 +143,14 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
         </Select>
       </div>
 
-      <FunctionMultiSelect
-        functions={functions}
-        selectedFunctionIds={formData.functionIds}
-        onSelectionChange={(functionIds) => onFieldChange('functionIds', functionIds)}
-        placeholder="Selecione as funções"
-      />
+  <FunctionMultiSelect
+    functions={functions}
+    selectedFunctionIds={formData.functionIds}
+    onSelectionChange={(functionIds) => onFieldChange('functionIds', functionIds)}
+    primaryFunctionId={formData.primaryFunctionId}
+    onPrimaryChange={(fid) => onFieldChange('primaryFunctionId', fid || '')}
+    placeholder="Selecione as funções"
+  />
 
       {formData.type === 'fixo' && (
         <div>

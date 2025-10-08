@@ -27,6 +27,7 @@ interface PersonnelFormData {
   cpf: string;
   cnpj: string;
   functionIds: string[];
+  primaryFunctionId?: string;
   pixKey?: string;
 }
 
@@ -45,6 +46,7 @@ const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]>
       .select(`
         personnel_id,
         function_id,
+        is_primary,
         functions:function_id (
           id,
           name,
@@ -60,14 +62,23 @@ const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]>
 
     // Map personnel with their functions
     const personnelWithFunctions: Personnel[] = personnelData.map(person => {
-      const personFunctions = (personnelFunctionsData || [])
-        .filter(pf => pf.personnel_id === person.id)
+      const personFunctionRows = (personnelFunctionsData || [])
+        .filter(pf => pf.personnel_id === person.id);
+
+      const primaryFunctionId = personFunctionRows.find(pf => (pf as any).is_primary)?.function_id as string | undefined;
+
+      const personFunctions = personFunctionRows
         .map(pf => pf.functions)
-        .filter(f => f != null);
+        .filter(f => f != null) as any[];
+
+      const orderedFunctions = primaryFunctionId
+        ? personFunctions.sort((a, b) => (a.id === primaryFunctionId ? -1 : b.id === primaryFunctionId ? 1 : 0))
+        : personFunctions;
 
       return {
         ...person,
-        functions: personFunctions,
+        functions: orderedFunctions,
+        primaryFunctionId,
         type: (person.type === 'fixo' || person.type === 'freelancer') ? person.type : 'freelancer',
         monthly_salary: person.monthly_salary || 0,
         event_cache: person.event_cache || 0,
@@ -105,7 +116,7 @@ export const useCreatePersonnelMutation = () => {
     mutationFn: async (personnelData: PersonnelFormData) => {
       if (!activeTeam) throw new Error('No active team');
 
-      const { functionIds, pixKey, ...sanitizedData } = personnelData;
+      const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
       
       // Create personnel record
       const { data: personnelResult, error: personnelError } = await supabase
@@ -136,7 +147,8 @@ export const useCreatePersonnelMutation = () => {
         const functionAssociations = functionIds.map(functionId => ({
           personnel_id: personnelResult.id,
           function_id: functionId,
-          team_id: activeTeam.id
+          team_id: activeTeam.id,
+          is_primary: primaryFunctionId ? functionId === primaryFunctionId : functionIds.length === 1 ? functionId === functionIds[0] : false
         }));
 
         const { error: functionsError } = await supabase
@@ -179,7 +191,7 @@ export const useUpdatePersonnelMutation = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...personnelData }: { id: string } & Partial<PersonnelFormData>) => {
-      const { functionIds, pixKey, ...sanitizedData } = personnelData;
+      const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
 
       // Update personnel record
       const { data, error } = await supabase
@@ -220,7 +232,8 @@ export const useUpdatePersonnelMutation = () => {
           const functionAssociations = functionIds.map(functionId => ({
             personnel_id: id,
             function_id: functionId,
-            team_id: activeTeam!.id
+            team_id: activeTeam!.id,
+            is_primary: primaryFunctionId ? functionId === primaryFunctionId : functionIds.length === 1 ? functionId === functionIds[0] : false
           }));
 
           await supabase

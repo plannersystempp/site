@@ -23,6 +23,7 @@ interface PersonnelFormData {
   phone: string;
   type: 'fixo' | 'freelancer';
   functionIds: string[];
+  primaryFunctionId: string;
   monthly_salary: number;
   event_cache: number;
   overtime_rate: number;
@@ -41,6 +42,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     phone: '',
     type: 'freelancer',
     functionIds: [],
+    primaryFunctionId: '',
     monthly_salary: 0,
     event_cache: 0,
     overtime_rate: 0,
@@ -58,6 +60,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         phone: personnel.phone || '',
         type: personnel.type as 'fixo' | 'freelancer',
         functionIds: personnel.functions?.map(f => f.id) || [],
+        primaryFunctionId: personnel.primaryFunctionId || (personnel.functions?.[0]?.id || ''),
         monthly_salary: personnel.monthly_salary || 0,
         event_cache: personnel.event_cache || 0,
         overtime_rate: personnel.overtime_rate || 0,
@@ -167,6 +170,26 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       toast({
         title: "Campos obrigatórios",
         description: "Preencha os campos obrigatórios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validation: when multiple functions selected, require a primary
+    if (formData.functionIds.length > 1 && !formData.primaryFunctionId) {
+      toast({
+        title: "Função principal",
+        description: "Selecione a função principal",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Ensure primary is among selected if provided
+    if (formData.primaryFunctionId && !formData.functionIds.includes(formData.primaryFunctionId)) {
+      toast({
+        title: "Função principal",
+        description: "A função principal deve estar entre as selecionadas",
         variant: "destructive"
       });
       return;

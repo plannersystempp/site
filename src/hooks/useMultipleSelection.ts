@@ -44,18 +44,16 @@ export const useMultipleSelection = (
       } else {
         // Add person with their primary function first, then fallback
         let defaultFunction = '';
-        
-        // Use the person's first function as primary, or first available function
         if (person.functions && person.functions.length > 0) {
-          defaultFunction = person.functions[0].name;
+          if (person.primaryFunctionId) {
+            defaultFunction = person.functions.find(f => f.id === person.primaryFunctionId)?.name || person.functions[0].name;
+          } else {
+            defaultFunction = person.functions[0].name;
+          }
         } else {
           defaultFunction = availableFunctions[0]?.name || '';
         }
-        
-        return [...prev, { 
-          personnel: person, 
-          selectedFunction: defaultFunction 
-        }];
+        return [...prev, { personnel: person, selectedFunction: defaultFunction }];
       }
     });
   }, [availableFunctions]);
@@ -85,7 +83,11 @@ export const useMultipleSelection = (
           // Use primary function first
           let defaultFunction = '';
           if (person.functions && person.functions.length > 0) {
-            defaultFunction = person.functions[0].name;
+            if (person.primaryFunctionId) {
+              defaultFunction = person.functions.find(f => f.id === person.primaryFunctionId)?.name || person.functions[0].name;
+            } else {
+              defaultFunction = person.functions[0].name;
+            }
           } else {
             defaultFunction = availableFunctions[0]?.name || '';
           }

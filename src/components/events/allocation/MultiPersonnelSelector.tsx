@@ -114,7 +114,7 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                           <div className="flex flex-wrap gap-1">
                             {availableFunctions.slice(0, 3).map(func => <Badge key={func.id} variant="outline" className="text-sm">
                                 {func.name}
-                                {person.functions?.some(pf => pf.id === func.id) && <span className="ml-1 text-primary">★</span>}
+                                {person.primaryFunctionId === func.id && <span className="ml-1 text-primary">★</span>}
                               </Badge>)}
                             {availableFunctions.length > 3 && <Badge variant="outline" className="text-sm">
                                 +{availableFunctions.length - 3}
@@ -137,9 +137,7 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                             {availableFunctions.map(func => <SelectItem key={func.id} value={func.name} className="text-xs md:text-sm">
                                 <div className="flex items-center gap-2">
                                   <span>{func.name}</span>
-                                  {person.functions?.some(pf => pf.id === func.id) && <Badge variant="outline" className="text-xs px-1">
-                                      Principal
-                                    </Badge>}
+                                  {person.primaryFunctionId === func.id && <Badge variant="outline" className="text-xs px-1">Principal</Badge>}
                                 </div>
                               </SelectItem>)}
                           </SelectContent>

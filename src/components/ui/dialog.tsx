@@ -92,7 +92,7 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Close 
           ref={closeRef}
           aria-label="Fechar"
-          className="absolute right-2 top-2 sm:right-4 sm:top-4 z-[999] inline-flex h-8 w-8 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground pointer-events-auto"
+          className="absolute right-2 top-2 sm:right-4 sm:top-4 z-[999] inline-flex h-8 w-8 items-center justify-center rounded-md pointer-events-auto opacity-70 hover:bg-accent/50 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background disabled:pointer-events-none"
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Fechar</span>

@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check, ChevronDown, X } from 'lucide-react';
+import { Check, ChevronDown, X, Star } from 'lucide-react';
 import type { Func } from '@/contexts/EnhancedDataContext';
 
 interface FunctionMultiSelectProps {
@@ -14,13 +14,17 @@ interface FunctionMultiSelectProps {
   selectedFunctionIds: string[];
   onSelectionChange: (functionIds: string[]) => void;
   placeholder?: string;
+  primaryFunctionId?: string;
+  onPrimaryChange?: (functionId: string | null) => void;
 }
 
 export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
   functions,
   selectedFunctionIds,
   onSelectionChange,
-  placeholder = "Selecione as funções"
+  placeholder = "Selecione as funções",
+  primaryFunctionId,
+  onPrimaryChange
 }) => {
   const [open, setOpen] = React.useState(false);
 
@@ -29,15 +33,34 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
   );
 
   const toggleFunction = (functionId: string) => {
+    let next: string[];
     if (selectedFunctionIds.includes(functionId)) {
-      onSelectionChange(selectedFunctionIds.filter(id => id !== functionId));
+      next = selectedFunctionIds.filter(id => id !== functionId);
     } else {
-      onSelectionChange([...selectedFunctionIds, functionId]);
+      next = [...selectedFunctionIds, functionId];
+    }
+    onSelectionChange(next);
+    if (next.length === 1) {
+      onPrimaryChange?.(next[0]);
+    } else if (!next.includes(primaryFunctionId || '')) {
+      onPrimaryChange?.(null);
     }
   };
 
   const removeFunction = (functionId: string) => {
-    onSelectionChange(selectedFunctionIds.filter(id => id !== functionId));
+    const next = selectedFunctionIds.filter(id => id !== functionId);
+    onSelectionChange(next);
+    if (!next.includes(primaryFunctionId || '')) {
+      onPrimaryChange?.(next.length === 1 ? next[0] : null);
+    }
+  };
+
+  const setPrimary = (functionId: string) => {
+    if (!selectedFunctionIds.includes(functionId)) {
+      // ensure selected before setting primary
+      toggleFunction(functionId);
+    }
+    onPrimaryChange?.(functionId);
   };
 
   return (
@@ -54,6 +77,17 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
               className="px-2 py-1 text-sm flex items-center gap-1"
             >
               {func.name}
+              {primaryFunctionId === func.id && (
+                <span className="ml-1 text-primary">Principal</span>
+              )}
+              <button
+                type="button"
+                onClick={() => setPrimary(func.id)}
+                title="Definir como principal"
+                className="ml-1 hover:bg-muted rounded-full p-0.5"
+              >
+                <Star className={`w-3 h-3 ${primaryFunctionId === func.id ? 'text-primary' : 'text-muted-foreground'}`} />
+              </button>
               <button
                 type="button"
                 onClick={() => removeFunction(func.id)}
@@ -110,6 +144,14 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
                         </div>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setPrimary(func.id); }}
+                      title="Definir como principal"
+                      className="ml-2 hover:bg-muted rounded-full p-1"
+                    >
+                      <Star className={`h-4 w-4 ${primaryFunctionId === func.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                    </button>
                     {selectedFunctionIds.includes(func.id) && (
                       <Check className="h-4 w-4 text-primary" />
                     )}

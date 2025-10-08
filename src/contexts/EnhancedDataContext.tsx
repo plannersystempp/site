@@ -37,6 +37,7 @@ export interface Personnel {
   cnpj?: string;
   created_at: string;
   functions?: Func[]; // Array of associated functions
+  primaryFunctionId?: string;
   // Redacted fields for coordinators
   email_masked?: string;
   phone_masked?: string;
@@ -97,12 +98,13 @@ interface PersonnelFormData {
   cpf: string;
   cnpj: string;
   functionIds: string[]; // Array of function IDs instead of single function_id
+  primaryFunctionId?: string;
   pixKey?: string; // PIX key field (handled separately)
 }
 
 // Helper function to sanitize personnel data for database operations
 const sanitizePersonnelData = (data: PersonnelFormData | Partial<PersonnelFormData>) => {
-  const { functionIds, pixKey, ...sanitized } = data;
+  const { functionIds, primaryFunctionId, pixKey, ...sanitized } = data;
   // Ensure type is converted to string for database
   if (sanitized.type) {
     (sanitized as any).type = sanitized.type as string;
@@ -172,6 +174,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .select(`
           personnel_id,
           function_id,
+          is_primary,
           functions:function_id (
             id,
             name,
@@ -187,14 +190,21 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       // Map personnel with their functions
       const personnelWithFunctions: Personnel[] = personnelData.map(person => {
-        const personFunctions = (personnelFunctionsData || [])
-          .filter(pf => pf.personnel_id === person.id)
+        const pfRows = (personnelFunctionsData || []).filter(pf => pf.personnel_id === person.id);
+        const primaryRow = pfRows.find(pf => pf.is_primary);
+        const primaryFunctionId = primaryRow?.function_id as string | undefined;
+        const personFunctions = pfRows
           .map(pf => pf.functions)
           .filter(f => f != null) as Func[];
 
+        const orderedFunctions = primaryFunctionId
+          ? personFunctions.sort((a, b) => (a.id === primaryFunctionId ? -1 : b.id === primaryFunctionId ? 1 : 0))
+          : personFunctions;
+
         return {
           ...person,
-          functions: personFunctions,
+          functions: orderedFunctions,
+          primaryFunctionId,
           type: (person.type === 'fixo' || person.type === 'freelancer') ? person.type : 'freelancer',
           monthly_salary: person.monthly_salary || 0,
           event_cache: person.event_cache || 0,
@@ -537,7 +547,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       // Extract function IDs and sanitize data for database
-      const { functionIds } = personnelData;
+      const { functionIds, primaryFunctionId } = personnelData;
       const sanitizedPersonnelData = sanitizePersonnelData(personnelData);
 
       // Insert personnel record
@@ -554,7 +564,8 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const functionAssociations = functionIds.map(functionId => ({
           personnel_id: newPersonnel.id,
           function_id: functionId,
-          team_id: activeTeam.id
+          team_id: activeTeam.id,
+          is_primary: primaryFunctionId ? functionId === primaryFunctionId : functionIds.length === 1 ? functionId === functionIds[0] : false
         }));
 
         const { error: functionsError } = await supabase
@@ -595,7 +606,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       // Extract function IDs and sanitize data for database
-      const { functionIds } = personnelData;
+      const { functionIds, primaryFunctionId } = personnelData;
       const sanitizedPersonnelData = sanitizePersonnelData(personnelData);
 
       // Update personnel record
@@ -623,7 +634,8 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const functionAssociations = functionIds.map(functionId => ({
             personnel_id: id,
             function_id: functionId,
-            team_id: activeTeam.id
+            team_id: activeTeam.id,
+            is_primary: primaryFunctionId ? functionId === primaryFunctionId : functionIds.length === 1 ? functionId === functionIds[0] : false
           }));
 
           const { error: insertError } = await supabase
