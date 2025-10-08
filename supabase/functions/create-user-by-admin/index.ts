@@ -115,40 +115,97 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    console.log('Creating user:', { email, name, role, team_id });
+    console.log('Checking if user profile already exists:', { email });
 
-    // Create user in auth
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        name: name
+    // First check if user profile already exists
+    const { data: existingProfile } = await supabaseAdmin
+      .from('user_profiles')
+      .select('user_id, role, is_approved')
+      .eq('email', email)
+      .maybeSingle();
+    
+    let userId: string;
+    let isNewUser = false;
+    let isOrphanUser = false;
+
+    if (existingProfile) {
+      // User profile exists - just update if needed
+      userId = existingProfile.user_id;
+      console.log('User profile already exists, will update if needed:', userId);
+      isNewUser = false;
+    } else {
+      // Profile doesn't exist - try to create user in auth
+      console.log('Creating new user in auth:', { email, name, role, team_id });
+      
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          name: name
+        }
+      });
+
+      if (authError) {
+        console.error('Auth creation error:', authError);
+        const message = (authError as any)?.message || 'Auth error';
+        
+        // Check if user exists in auth but is orphan (no profile)
+        if (typeof message === 'string' && message.toLowerCase().includes('already')) {
+          console.log('User exists in auth but no profile - finding orphan user');
+          
+          // List users to find the one with this email (workaround for missing getUserByEmail)
+          const { data: userList, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+            page: 1,
+            perPage: 1000 // Should be enough to find the user
+          });
+          
+          if (listError) {
+            console.error('Failed to list users:', listError);
+            return new Response(JSON.stringify({ 
+              error: 'E-mail já cadastrado mas falha ao recuperar dados do usuário', 
+              details: listError.message 
+            }), {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+          
+          const orphanUser = userList.users.find(u => u.email === email);
+          
+          if (!orphanUser) {
+            return new Response(JSON.stringify({ 
+              error: 'E-mail já cadastrado mas usuário não encontrado no sistema', 
+              details: 'Inconsistência no banco de dados' 
+            }), {
+              status: 409,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+          
+          userId = orphanUser.id;
+          console.log('Orphan user found, completing profile:', userId);
+          isNewUser = false;
+          isOrphanUser = true;
+        } else {
+          return new Response(JSON.stringify({ 
+            error: 'Falha ao criar usuário no sistema de autenticação', 
+            details: message 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        userId = authData.user?.id;
+        if (!userId) {
+          throw new Error('Failed to get user ID from auth response');
+        }
+
+        console.log('New user created in auth:', userId);
+        isNewUser = true;
       }
-    });
-
-    if (authError) {
-      console.error('Auth error:', authError);
-      const message = (authError as any)?.message || 'Auth error';
-      // If the user already exists in auth, return 409 with a friendly message
-      if (typeof message === 'string' && message.toLowerCase().includes('already')) {
-        return new Response(JSON.stringify({ 
-          error: 'E-mail já cadastrado', 
-          details: message 
-        }), {
-          status: 409,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw authError;
     }
-
-    const userId = authData.user?.id;
-    if (!userId) {
-      throw new Error('Failed to get user ID from auth response');
-    }
-
-    console.log('User created in auth:', userId);
 
     // Create or update user profile (idempotent)
     const { error: profileError } = await supabaseAdmin
@@ -241,13 +298,25 @@ const handler = async (req: Request): Promise<Response> => {
       .from('audit_logs')
       .insert({
         user_id: user.id,
-        action: 'USER_CREATED',
+        team_id: team_id,
+        action: isNewUser ? 'USER_CREATED' : (isOrphanUser ? 'ORPHAN_USER_COMPLETED' : 'USER_UPDATED'),
         table_name: 'user_profiles',
         record_id: userId,
-        new_values: { email, name, role, team_id }
+        new_values: { email, name, role, team_id, isNewUser, isOrphanUser }
       });
 
-    return new Response(JSON.stringify({ message: 'Usuário criado com sucesso', userId }), {
+    const successMessage = isNewUser 
+      ? 'Usuário criado com sucesso' 
+      : (isOrphanUser 
+        ? 'Usuário existente completado com sucesso' 
+        : 'Perfil atualizado com sucesso');
+
+    return new Response(JSON.stringify({ 
+      message: successMessage, 
+      userId,
+      isNewUser,
+      isOrphanUser 
+    }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',

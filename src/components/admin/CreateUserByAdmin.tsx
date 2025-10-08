@@ -121,6 +121,17 @@ export const CreateUserByAdmin: React.FC<CreateUserByAdminProps> = ({
 
       if (error) throw error;
 
+      // Check response to determine what happened
+      const isOrphanUser = data?.isOrphanUser === true;
+      const isNewUser = data?.isNewUser === true;
+      
+      let successMessage = "Usuário criado e adicionado à equipe com sucesso";
+      if (isOrphanUser) {
+        successMessage = "Usuário existente foi completado e adicionado à equipe com sucesso";
+      } else if (!isNewUser) {
+        successMessage = "Perfil do usuário foi atualizado e adicionado à equipe com sucesso";
+      }
+
       // Verify user was added to team_members
       if (data?.userId) {
         const { data: teamMemberCheck, error: checkError } = await supabase
@@ -149,7 +160,7 @@ export const CreateUserByAdmin: React.FC<CreateUserByAdminProps> = ({
 
       toast({
         title: "Sucesso",
-        description: "Usuário criado e adicionado à equipe com sucesso",
+        description: successMessage,
       });
 
       setFormData({
