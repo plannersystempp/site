@@ -9,6 +9,8 @@ import { AlertCircle, UserPlus, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { UserManagementDialog } from './UserManagementDialog';
+import { PendingSetupsCard } from './PendingSetupsCard';
+import { MonitoringDashboard } from './MonitoringDashboard';
 
 interface OrphanUser {
   user_id: string;
@@ -85,6 +87,12 @@ export const OrphanUsersTab: React.FC<OrphanUsersTabProps> = ({ teams }) => {
 
   return (
     <div className="space-y-6">
+      {/* Monitoring Dashboard */}
+      <MonitoringDashboard />
+
+      {/* Pending Setups Card */}
+      <PendingSetupsCard />
+
       {/* Warning Card */}
       <Card className="border-orange-500">
         <CardHeader>

@@ -79,7 +79,36 @@ Deno.serve(async (req) => {
       try {
         console.log(`Deleting user: ${userId}`);
 
-        // Delete from team_members first (foreign key constraint)
+        // Check if user owns any teams
+        const { data: ownedTeams, error: teamsError } = await supabaseAdmin
+          .from('teams')
+          .select('id, name')
+          .eq('owner_id', userId);
+
+        if (teamsError) {
+          console.error(`Error checking teams for user ${userId}:`, teamsError);
+          errors.push({ userId, error: `Erro ao verificar equipes: ${teamsError.message}` });
+          continue;
+        }
+
+        if (ownedTeams && ownedTeams.length > 0) {
+          const teamNames = ownedTeams.map(t => t.name).join(', ');
+          console.error(`User ${userId} owns teams: ${teamNames}`);
+          errors.push({ 
+            userId, 
+            error: `Usuário é proprietário da(s) equipe(s): ${teamNames}. Transfira a propriedade antes de deletar.`,
+            ownedTeams: ownedTeams 
+          });
+          continue;
+        }
+
+        // Delete from pending_user_setups if exists
+        await supabaseAdmin
+          .from('pending_user_setups')
+          .delete()
+          .eq('user_id', userId);
+
+        // Delete from team_members (foreign key constraint)
         await supabaseAdmin
           .from('team_members')
           .delete()

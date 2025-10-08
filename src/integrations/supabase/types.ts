@@ -782,6 +782,45 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_user_setups: {
+        Row: {
+          created_at: string | null
+          email: string
+          error_message: string | null
+          id: string
+          last_retry_at: string | null
+          metadata: Json | null
+          resolved: boolean | null
+          resolved_at: string | null
+          retry_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          error_message?: string | null
+          id?: string
+          last_retry_at?: string | null
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          error_message?: string | null
+          id?: string
+          last_retry_at?: string | null
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       personnel: {
         Row: {
           address_city: string | null
@@ -1411,6 +1450,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_fix_simple_orphans: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      check_and_report_orphan_users: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       check_event_status_consistency: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1591,6 +1638,10 @@ export type Database = {
           team_id: string
           team_name: string
         }[]
+      }
+      retry_pending_user_setup: {
+        Args: { p_user_id: string }
+        Returns: Json
       }
       setup_company_for_current_user: {
         Args: { p_company_cnpj?: string; p_company_name: string }
