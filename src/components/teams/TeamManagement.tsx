@@ -3,8 +3,9 @@ import { useTeam } from '@/contexts/TeamContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw } from 'lucide-react';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { NoTeamSelected } from '@/components/shared/NoTeamSelected';
@@ -24,12 +25,14 @@ interface TeamMemberWithProfile {
 }
 
 export const TeamManagement: React.FC = () => {
-  const { activeTeam, userRole, removeUserFromTeam, getTeamMembers } = useTeam();
+  const { activeTeam, userRole, updateMemberRole, updateMemberStatus, getTeamMembers } = useTeam();
   const [members, setMembers] = useState<TeamMemberWithProfile[]>([]);
   const [pendingRequests, setPendingRequests] = useState<TeamMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingPending, setLoadingPending] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<{ userId: string, name: string, currentRole: string } | null>(null);
   const { toast } = useToast();
 
   const fetchMembers = async () => {
@@ -104,14 +107,119 @@ export const TeamManagement: React.FC = () => {
   };
 
   const handleRemoveUser = async (userId: string, userName: string) => {
-    const confirmed = window.confirm(`Tem certeza que deseja remover ${userName} da equipe?`);
+    if (!activeTeam) return;
+
+    // Obter usuário atual
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user?.id === userId) {
+      toast({
+        title: "Ação não permitida",
+        description: "Você não pode remover a si mesmo da equipe.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja remover ${userName} da equipe?\n\nEsta ação é irreversível e o usuário perderá todo acesso aos dados da equipe.`
+    );
     if (!confirmed) return;
 
     try {
-      await removeUserFromTeam(userId);
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('team_id', activeTeam.id)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Usuário removido",
+        description: `${userName} foi removido da equipe.`
+      });
+
       fetchMembers();
     } catch (error) {
       console.error('Error removing user:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao remover usuário",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDisapproveMember = async (userId: string, userName: string) => {
+    if (!activeTeam) return;
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja desaprovar o acesso de ${userName}?\n\nO usuário perderá acesso à equipe mas não será removido completamente.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await updateMemberStatus(userId, 'rejected');
+      fetchMembers();
+    } catch (error) {
+      console.error('Error disapproving member:', error);
+    }
+  };
+
+  const handleChangeRole = (userId: string, userName: string, currentRole: string) => {
+    setSelectedMember({ userId, name: userName, currentRole });
+    setRoleDialogOpen(true);
+  };
+
+  const handleRoleChange = async (newRole: 'admin' | 'coordinator' | 'financeiro') => {
+    if (!selectedMember || !activeTeam) return;
+    
+    // Verificar se é o único admin sendo rebaixado
+    if (selectedMember.currentRole === 'admin' && newRole !== 'admin') {
+      const adminCount = members.filter(m => m.role === 'admin').length;
+      
+      if (adminCount === 1) {
+        toast({
+          title: "Ação não permitida",
+          description: "A equipe precisa ter pelo menos um administrador. Promova outro membro a admin antes de rebaixar este usuário.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Confirmação adicional para promover a admin
+    if (newRole === 'admin') {
+      const confirmed = window.confirm(
+        `ATENÇÃO: Você está prestes a promover ${selectedMember.name} para Administrador.\n\n` +
+        `Administradores têm acesso TOTAL à equipe, incluindo:\n` +
+        `- Gerenciar todos os membros\n` +
+        `- Deletar dados\n` +
+        `- Acessar dados financeiros sensíveis\n\n` +
+        `Tem certeza?`
+      );
+      if (!confirmed) return;
+    }
+    
+    try {
+      await updateMemberRole(selectedMember.userId, newRole);
+
+      const roleLabels = {
+        admin: 'Administrador',
+        coordinator: 'Coordenador',
+        financeiro: 'Financeiro'
+      };
+
+      toast({
+        title: "Função alterada!",
+        description: `${selectedMember.name} agora é ${roleLabels[newRole]}.`
+      });
+
+      setRoleDialogOpen(false);
+      fetchMembers();
+    } catch (error) {
+      console.error('Error changing role:', error);
     }
   };
 
@@ -379,14 +487,34 @@ export const TeamManagement: React.FC = () => {
                       </Badge>
                       
                       {member.role !== 'admin' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemoveUser(member.user_id, member.user_profiles?.name || 'este usuário')}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="sm" variant="ghost">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56 bg-background z-50">
+                            <DropdownMenuItem onClick={() => handleChangeRole(member.user_id, member.user_profiles?.name || 'usuário', member.role)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Alterar Função
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuItem onClick={() => handleDisapproveMember(member.user_id, member.user_profiles?.name || 'usuário')}>
+                              <UserMinus className="w-4 h-4 mr-2" />
+                              Desaprovar Acesso
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            <DropdownMenuItem 
+                              onClick={() => handleRemoveUser(member.user_id, member.user_profiles?.name || 'este usuário')}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Remover da Equipe
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
                   </div>
@@ -396,6 +524,62 @@ export const TeamManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog para alterar função */}
+      <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Função de {selectedMember?.name}</DialogTitle>
+            <DialogDescription>
+              Função atual: <Badge variant="outline">{selectedMember?.currentRole === 'admin' ? 'Administrador' : selectedMember?.currentRole === 'coordinator' ? 'Coordenador' : 'Financeiro'}</Badge>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
+            <Button
+              variant="outline"
+              className="w-full justify-start h-auto py-4"
+              onClick={() => handleRoleChange('coordinator')}
+            >
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-muted-foreground" />
+                <div className="text-left">
+                  <div className="font-medium">Coordenador</div>
+                  <div className="text-xs text-muted-foreground">Gerencia eventos e pessoal</div>
+                </div>
+              </div>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="w-full justify-start h-auto py-4"
+              onClick={() => handleRoleChange('financeiro')}
+            >
+              <div className="flex items-center gap-3">
+                <DollarSign className="w-5 h-5 text-muted-foreground" />
+                <div className="text-left">
+                  <div className="font-medium">Financeiro</div>
+                  <div className="text-xs text-muted-foreground">Acesso a folhas de pagamento</div>
+                </div>
+              </div>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="w-full justify-start h-auto py-4"
+              onClick={() => handleRoleChange('admin')}
+            >
+              <div className="flex items-center gap-3">
+                <Crown className="w-5 h-5 text-muted-foreground" />
+                <div className="text-left">
+                  <div className="font-medium">Administrador</div>
+                  <div className="text-xs text-muted-foreground">Controle total da equipe</div>
+                </div>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Componente para criar usuário */}
       <CreateUserByAdmin
