@@ -27,5 +27,7 @@ export interface TeamContextType {
   createTeam: (name: string) => Promise<Team>;
   inviteUserToTeam: (email: string, role: 'coordinator') => Promise<void>;
   removeUserFromTeam: (userId: string) => Promise<void>;
+  updateMemberRole: (userId: string, newRole: 'admin' | 'coordinator' | 'financeiro') => Promise<void>;
+  updateMemberStatus: (userId: string, newStatus: 'approved' | 'pending' | 'rejected') => Promise<void>;
   getTeamMembers: () => Promise<any[]>;
 }

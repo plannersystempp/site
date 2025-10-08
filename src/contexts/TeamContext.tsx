@@ -18,7 +18,9 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const {
     inviteUserToTeam,
-    removeUserFromTeam,
+    removeUserFromTeam: removeUserFromTeamOp,
+    updateMemberRole: updateMemberRoleOp,
+    updateMemberStatus: updateMemberStatusOp,
     getTeamMembers: getTeamMembersOp
   } = useTeamOperations();
 
@@ -90,6 +92,27 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return await getTeamMembersOp(activeTeam.id);
   };
 
+  const removeUserFromTeam = async (userId: string) => {
+    if (!activeTeam) {
+      throw new Error('No active team');
+    }
+    return await removeUserFromTeamOp(userId, activeTeam.id);
+  };
+
+  const updateMemberRole = async (userId: string, newRole: 'admin' | 'coordinator' | 'financeiro') => {
+    if (!activeTeam) {
+      throw new Error('No active team');
+    }
+    return await updateMemberRoleOp(userId, activeTeam.id, newRole);
+  };
+
+  const updateMemberStatus = async (userId: string, newStatus: 'approved' | 'pending' | 'rejected') => {
+    if (!activeTeam) {
+      throw new Error('No active team');
+    }
+    return await updateMemberStatusOp(userId, activeTeam.id, newStatus);
+  };
+
   const value: TeamContextType = {
     teams: activeTeam ? [activeTeam] : [],
     activeTeam,
@@ -100,6 +123,8 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     createTeam: async () => { throw new Error('Team creation not supported in single-team mode'); },
     inviteUserToTeam,
     removeUserFromTeam,
+    updateMemberRole,
+    updateMemberStatus,
     getTeamMembers,
   };
 

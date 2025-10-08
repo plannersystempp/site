@@ -1,8 +1,8 @@
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { TeamService } from './teamService';
-import { Team } from './types';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useTeamOperations = () => {
   const { toast } = useToast();
@@ -24,9 +24,10 @@ export const useTeamOperations = () => {
     }
   }, [toast]);
 
-  const removeUserFromTeam = useCallback(async (userId: string) => {
+  const removeUserFromTeam = useCallback(async (userId: string, teamId: string) => {
     try {
-      // TODO: Implementar remoção real quando o contexto for passado
+      await TeamService.removeTeamMember(teamId, userId);
+      
       toast({
         title: "Sucesso",
         description: "Usuário removido da equipe!",
@@ -38,6 +39,57 @@ export const useTeamOperations = () => {
         description: "Falha ao remover usuário",
         variant: "destructive"
       });
+      throw error;
+    }
+  }, [toast]);
+
+  const updateMemberRole = useCallback(async (userId: string, teamId: string, newRole: 'admin' | 'coordinator' | 'financeiro') => {
+    try {
+      await TeamService.updateTeamMemberRole(teamId, userId, newRole);
+      
+      toast({
+        title: "Sucesso",
+        description: "Papel do membro atualizado!",
+      });
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar papel do membro",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  }, [toast]);
+
+  const updateMemberStatus = useCallback(async (userId: string, teamId: string, newStatus: 'approved' | 'pending' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .update({ status: newStatus })
+        .eq('team_id', teamId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      
+      const statusLabels = {
+        approved: 'aprovado',
+        pending: 'pendente',
+        rejected: 'desaprovado'
+      };
+      
+      toast({
+        title: "Sucesso",
+        description: `Status do membro atualizado para ${statusLabels[newStatus]}`,
+      });
+    } catch (error) {
+      console.error('Error updating member status:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar status do membro",
+        variant: "destructive"
+      });
+      throw error;
     }
   }, [toast]);
 
@@ -55,6 +107,8 @@ export const useTeamOperations = () => {
   return {
     inviteUserToTeam,
     removeUserFromTeam,
+    updateMemberRole,
+    updateMemberStatus,
     getTeamMembers
   };
 };
