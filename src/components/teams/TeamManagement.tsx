@@ -28,6 +28,7 @@ export const TeamManagement: React.FC = () => {
   const { activeTeam, userRole, updateMemberRole, updateMemberStatus, getTeamMembers } = useTeam();
   const [members, setMembers] = useState<TeamMemberWithProfile[]>([]);
   const [pendingRequests, setPendingRequests] = useState<TeamMemberWithProfile[]>([]);
+  const [rejectedMembers, setRejectedMembers] = useState<TeamMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingPending, setLoadingPending] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -73,12 +74,14 @@ export const TeamManagement: React.FC = () => {
         };
       }) as TeamMemberWithProfile[];
       
-      // Separar membros aprovados dos pendentes
+      // Separar membros aprovados, pendentes e rejeitados
       const approved = membersWithProfiles.filter(member => member.status === 'approved');
       const pending = membersWithProfiles.filter(member => member.status === 'pending');
+      const rejected = membersWithProfiles.filter(member => member.status === 'rejected');
       
       setMembers(approved);
       setPendingRequests(pending);
+      setRejectedMembers(rejected);
     } catch (error) {
       console.error('Error fetching members:', error);
       toast({
@@ -301,6 +304,19 @@ export const TeamManagement: React.FC = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge variant="default" className="bg-green-600 text-white">Aprovado</Badge>;
+      case 'pending':
+        return <Badge variant="secondary" className="bg-orange-600 text-white">Pendente</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Desaprovado</Badge>;
+      default:
+        return <Badge variant="outline">Desconhecido</Badge>;
+    }
+  };
+
   useEffect(() => {
     if (activeTeam) {
       fetchMembers();
@@ -423,6 +439,63 @@ export const TeamManagement: React.FC = () => {
                     >
                       <X className="w-4 h-4 mr-1" />
                       Rejeitar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Seção de Membros Desaprovados */}
+      {rejectedMembers.length > 0 && (
+        <Card className="border-red-200 bg-red-50/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <UserMinus className="w-5 h-5" />
+              Membros Desaprovados ({rejectedMembers.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {rejectedMembers.map((member) => (
+                <div
+                  key={member.user_id}
+                  className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-white"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <UserMinus className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{member.user_profiles?.name || 'Nome não disponível'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {member.user_profiles?.email || 'Email não disponível'}
+                      </p>
+                      <div className="mt-1">
+                        {getStatusBadge(member.status)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleApproveRequest(member.user_id, member.user_profiles?.name || 'usuário')}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Check className="w-4 h-4 mr-1" />
+                      Reaprovar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleRemoveUser(member.user_id, member.user_profiles?.name || 'usuário')}
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Remover
                     </Button>
                   </div>
                 </div>
