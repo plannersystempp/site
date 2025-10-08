@@ -142,6 +142,42 @@ export type Database = {
         }
         Relationships: []
       }
+      deletion_logs: {
+        Row: {
+          data_summary: Json | null
+          deleted_at: string | null
+          deleted_by: string | null
+          deleted_entity_id: string
+          deleted_entity_name: string | null
+          deleted_entity_type: string
+          deletion_type: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          data_summary?: Json | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_entity_id: string
+          deleted_entity_name?: string | null
+          deleted_entity_type: string
+          deletion_type: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          data_summary?: Json | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_entity_id?: string
+          deleted_entity_name?: string | null
+          deleted_entity_type?: string
+          deletion_type?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       event_divisions: {
         Row: {
           created_at: string | null
@@ -1605,6 +1641,21 @@ export type Database = {
         Args: { team_id_param: string }
         Returns: Json
       }
+      get_team_stats_for_superadmin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          events_count: number
+          members_count: number
+          owner_email: string
+          owner_id: string
+          owner_name: string
+          personnel_count: number
+          team_cnpj: string
+          team_id: string
+          team_name: string
+        }[]
+      }
       get_user_role_in_team: {
         Args: { check_team_id: string }
         Returns: string
@@ -1625,6 +1676,10 @@ export type Database = {
       }
       join_team_by_invite_code: {
         Args: { p_invite_code: string }
+        Returns: Json
+      }
+      preview_team_deletion: {
+        Args: { p_team_id: string }
         Returns: Json
       }
       request_team_access: {

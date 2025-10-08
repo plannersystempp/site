@@ -18,6 +18,8 @@ import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
 import { OrphanUsersTab } from '@/components/admin/OrphanUsersTab';
 import { UserManagementDialog } from '@/components/admin/UserManagementDialog';
+import { TeamManagementTab } from '@/components/admin/TeamManagementTab';
+import { DeletionLogsTab } from '@/components/admin/DeletionLogsTab';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -298,10 +300,12 @@ export default function SuperAdmin() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="users">Gerenciar Usuários</TabsTrigger>
-          <TabsTrigger value="orphans">Usuários Órfãos</TabsTrigger>
-          <TabsTrigger value="audit">Logs de Auditoria</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="teams">Equipes</TabsTrigger>
+          <TabsTrigger value="orphans">Órfãos</TabsTrigger>
+          <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
+          <TabsTrigger value="audit">Auditoria</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
@@ -523,6 +527,14 @@ export default function SuperAdmin() {
 
         <TabsContent value="orphans" className="space-y-6">
           <OrphanUsersTab teams={teams} />
+        </TabsContent>
+
+        <TabsContent value="teams" className="space-y-6">
+          <TeamManagementTab />
+        </TabsContent>
+
+        <TabsContent value="deletion-logs" className="space-y-6">
+          <DeletionLogsTab />
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-6">

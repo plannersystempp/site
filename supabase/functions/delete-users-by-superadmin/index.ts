@@ -114,6 +114,13 @@ Deno.serve(async (req) => {
           .delete()
           .eq('user_id', userId);
 
+        // Get user info for logging BEFORE deleting from user_profiles
+        const { data: userProfile } = await supabaseAdmin
+          .from('user_profiles')
+          .select('email, name')
+          .eq('user_id', userId)
+          .single();
+
         // Delete from user_profiles
         await supabaseAdmin
           .from('user_profiles')
@@ -127,6 +134,23 @@ Deno.serve(async (req) => {
           console.error(`Error deleting user ${userId} from auth:`, authError);
           errors.push({ userId, error: authError.message });
         } else {
+          // Log deletion
+          const token = authHeader.replace('Bearer ', '');
+          const { data: { user: adminUser } } = await supabaseAdmin.auth.getUser(token);
+          
+          await supabaseAdmin.from('deletion_logs').insert({
+            deleted_by: adminUser?.id,
+            deletion_type: 'user_by_admin',
+            deleted_entity_id: userId,
+            deleted_entity_type: 'user',
+            deleted_entity_name: userProfile?.email || userId,
+            reason: 'Exclusão de usuário pelo SuperAdmin',
+            data_summary: {
+              user_name: userProfile?.name,
+              user_email: userProfile?.email
+            }
+          });
+
           deletedUsers.push(userId);
           console.log(`Successfully deleted user: ${userId}`);
         }

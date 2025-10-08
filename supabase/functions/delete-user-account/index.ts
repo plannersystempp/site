@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 interface DeleteUserAccountRequest {
-  // Não precisamos de parâmetros adicionais, o usuário vem do JWT
+  password: string;
 }
 
 Deno.serve(async (req) => {
@@ -38,6 +38,29 @@ Deno.serve(async (req) => {
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: 'Usuário não encontrado ou token inválido' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Obter senha do body e validar
+    const { password } = await req.json();
+    
+    if (!password) {
+      return new Response(
+        JSON.stringify({ error: 'Senha é obrigatória' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validar senha re-autenticando o usuário
+    const { error: authError } = await supabaseAdmin.auth.signInWithPassword({
+      email: user.email || '',
+      password: password
+    });
+
+    if (authError) {
+      return new Response(
+        JSON.stringify({ error: 'Senha incorreta' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -133,6 +156,20 @@ Deno.serve(async (req) => {
       // Anonimizar dados criados pelo usuário (se necessário)
       // await supabaseAdmin.from('audit_logs').update({ user_id: null }).eq('user_id', user.id);
     }
+
+    // Registrar exclusão nos logs de auditoria
+    await supabaseAdmin.from('deletion_logs').insert({
+      deleted_by: user.id,
+      deletion_type: 'user_self',
+      deleted_entity_id: user.id,
+      deleted_entity_type: 'user',
+      deleted_entity_name: user.email,
+      reason: 'Exclusão solicitada pelo próprio usuário (LGPD)',
+      data_summary: {
+        teams_transferred: userTeams?.length || 0,
+        memberships_removed: teamMemberships?.length || 0
+      }
+    });
 
     // Por fim, deletar a conta de autenticação
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);

@@ -2,24 +2,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const deleteUserAccount = async (password: string) => {
   try {
-    // Verifica a senha do usuário re-autenticando
-    const { data: user } = await supabase.auth.getUser();
-    if (!user?.user?.email) {
-      throw new Error('Usuário não encontrado');
-    }
-
-    // Re-autentica para verificar a senha
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: user.user.email,
-      password: password
-    });
-
-    if (authError) {
-      throw new Error('Senha incorreta');
-    }
-
-    // Chama a edge function para deletar a conta
+    // Chama a edge function para deletar a conta, passando a senha
     const { data, error } = await supabase.functions.invoke('delete-user-account', {
+      body: { password },
       headers: {
         'Content-Type': 'application/json',
       }
