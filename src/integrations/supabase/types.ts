@@ -1710,6 +1710,10 @@ export type Database = {
         Args: { p_role?: string; p_team_id: string; p_user_id: string }
         Returns: Json
       }
+      superadmin_change_team_member_status: {
+        Args: { p_new_status: string; p_team_id: string; p_user_id: string }
+        Returns: Json
+      }
       superadmin_change_user_role: {
         Args: { p_new_role: string; p_user_id: string }
         Returns: Json
