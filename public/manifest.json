@@ -9,13 +9,13 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.png", 
+      "src": "/icons/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/auth",
+  "start_url": "https://betasige.fgoa.com.br/auth",
   "display": "standalone",
   "theme_color": "#0979FF",
   "background_color": "#0979FF",
