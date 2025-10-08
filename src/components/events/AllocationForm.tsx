@@ -319,7 +319,7 @@ export const AllocationForm: React.FC<AllocationFormProps> = ({
       }}
     >
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-modal="true" data-modal="true">
-        <DialogHeader className="sticky top-0 bg-background z-10 pb-10">
+        <DialogHeader className="sticky top-0 bg-background z-[5] pb-10">
           <DialogTitle>Nova Alocação</DialogTitle>
         </DialogHeader>
         

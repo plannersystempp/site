@@ -253,7 +253,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
-        <div className="sticky top-0 bg-background pb-4 border-b z-10">
+        <div className="sticky top-0 bg-background pb-4 border-b z-[5]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
