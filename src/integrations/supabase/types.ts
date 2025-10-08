@@ -1596,6 +1596,22 @@ export type Database = {
         Args: { p_company_cnpj?: string; p_company_name: string }
         Returns: Json
       }
+      superadmin_approve_user: {
+        Args: { p_approve_status: boolean; p_user_id: string }
+        Returns: Json
+      }
+      superadmin_assign_user_to_team: {
+        Args: { p_role?: string; p_team_id: string; p_user_id: string }
+        Returns: Json
+      }
+      superadmin_change_user_role: {
+        Args: { p_new_role: string; p_user_id: string }
+        Returns: Json
+      }
+      superadmin_remove_user_from_team: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: Json
+      }
       update_event_statuses: {
         Args: Record<PropertyKey, never>
         Returns: undefined

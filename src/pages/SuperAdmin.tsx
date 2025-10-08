@@ -12,10 +12,20 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
+import { OrphanUsersTab } from '@/components/admin/OrphanUsersTab';
+import { UserManagementDialog } from '@/components/admin/UserManagementDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface SuperAdminUser {
   user_id: string;
@@ -60,6 +70,27 @@ export default function SuperAdmin() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  
+  // Management dialog state
+  const [managementDialog, setManagementDialog] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+    currentRole: string;
+    currentApproved: boolean;
+    currentTeamId: string | null;
+    currentTeamName: string | null;
+    actionType: 'approve' | 'role' | 'assign' | 'remove' | 'delete';
+  }>({
+    isOpen: false,
+    userId: '',
+    userName: '',
+    currentRole: '',
+    currentApproved: false,
+    currentTeamId: null,
+    currentTeamName: null,
+    actionType: 'approve',
+  });
   
   // Filters
   const [userFilter, setUserFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -195,6 +226,22 @@ export default function SuperAdmin() {
     alert('Funcionalidade de notificação a ser implementada.');
   };
 
+  const openManagementDialog = (
+    user: SuperAdminUser,
+    actionType: 'approve' | 'role' | 'assign' | 'remove' | 'delete'
+  ) => {
+    setManagementDialog({
+      isOpen: true,
+      userId: user.user_id,
+      userName: user.name,
+      currentRole: user.role,
+      currentApproved: user.is_approved,
+      currentTeamId: user.team_id,
+      currentTeamName: user.team_name,
+      actionType,
+    });
+  };
+
   const getInactiveDays = (lastSignIn: string | null) => {
     if (!lastSignIn) return null;
     return formatDistanceToNow(new Date(lastSignIn), { locale: ptBR });
@@ -251,8 +298,9 @@ export default function SuperAdmin() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users">Gerenciar Usuários</TabsTrigger>
+          <TabsTrigger value="orphans">Usuários Órfãos</TabsTrigger>
           <TabsTrigger value="audit">Logs de Auditoria</TabsTrigger>
         </TabsList>
 
@@ -362,6 +410,7 @@ export default function SuperAdmin() {
                     <TableHead>Empresa</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Último Acesso</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -415,6 +464,53 @@ export default function SuperAdmin() {
                               <span className="text-muted-foreground">Nunca</span>
                             )}
                           </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <UserCog className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => openManagementDialog(user, 'approve')}
+                                >
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  {user.is_approved ? 'Desaprovar' : 'Aprovar'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openManagementDialog(user, 'role')}
+                                >
+                                  <UserCog className="mr-2 h-4 w-4" />
+                                  Alterar Função
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openManagementDialog(user, 'assign')}
+                                >
+                                  <UserPlus className="mr-2 h-4 w-4" />
+                                  {user.team_id ? 'Trocar Equipe' : 'Associar à Equipe'}
+                                </DropdownMenuItem>
+                                {user.team_id && (
+                                  <DropdownMenuItem
+                                    onClick={() => openManagementDialog(user, 'remove')}
+                                  >
+                                    <UserMinus className="mr-2 h-4 w-4" />
+                                    Remover da Equipe
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => openManagementDialog(user, 'delete')}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Excluir Usuário
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                         </TableRow>
                       );
                     })
@@ -423,6 +519,10 @@ export default function SuperAdmin() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="orphans" className="space-y-6">
+          <OrphanUsersTab teams={teams} />
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-6">
@@ -488,6 +588,26 @@ export default function SuperAdmin() {
           />
         </TabsContent>
       </Tabs>
+
+      {/* User Management Dialog */}
+      <UserManagementDialog
+        isOpen={managementDialog.isOpen}
+        onClose={() =>
+          setManagementDialog((prev) => ({ ...prev, isOpen: false }))
+        }
+        onSuccess={() => {
+          fetchUsers();
+          setManagementDialog((prev) => ({ ...prev, isOpen: false }));
+        }}
+        userId={managementDialog.userId}
+        userName={managementDialog.userName}
+        currentRole={managementDialog.currentRole}
+        currentApproved={managementDialog.currentApproved}
+        currentTeamId={managementDialog.currentTeamId}
+        currentTeamName={managementDialog.currentTeamName}
+        teams={teams}
+        actionType={managementDialog.actionType}
+      />
     </div>
   );
 }
