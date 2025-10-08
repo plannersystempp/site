@@ -33,6 +33,7 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const closeRef = React.useRef<HTMLButtonElement>(null);
   
   // Track open state for scroll locking
   React.useEffect(() => {
@@ -54,6 +55,26 @@ const DialogContent = React.forwardRef<
   // Lock body scroll when modal is open
   useBodyScrollLock(isOpen);
 
+  // Handle ESC key in capture phase to ensure it always works
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        e.preventDefault();
+        closeRef.current?.click();
+      }
+    };
+
+    // Use capture phase to catch the event before any child handlers
+    document.addEventListener('keydown', handleEscapeKey, true);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey, true);
+    };
+  }, [isOpen]);
+
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -68,9 +89,13 @@ const DialogContent = React.forwardRef<
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute right-2 top-2 sm:right-4 sm:top-4 z-[60] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground pointer-events-auto">
+        <DialogPrimitive.Close 
+          ref={closeRef}
+          aria-label="Fechar"
+          className="absolute right-2 top-2 sm:right-4 sm:top-4 z-[999] inline-flex h-8 w-8 items-center justify-center rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground pointer-events-auto"
+        >
           <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">Fechar</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPortal>
