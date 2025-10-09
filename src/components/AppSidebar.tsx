@@ -187,26 +187,26 @@ export const AppSidebar = () => {
 
       <SidebarFooter className="p-4 space-y-2">
         <Button
-          variant="ghost"
-          size="sm"
+          variant="secondary"
+          size="sm" aria-label="Reportar Erro"
           onClick={() => {
             const recipient = "suporte@sige.com.br";
             const subject = "Report de Erro - SIGE";
             const body = `Por favor, descreva o erro que encontrou e os passos para reproduzi-lo:\n[...]\n\n------------------\nInformações de Debug (Não apague):\nUsuário: ${user?.email || 'Não logado'}\nEquipe Ativa: ${activeTeam?.name || 'Nenhuma'}\nPágina Atual: ${window.location.href}\nData: ${new Date().toISOString()}`;
             window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
           }}
-          className="w-full text-xs text-muted-foreground hover:text-foreground"
+          className="w-full justify-start text-xs"
         >
           <Mail className="mr-2 h-3 w-3" />
           Reportar Erro
         </Button>
         
-        <div className="flex justify-between text-xs text-muted-foreground">
+        <div className="flex justify-between text-xs">
           <a
             href="/termos-de-uso"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground hover:underline"
+            className="text-sidebar-foreground underline hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded px-1 transition-colors"
           >
             Termos de Uso
           </a>
@@ -214,7 +214,7 @@ export const AppSidebar = () => {
             href="/politica-de-privacidade"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground hover:underline"
+            className="text-sidebar-foreground underline hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded px-1 transition-colors"
           >
             Política de Privacidade
           </a>
@@ -222,7 +222,7 @@ export const AppSidebar = () => {
         
         <DropdownMenu open={showUserMenu} onOpenChange={setShowUserMenu}>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="w-full justify-between">
+            <SidebarMenuButton size="lg" className="w-full justify-between">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <div className="flex flex-col min-w-0 flex-1 text-left">

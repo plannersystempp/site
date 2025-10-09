@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +25,41 @@ export const EventDetail: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showEditForm, setShowEditForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('allocations');
+
+  // Refs para rolar até o conteúdo correspondente
+  const allocationsRef = useRef<HTMLDivElement | null>(null);
+  const overviewRef = useRef<HTMLDivElement | null>(null);
+  const absencesRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToSection = (el: HTMLElement | null) => {
+    if (!el) return;
+    const offset = 80; // compensar cabeçalho/navegação fixa
+    const y = el.getBoundingClientRect().top + window.pageYOffset - offset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  };
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+  };
+
+  // Após mudar a aba, rolar quando o conteúdo estiver montado
+  useEffect(() => {
+    const target =
+      activeTab === 'allocations'
+        ? allocationsRef.current
+        : activeTab === 'overview'
+        ? overviewRef.current
+        : activeTab === 'absences'
+        ? absencesRef.current
+        : null;
+
+    // Pequeno atraso para garantir montagem/medição do layout
+    const id = window.setTimeout(() => {
+      scrollToSection(target);
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [activeTab]);
 
   const event = events.find(e => e.id === id);
   
@@ -404,7 +439,7 @@ export const EventDetail: React.FC = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="allocations" className="mt-8 space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-8 space-y-6">
           <TabsList className={`grid w-full h-10 md:h-12 ${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="allocations" className="text-sm">Alocações</TabsTrigger>
             <TabsTrigger value="overview" className="text-sm">Visão Geral</TabsTrigger>
@@ -414,11 +449,13 @@ export const EventDetail: React.FC = () => {
           </TabsList>
 
           <TabsContent value="allocations" forceMount>
-            <AllocationManager eventId={event.id} />
+            <div ref={allocationsRef}>
+              <AllocationManager eventId={event.id} />
+            </div>
           </TabsContent>
 
-          <TabsContent value="overview">
-            <div className="space-y-6">
+          <TabsContent value="overview" forceMount>
+            <div ref={overviewRef} className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Resumo do Evento</CardTitle>
@@ -509,8 +546,10 @@ export const EventDetail: React.FC = () => {
           </TabsContent>
 
           {user?.role === 'admin' && (
-            <TabsContent value="absences">
-              <AbsenceHistory eventId={event.id} />
+            <TabsContent value="absences" forceMount>
+              <div ref={absencesRef}>
+                <AbsenceHistory eventId={event.id} />
+              </div>
             </TabsContent>
           )}
         </Tabs>
