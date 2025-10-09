@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useTeam } from '@/contexts/TeamContext';
@@ -12,6 +12,9 @@ import { PayrollList } from './PayrollList';
 import { usePayrollData } from './usePayrollData';
 import { usePayrollActions } from './usePayrollActions';
 import { formatDateBR } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/formatters';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const PayrollEventView: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -33,6 +36,27 @@ export const PayrollEventView: React.FC = () => {
     if (paymentFilter === 'pagos') return payrollDetails.filter(item => item.paid);
     return payrollDetails;
   }, [payrollDetails, paymentFilter]);
+
+  // Estatísticas gerais
+  const totalToPay = useMemo(() => {
+    return payrollDetails.reduce((sum, item) => sum + (item.totalPay || 0), 0);
+  }, [payrollDetails]);
+
+  const totalPaid = useMemo(() => {
+    return payrollDetails.reduce((sum, item) => sum + (item.paidAmount || 0), 0);
+  }, [payrollDetails]);
+
+  const percentCompleted = useMemo(() => {
+    if (totalToPay <= 0) return 0;
+    return Math.round((totalPaid / totalToPay) * 100);
+  }, [totalToPay, totalPaid]);
+
+  const pendingAmount = useMemo(() => {
+    return Math.max(totalToPay - totalPaid, 0);
+  }, [totalToPay, totalPaid]);
+
+  const paidCount = useMemo(() => payrollDetails.filter(p => p.paid).length, [payrollDetails]);
+  const pendingCount = useMemo(() => payrollDetails.filter(p => !p.paid).length, [payrollDetails]);
 
   const canManagePayroll = userRole === 'admin';
   const selectedEvent = events.find(e => e.id === eventId);
@@ -140,11 +164,63 @@ export const PayrollEventView: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Estatísticas de topo com skeleton */}
+          {loading ? (
+            <div className={`${isMobile ? 'grid grid-cols-1 gap-2' : 'grid grid-cols-4 gap-4'} mb-4`}>
+              <div className="rounded-lg p-3 sm:p-4">
+                <Skeleton className="h-6 w-24 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="rounded-lg p-3 sm:p-4">
+                <Skeleton className="h-6 w-24 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="rounded-lg p-3 sm:p-4">
+                <Skeleton className="h-6 w-24 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="rounded-lg p-3 sm:p-4">
+                <Skeleton className="h-6 w-24 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+          ) : (
+            <div className={`${isMobile ? 'grid grid-cols-1 gap-2' : 'grid grid-cols-4 gap-4'} mb-4`}>
+              <div className="rounded-lg bg-blue-50 p-3 sm:p-4 text-center">
+                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-blue-600`}>{formatCurrency(totalToPay)}</div>
+                <div className="text-sm text-blue-700">Total a Pagar</div>
+              </div>
+              <div className="rounded-lg bg-green-50 p-3 sm:p-4 text-center">
+                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-green-600`}>{formatCurrency(totalPaid)}</div>
+                <div className="text-sm text-green-700">Total Pago</div>
+              </div>
+              <div className="rounded-lg bg-amber-50 p-3 sm:p-4 text-center">
+                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-amber-600`}>{formatCurrency(pendingAmount)}</div>
+                <div className="text-sm text-amber-700">Pendente</div>
+              </div>
+              <div className="rounded-lg bg-purple-50 p-3 sm:p-4 text-center">
+                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-purple-600`}>{percentCompleted}%</div>
+                <div className="text-sm text-purple-700">% Concluído</div>
+              </div>
+            </div>
+          )}
+
+          {/* Contagem de pagos vs pendentes */}
+          {!loading && (
+            <div className={`${isMobile ? 'flex flex-col gap-2' : 'flex items-center gap-3'} mb-4`}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Profissionais:</span>
+                <Badge variant="default">{paidCount} pagos</Badge>
+                <Badge variant="destructive">{pendingCount} pendentes</Badge>
+              </div>
+            </div>
+          )}
+
           <Tabs value={paymentFilter} onValueChange={(value) => setPaymentFilter(value as 'todos' | 'pendentes' | 'pagos')} className="w-full mb-4">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
-              <TabsTrigger value="pagos">Pagos</TabsTrigger>
+              <TabsTrigger value="pendentes">Pendentes <Badge className="ml-2" variant="outline">{pendingCount}</Badge></TabsTrigger>
+              <TabsTrigger value="pagos">Pagos <Badge className="ml-2" variant="outline">{paidCount}</Badge></TabsTrigger>
             </TabsList>
             <TabsContent value={paymentFilter} className="mt-4">
               <PayrollList

@@ -1,7 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { Calculator, Users } from 'lucide-react';
 import { PayrollDetails } from './types';
 import { PayrollDetailsCard } from './PayrollDetailsCard';
+import { SkeletonCard } from '@/components/shared/SkeletonCard';
 
 interface PayrollListProps {
   payrollDetails: PayrollDetails[];
@@ -22,10 +23,16 @@ export const PayrollList: React.FC<PayrollListProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center">
-          <Calculator className="w-8 h-8 animate-spin mx-auto mb-2" />
-          <p>Carregando dados...</p>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <SkeletonCard showSubtitle={false} />
+          <SkeletonCard showSubtitle={false} />
+          <SkeletonCard showSubtitle={false} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       </div>
     );
