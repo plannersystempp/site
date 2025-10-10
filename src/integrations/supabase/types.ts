@@ -867,7 +867,6 @@ export type Database = {
           address_street: string | null
           address_zip_code: string | null
           cnpj: string | null
-          convert_overtime_to_daily: boolean | null
           cpf: string | null
           created_at: string | null
           email: string | null
@@ -876,7 +875,6 @@ export type Database = {
           monthly_salary: number | null
           name: string
           overtime_rate: number | null
-          overtime_threshold_hours: number | null
           phone: string | null
           phone_secondary: string | null
           photo_url: string | null
@@ -893,7 +891,6 @@ export type Database = {
           address_street?: string | null
           address_zip_code?: string | null
           cnpj?: string | null
-          convert_overtime_to_daily?: boolean | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
@@ -902,7 +899,6 @@ export type Database = {
           monthly_salary?: number | null
           name: string
           overtime_rate?: number | null
-          overtime_threshold_hours?: number | null
           phone?: string | null
           phone_secondary?: string | null
           photo_url?: string | null
@@ -919,7 +915,6 @@ export type Database = {
           address_street?: string | null
           address_zip_code?: string | null
           cnpj?: string | null
-          convert_overtime_to_daily?: boolean | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
@@ -928,7 +923,6 @@ export type Database = {
           monthly_salary?: number | null
           name?: string
           overtime_rate?: number | null
-          overtime_threshold_hours?: number | null
           phone?: string | null
           phone_secondary?: string | null
           photo_url?: string | null

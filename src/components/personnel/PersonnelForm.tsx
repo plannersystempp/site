@@ -6,7 +6,6 @@ import { Personnel } from '@/contexts/EnhancedDataContext';
 import { PersonnelFormHeader } from './PersonnelFormHeader';
 import { PersonnelFormFields } from './PersonnelFormFields';
 import { PersonnelFormActions } from './PersonnelFormActions';
-import { PersonnelOvertimeConfig } from './PersonnelOvertimeConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTeam } from '@/contexts/TeamContext';
@@ -31,8 +30,6 @@ interface PersonnelFormData {
   cpf: string;
   cnpj: string;
   pixKey: string;
-  overtime_threshold_hours?: number | null;
-  convert_overtime_to_daily?: boolean | null;
 }
 
 export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose, onSuccess }) => {
@@ -51,9 +48,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     overtime_rate: 0,
     cpf: '',
     cnpj: '',
-    pixKey: '',
-    overtime_threshold_hours: null,
-    convert_overtime_to_daily: null
+    pixKey: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -71,9 +66,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         overtime_rate: personnel.overtime_rate || 0,
         cpf: personnel.cpf || '',
         cnpj: personnel.cnpj || '',
-        pixKey: prev.pixKey || '', // Preserve existing PIX key if already fetched
-        overtime_threshold_hours: (personnel as any).overtime_threshold_hours ?? null,
-        convert_overtime_to_daily: (personnel as any).convert_overtime_to_daily ?? null
+        pixKey: prev.pixKey || '' // Preserve existing PIX key if already fetched
       }));
     }
   }, [personnel]);
@@ -267,11 +260,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
               functions={functions}
               onFieldChange={handleFieldChange}
               onPhoneChange={handlePhoneChange}
-            />
-            
-            <PersonnelOvertimeConfig
-              formData={formData}
-              onChange={handleFieldChange}
             />
             
             <PersonnelFormActions

@@ -158,8 +158,7 @@ export const TeamPayrollConfig: React.FC = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Esta é a configuração padrão da equipe. Pode ser personalizada
-            individualmente ao editar cada profissional.
+            Esta configuração será aplicada a todos os profissionais da equipe.
           </AlertDescription>
         </Alert>
 

@@ -10,11 +10,40 @@ import * as PayrollCalc from './payrollCalculations';
 export const usePayrollData = (selectedEventId: string) => {
   const { personnel } = useEnhancedData();
   const { toast } = useToast();
-  const { userRole } = useTeam();
+  const { userRole, activeTeam } = useTeam();
   const [eventData, setEventData] = useState<EventData>({ allocations: [], workLogs: [], closings: [], absences: [] });
   const [pixKeys, setPixKeys] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [teamOvertimeConfig, setTeamOvertimeConfig] = useState({ default_convert_overtime_to_daily: false, default_overtime_threshold_hours: 8 });
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+
+  // Buscar configuração global de HE da equipe
+  useEffect(() => {
+    const fetchTeamConfig = async () => {
+      if (!activeTeam?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('default_overtime_threshold_hours, default_convert_overtime_to_daily')
+          .eq('id', activeTeam.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setTeamOvertimeConfig({
+            default_convert_overtime_to_daily: data.default_convert_overtime_to_daily || false,
+            default_overtime_threshold_hours: data.default_overtime_threshold_hours || 8
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching team overtime config:', error);
+      }
+    };
+
+    fetchTeamConfig();
+  }, [activeTeam]);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -139,9 +168,9 @@ export const usePayrollData = (selectedEventId: string) => {
       const overtimeRate = person.overtime_rate || 0;
       const dailyCache = PayrollCalc.getDailyCacheRate(allocationsData, person);
       
-      // Buscar config de HE do profissional (ou usar padrão da equipe - será implementado no componente)
-      const overtimeThreshold = (person as any).overtime_threshold_hours || 8;
-      const convertEnabled = (person as any).convert_overtime_to_daily || false;
+      // Usar apenas configuração global da equipe
+      const convertEnabled = teamOvertimeConfig.default_convert_overtime_to_daily ?? false;
+      const overtimeThreshold = teamOvertimeConfig.default_overtime_threshold_hours ?? 8;
       
       const overtimeResult = PayrollCalc.calculateOvertimePayWithDailyConversion(
         workLogsData, // Passar os logs completos (com work_date) para cálculo diário
