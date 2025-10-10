@@ -61,8 +61,8 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
   };
   return (
     <Card className="border-l-4 border-l-primary">
-      <CardContent className="p-3 sm:p-4">
-        <div className={`${isMobile ? 'space-y-3' : 'flex items-center justify-between'} mb-4`}>
+      <CardContent className="p-2 sm:p-3">
+        <div className={`${isMobile ? 'space-y-2.5' : 'flex items-center justify-between'} mb-3`}>
           <div className={isMobile ? 'space-y-2' : ''}>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h3 className="font-semibold text-base sm:text-lg">{detail.personName}</h3>
@@ -85,7 +85,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                 <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-green-600`}>
                   {formatCurrency(detail.totalPay)}
                 </p>
-                <div className={`${isMobile ? 'flex-col space-y-1' : 'flex items-center gap-2'} text-sm`}>
+                <div className={`${isMobile ? 'flex-col space-y-1' : 'flex items-center gap-1.5'} text-sm`}>
                   <span className="text-green-600">Pago: {formatCurrency(detail.paidAmount)}</span>
                   {detail.pendingAmount > 0 && (
                     <span className="text-orange-600">Pendente: {formatCurrency(detail.pendingAmount)}</span>
@@ -106,23 +106,23 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           </div>
         </div>
 
-        <Separator className="my-4" />
+        <Separator className="my-3" />
         
         {/* Detalhamento dos Cálculos */}
-        <div className={`grid gap-3 sm:gap-4 mb-4 ${
+        <div className={`grid gap-2 sm:gap-3 mb-3 ${
           isMobile 
-            ? 'grid-cols-1' 
+            ? 'grid-cols-2' 
             : detail.personType === 'fixo' 
               ? (isAdmin && pixKey ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3')
               : (isAdmin && pixKey ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2')
         }`}>
           {detail.personType === 'fixo' && (
-            <div className={`${isMobile ? 'p-3 bg-muted/50 rounded-lg' : 'text-center'}`}>
+            <div className={`${isMobile ? 'p-2 bg-muted/50 rounded-lg' : 'text-center'}`}>
               <p className="text-sm text-muted-foreground">Salário Base</p>
               <p className="font-semibold text-sm sm:text-base">R$ {detail.baseSalary.toFixed(2)}</p>
             </div>
           )}
-          <div className={`${isMobile ? 'p-3 bg-muted/50 rounded-lg' : 'text-center'}`}>
+          <div className={`${isMobile ? 'p-2 bg-muted/50 rounded-lg' : 'text-center'}`}>
             <div className={`${isMobile ? 'flex items-start justify-between' : 'flex items-center justify-center gap-1'} mb-1`}>
               <p className="text-sm text-muted-foreground">
                 Cachês ({detail.workDays} dias)
@@ -153,7 +153,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
               </p>
             )}
           </div>
-          <div className={`${isMobile ? 'p-3 bg-muted/50 rounded-lg' : 'text-center'}`}>
+          <div className={`${isMobile ? 'p-2 bg-muted/50 rounded-lg' : 'text-center'}`}>
             <p className="text-sm text-muted-foreground">
               Horas Extras ({detail.totalOvertimeHours}h)
             </p>
@@ -161,7 +161,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           </div>
           {/* PIX Key Section - Only visible to admins */}
           {isAdmin && pixKey && (
-            <div className={`${isMobile ? 'p-3 bg-muted/50 rounded-lg' : 'text-center'}`}>
+            <div className={`${isMobile ? 'p-3 bg-muted/50 rounded-lg col-span-2' : 'text-center'}`}>
               <p className="text-sm text-muted-foreground mb-2">Chave PIX</p>
               <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center justify-center gap-2'}`}>
                 <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-24'}`}>{pixKey}</p>

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Calculator, Users } from 'lucide-react';
 import { PayrollDetails } from './types';
 import { PayrollDetailsCard } from './PayrollDetailsCard';
@@ -50,7 +50,7 @@ export const PayrollList: React.FC<PayrollListProps> = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {payrollDetails.map(detail => (
         <PayrollDetailsCard
           key={detail.id}

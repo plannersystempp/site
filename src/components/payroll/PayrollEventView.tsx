@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useTeam } from '@/contexts/TeamContext';
@@ -113,7 +113,7 @@ export const PayrollEventView: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-full p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 overflow-x-hidden">
+    <div className={`w-full max-w-full ${isMobile ? 'px-0 py-3' : 'p-4 md:p-6'} space-y-4 md:space-y-6 overflow-x-hidden`}>
       {/* Cabeçalho com informações do evento */}
       <div className="space-y-3">
         <Button 
@@ -144,8 +144,8 @@ export const PayrollEventView: React.FC = () => {
       </div>
 
       {/* Card de Folha de Pagamento */}
-      <Card>
-        <CardHeader className="pb-3 sm:pb-4">
+      <Card className={isMobile ? 'border-0' : undefined}>
+        <CardHeader className="px-2 sm:px-3 pb-2 sm:pb-4">
           <div className={`${isMobile ? 'space-y-3' : 'flex items-center justify-between'}`}>
             <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-lg' : 'text-xl'}`}>
               <DollarSign className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
@@ -163,51 +163,51 @@ export const PayrollEventView: React.FC = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-3">
           {/* Estatísticas de topo com skeleton */}
           {loading ? (
-            <div className={`${isMobile ? 'grid grid-cols-1 gap-2' : 'grid grid-cols-4 gap-4'} mb-4`}>
-              <div className="rounded-lg p-3 sm:p-4">
+            <div className={`${isMobile ? 'grid grid-cols-2 gap-1' : 'grid grid-cols-4 gap-3'} mb-3`}>
+              <div className="rounded-sm p-1 sm:p-2">
                 <Skeleton className="h-6 w-24 mb-2" />
                 <Skeleton className="h-4 w-32" />
               </div>
-              <div className="rounded-lg p-3 sm:p-4">
+              <div className="rounded-sm p-1 sm:p-2">
                 <Skeleton className="h-6 w-24 mb-2" />
                 <Skeleton className="h-4 w-32" />
               </div>
-              <div className="rounded-lg p-3 sm:p-4">
+              <div className="rounded-sm p-1 sm:p-2">
                 <Skeleton className="h-6 w-24 mb-2" />
                 <Skeleton className="h-4 w-32" />
               </div>
-              <div className="rounded-lg p-3 sm:p-4">
+              <div className="rounded-sm p-1 sm:p-2">
                 <Skeleton className="h-6 w-24 mb-2" />
                 <Skeleton className="h-4 w-32" />
               </div>
             </div>
           ) : (
-            <div className={`${isMobile ? 'grid grid-cols-1 gap-2' : 'grid grid-cols-4 gap-4'} mb-4`}>
-              <div className="rounded-lg bg-blue-50 p-3 sm:p-4 text-center">
-                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-blue-600`}>{formatCurrency(totalToPay)}</div>
+            <div className={`${isMobile ? 'grid grid-cols-2 gap-1' : 'grid grid-cols-4 gap-3'} mb-3`}>
+              <div className="rounded-sm bg-blue-50 p-1 sm:p-2 text-center">
+                <div className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-blue-600`}>{formatCurrency(totalToPay)}</div>
                 <div className="text-sm text-blue-700">Total a Pagar</div>
               </div>
-              <div className="rounded-lg bg-green-50 p-3 sm:p-4 text-center">
-                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-green-600`}>{formatCurrency(totalPaid)}</div>
+              <div className="rounded-sm bg-green-50 p-1 sm:p-2 text-center">
+                <div className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-green-600`}>{formatCurrency(totalPaid)}</div>
                 <div className="text-sm text-green-700">Total Pago</div>
               </div>
-              <div className="rounded-lg bg-amber-50 p-3 sm:p-4 text-center">
-                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-amber-600`}>{formatCurrency(pendingAmount)}</div>
+              <div className="rounded-sm bg-amber-50 p-1 sm:p-2 text-center">
+                <div className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-amber-600`}>{formatCurrency(pendingAmount)}</div>
                 <div className="text-sm text-amber-700">Pendente</div>
               </div>
-              <div className="rounded-lg bg-purple-50 p-3 sm:p-4 text-center">
-                <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-purple-600`}>{percentCompleted}%</div>
-                <div className="text-sm text-purple-700">% Concluído</div>
+              <div className="rounded-sm bg-purple-50 p-1 sm:p-2 text-center">
+                <div className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-purple-600`}>{percentCompleted}%</div>
+                <div className="text-sm text-purple-700">Concluído</div>
               </div>
             </div>
           )}
 
           {/* Contagem de pagos vs pendentes */}
           {!loading && (
-            <div className={`${isMobile ? 'flex flex-col gap-2' : 'flex items-center gap-3'} mb-4`}>
+            <div className={`${isMobile ? 'flex flex-col gap-2' : 'flex items-center gap-2'} mb-3`}>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Profissionais:</span>
                 <Badge variant="default">{paidCount} pagos</Badge>
@@ -217,12 +217,12 @@ export const PayrollEventView: React.FC = () => {
           )}
 
           <Tabs value={paymentFilter} onValueChange={(value) => setPaymentFilter(value as 'todos' | 'pendentes' | 'pagos')} className="w-full mb-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="pendentes">Pendentes <Badge className="ml-2" variant="outline">{pendingCount}</Badge></TabsTrigger>
-              <TabsTrigger value="pagos">Pagos <Badge className="ml-2" variant="outline">{paidCount}</Badge></TabsTrigger>
+            <TabsList className={isMobile ? 'grid w-full grid-cols-3 gap-2' : 'grid w-full grid-cols-3'}>
+              <TabsTrigger value="todos" className={isMobile ? 'text-sm w-full' : undefined}>Todos</TabsTrigger>
+              <TabsTrigger value="pendentes" className={isMobile ? 'text-sm w-full' : undefined}>Pendentes <Badge className="ml-2 hidden sm:inline-flex" variant="outline">{pendingCount}</Badge></TabsTrigger>
+              <TabsTrigger value="pagos" className={isMobile ? 'text-sm w-full' : undefined}>Pagos <Badge className="ml-2 hidden sm:inline-flex" variant="outline">{paidCount}</Badge></TabsTrigger>
             </TabsList>
-            <TabsContent value={paymentFilter} className="mt-4">
+            <TabsContent value={paymentFilter} className="mt-3">
               <PayrollList
                 payrollDetails={filteredPayrollDetails}
                 loading={loading}
