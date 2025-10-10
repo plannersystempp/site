@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Calendar, Users, Database, MoreVertical, Edit, Trash2, XCircle } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -28,6 +29,7 @@ export const ManageEvents: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [periodStart, setPeriodStart] = useState('');
   const [periodEnd, setPeriodEnd] = useState('');
+  const [sortOption, setSortOption] = useState<'date_newest' | 'date_oldest' | 'name_asc' | 'name_desc'>('date_newest');
   const [showForm, setShowForm] = useState(false);
   const [creatingExamples, setCreatingExamples] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
@@ -69,6 +71,27 @@ export const ManageEvents: React.FC = () => {
     }
 
     return matchesSearch && matchesPeriod;
+  });
+
+  // Ordenação baseada na opção selecionada
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    switch (sortOption) {
+      case 'name_asc':
+        return a.name.localeCompare(b.name, 'pt-BR');
+      case 'name_desc':
+        return b.name.localeCompare(a.name, 'pt-BR');
+      case 'date_oldest': {
+        const timeA = Date.parse(a.start_date || a.end_date || a.created_at || '') || 0;
+        const timeB = Date.parse(b.start_date || b.end_date || b.created_at || '') || 0;
+        return timeA - timeB;
+      }
+      case 'date_newest':
+      default: {
+        const timeA = Date.parse(a.start_date || a.end_date || a.created_at || '') || 0;
+        const timeB = Date.parse(b.start_date || b.end_date || b.created_at || '') || 0;
+        return timeB - timeA;
+      }
+    }
   });
 
   const getEventStats = (eventId: string) => {
@@ -189,8 +212,8 @@ export const ManageEvents: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+        <div className="relative flex-1 min-w-[240px] sm:min-w-[280px] sm:max-w-none">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Buscar por nome, descrição, local ou cliente..."
@@ -199,12 +222,13 @@ export const ManageEvents: React.FC = () => {
             className="pl-10"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
           <Input
             type="date"
             value={periodStart}
             onChange={(e) => setPeriodStart(e.target.value)}
             placeholder="Data inicial"
+            className="w-[140px] sm:w-[160px]"
           />
           <span className="text-muted-foreground text-sm">até</span>
           <Input
@@ -212,11 +236,23 @@ export const ManageEvents: React.FC = () => {
             value={periodEnd}
             onChange={(e) => setPeriodEnd(e.target.value)}
             placeholder="Data final"
+            className="w-[140px] sm:w-[160px]"
           />
           <Button variant="outline" onClick={clearFilters} className="ml-2">
-            <XCircle className="w-4 h-4 mr-2" />
-            Limpar filtro
+            <XCircle className="w-4 h-4 mr-0 sm:mr-2" />
+            <span className="hidden sm:inline">Limpar filtro</span>
           </Button>
+          <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
+            <SelectTrigger className="w-[200px] md:w-[220px]">
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date_newest">Data: mais recente</SelectItem>
+              <SelectItem value="date_oldest">Data: mais antiga</SelectItem>
+              <SelectItem value="name_asc">Nome: A–Z</SelectItem>
+              <SelectItem value="name_desc">Nome: Z–A</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -238,7 +274,7 @@ export const ManageEvents: React.FC = () => {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => {
+          {sortedEvents.map((event) => {
             const stats = getEventStats(event.id);
             return (
               <Card key={event.id} className="hover:shadow-md transition-shadow cursor-pointer">
