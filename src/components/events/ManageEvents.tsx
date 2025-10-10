@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Calendar, Users, Database, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Calendar, Users, Database, MoreVertical, Edit, Trash2, XCircle } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { NoTeamSelected } from '@/components/shared/NoTeamSelected';
@@ -26,9 +26,17 @@ export const ManageEvents: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [periodStart, setPeriodStart] = useState('');
+  const [periodEnd, setPeriodEnd] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [creatingExamples, setCreatingExamples] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setPeriodStart('');
+    setPeriodEnd('');
+  };
 
   if (!activeTeam) {
     return (
@@ -41,12 +49,26 @@ export const ManageEvents: React.FC = () => {
 
   const filteredEvents = events.filter(event => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = (
       event.name.toLowerCase().includes(searchLower) ||
       (event.description || '').toLowerCase().includes(searchLower) ||
       (event.location || '').toLowerCase().includes(searchLower) ||
       (event.client_contact_phone || '').toLowerCase().includes(searchLower)
     );
+
+    // Filtragem por período (sobreposição entre [start_date, end_date] e [periodStart, periodEnd])
+    const start = event.start_date || '';
+    const end = event.end_date || '';
+    let matchesPeriod = true;
+    if (periodStart && periodEnd) {
+      matchesPeriod = (start <= periodEnd) && (end >= periodStart);
+    } else if (periodStart && !periodEnd) {
+      matchesPeriod = end >= periodStart;
+    } else if (!periodStart && periodEnd) {
+      matchesPeriod = start <= periodEnd;
+    }
+
+    return matchesSearch && matchesPeriod;
   });
 
   const getEventStats = (eventId: string) => {
@@ -176,6 +198,25 @@ export const ManageEvents: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            type="date"
+            value={periodStart}
+            onChange={(e) => setPeriodStart(e.target.value)}
+            placeholder="Data inicial"
+          />
+          <span className="text-muted-foreground text-sm">até</span>
+          <Input
+            type="date"
+            value={periodEnd}
+            onChange={(e) => setPeriodEnd(e.target.value)}
+            placeholder="Data final"
+          />
+          <Button variant="outline" onClick={clearFilters} className="ml-2">
+            <XCircle className="w-4 h-4 mr-2" />
+            Limpar filtro
+          </Button>
         </div>
       </div>
 
