@@ -1593,6 +1593,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_events_with_payment_status: {
+        Args: { p_team_id: string }
+        Returns: {
+          allocated_count: number
+          end_date: string
+          event_id: string
+          event_name: string
+          event_status: string
+          has_pending_payments: boolean
+          paid_count: number
+          payment_due_date: string
+        }[]
+      }
       get_orphan_users: {
         Args: Record<PropertyKey, never>
         Returns: {
