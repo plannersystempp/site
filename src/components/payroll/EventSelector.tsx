@@ -79,40 +79,45 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
   const { activeTeam } = useTeam();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('concluido_pagamento_pendente');
-  const [pendingByEvent, setPendingByEvent] = useState<Record<string, number>>({});
-  const [loadingPending, setLoadingPending] = useState<boolean>(false);
+  
+  // Usar função SQL otimizada para obter status de pagamento dos eventos
+  const [eventsWithStatus, setEventsWithStatus] = useState<Array<{
+    event_id: string;
+    event_name: string;
+    event_status: string;
+    end_date: string;
+    payment_due_date: string | null;
+    allocated_count: number;
+    paid_count: number;
+    has_pending_payments: boolean;
+  }>>([]);
 
-  // Carregar valores pendentes por evento a partir de event_payroll
   useEffect(() => {
-    const fetchPending = async () => {
+    const fetchEventsStatus = async () => {
       if (!activeTeam) return;
       try {
-        setLoadingPending(true);
-        const { data, error } = await supabase
-          .from('event_payroll')
-          .select('event_id, remaining_balance')
-          .eq('team_id', activeTeam.id);
+        const { data, error } = await supabase.rpc(
+          'get_events_with_payment_status',
+          { p_team_id: activeTeam.id }
+        );
         if (error) {
-          console.error('Erro ao buscar event_payroll:', error);
-          setPendingByEvent({});
+          console.error('Erro ao buscar status de eventos:', error);
           return;
         }
-        // Somar remaining_balance por evento para evitar falsos positivos
-        const map: Record<string, number> = {};
-        (data || []).forEach((row: any) => {
-          const amt = Number(row.remaining_balance || 0);
-          map[row.event_id] = (map[row.event_id] || 0) + amt;
-        });
-        setPendingByEvent(map);
+        setEventsWithStatus(data || []);
       } catch (e) {
-        console.error('Falha ao carregar pendências:', e);
-        setPendingByEvent({});
-      } finally {
-        setLoadingPending(false);
+        console.error('Erro ao carregar status de eventos:', e);
       }
     };
-    fetchPending();
+    fetchEventsStatus();
   }, [activeTeam]);
+
+  // Criar map para lookup rápido
+  const eventStatusMap = useMemo(() => {
+    const map = new Map<string, typeof eventsWithStatus[0]>();
+    eventsWithStatus.forEach(e => map.set(e.event_id, e));
+    return map;
+  }, [eventsWithStatus]);
 
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
@@ -120,16 +125,13 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
         event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         event.location?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const dueStr = getEffectiveDueDate(event);
-      const dueTodayOrPast = isDueTodayOrPast(dueStr);
-      const dueWithin15 = isDueWithin15Days(dueStr);
-      const pendingAmount = pendingByEvent[event.id] ?? 0;
-
+      // Obter informações de status de pagamento do evento
+      const statusInfo = eventStatusMap.get(event.id);
+      const hasPending = statusInfo?.has_pending_payments ?? false;
+      
       // Regra para filtro "Pagamento Pendente":
       // - Excluir cancelados
-      // - Incluir somente quando há valor pendente (>0), ignorando status
-      //   para evitar falsos positivos em casos com status desatualizado.
-      const hasPending = pendingAmount > 0;
+      // - Incluir eventos com pending payments reais (baseado em alocações vs pagamentos)
       const matchesPendingFilter = (
         event.status !== 'cancelado' && hasPending
       );
@@ -145,7 +147,7 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
       const dateB = new Date(b.start_date || '');
       return dateB.getTime() - dateA.getTime();
     });
-  }, [events, searchTerm, statusFilter, pendingByEvent]);
+  }, [events, searchTerm, statusFilter, eventStatusMap]);
 
   return (
     <div className="space-y-4">
@@ -183,14 +185,18 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredEvents.map((event) => {
           const statusConfig = getStatusConfig(event.status);
+          const statusInfo = eventStatusMap.get(event.id);
           const dueStr = getEffectiveDueDate(event);
           const isDue = isDueTodayOrPast(dueStr);
-          const pendingAmount = pendingByEvent[event.id] ?? 0;
-          const showPendingBadge = pendingAmount > 0;
-          // Sinalizar sempre quando vence hoje/atrasado e não concluído,
-          // mesmo sem badge de pendência.
+          
+          // Usar dados reais de alocação/pagamento
+          const hasPendingPayments = statusInfo?.has_pending_payments ?? false;
+          const showPendingBadge = hasPendingPayments && (statusInfo?.allocated_count ?? 0) > 0;
+          
+          // Sinalizar quando há pagamento pendente ou vencimento atrasado
           const showDueWarning = (
             event.status === 'concluido_pagamento_pendente' ||
+            hasPendingPayments ||
             (isDue && event.status !== 'concluido')
           );
 
@@ -229,7 +235,9 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
                   {showPendingBadge && (
                     <Badge className="bg-red-600 text-white">
                       <DollarSign className="h-3 w-3 mr-1" />
-                      {formatCurrency(pendingAmount)}
+                      {statusInfo?.allocated_count && statusInfo?.paid_count 
+                        ? `${statusInfo.paid_count}/${statusInfo.allocated_count} pagos`
+                        : 'Pendente'}
                     </Badge>
                   )}
                 </div>
@@ -265,14 +273,6 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
                     <ChevronRight className="h-3 w-3" />
                   </p>
                 </div>
-
-                {/* Loading hint for pending fetch */}
-                {loadingPending && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    <span>Carregando pendências…</span>
-                  </div>
-                )}
               </CardContent>
             </Card>
           );
