@@ -26,7 +26,7 @@ const Dashboard = () => {
   const [superAdminPersonnelCount, setSuperAdminPersonnelCount] = useState<number | null>(null);
   
   // State to track events with complete payments - moved to top to follow Rules of Hooks
-  const [eventsWithCompletePayments, setEventsWithCompletePayments] = useState<Set<string>>(new Set());
+  const [eventsWithCompletePayments, setEventsWithCompletePayments] = useState<string[]>([]);
 
   // Fetch total personnel count for super admin
   useEffect(() => {
@@ -52,118 +52,48 @@ const Dashboard = () => {
     }
   }, [isSuperAdmin, loading]);
 
-  // Check for complete payments when events change - moved to top to follow Rules of Hooks
+  // Check which events have completed payments using optimized SQL function
   useEffect(() => {
-    const checkCompletePayments = async () => {
-      if (!events.length || isSuperAdmin) return;
+    const checkCompletedPayments = async () => {
+      if (!activeTeam || isSuperAdmin) return;
 
-      const completeEvents = new Set<string>();
+      try {
+        // Using type assertion since the function was just created and types aren't regenerated yet
+        const { data: eventsWithStatus, error } = await (supabase.rpc as any)(
+          'get_events_with_payment_status', 
+          { p_team_id: activeTeam.id }
+        ) as {
+          data: Array<{
+            event_id: string;
+            event_name: string;
+            event_status: string;
+            end_date: string;
+            payment_due_date: string | null;
+            allocated_count: number;
+            paid_count: number;
+            has_pending_payments: boolean;
+          }> | null;
+          error: any;
+        };
 
-      // Check each event for complete payments
-      for (const event of events) {
-        try {
-          // Get allocations first to get personnel IDs
-          const { data: allocationsData } = await supabase
-            .from('personnel_allocations')
-            .select('*')
-            .eq('event_id', event.id);
-
-          const allocations = allocationsData || [];
-          if (!allocations.length) continue;
-
-          // Get all other data needed for calculations
-          const [workLogsData, closingsData, absencesData, personnelData] = await Promise.all([
-            supabase
-              .from('work_records')
-              .select('*')
-              .eq('event_id', event.id),
-            supabase
-              .from('payroll_closings')
-              .select('*')
-              .eq('event_id', event.id),
-            supabase
-              .from('absences')
-              .select(`
-                *,
-                personnel_allocations!inner(event_id)
-              `)
-              .eq('personnel_allocations.event_id', event.id),
-            supabase
-              .from('personnel')
-              .select('*')
-              .in('id', allocations.map(a => a.personnel_id))
-          ]);
-
-          const workLogs = workLogsData.data || [];
-          const closings = closingsData.data || [];
-          const absences = absencesData.data || [];
-          const personnelMap = new Map((personnelData.data || []).map(p => [p.id, p]));
-
-          // Group allocations by personnel_id
-          const groupedAllocations = allocations.reduce((acc, allocation) => {
-            const personnelId = allocation.personnel_id;
-            if (!acc[personnelId]) {
-              acc[personnelId] = [];
-            }
-            acc[personnelId].push(allocation);
-            return acc;
-          }, {} as Record<string, any[]>);
-
-          // Check if all personnel have complete payments
-          let allPaid = true;
-          
-          // Se há alocações mas não há work_records E não há closings, há pagamento pendente
-          if (allocations.length > 0 && workLogs.length === 0 && closings.length === 0) {
-            allPaid = false;
-          } else {
-            for (const [personnelId, personAllocations] of Object.entries(groupedAllocations)) {
-              const person = personnelMap.get(personnelId);
-              if (!person) continue;
-
-              // Filter data for this person
-              const personWorkLogs = workLogs.filter(log => log.employee_id === personnelId);
-              const personAbsences = (absences as any[]).filter((absence: any) => 
-                (personAllocations as any[]).some((allocation: any) => allocation.id === absence.assignment_id)
-              );
-              const paymentRecords = closings.filter(closing => closing.personnel_id === personnelId);
-
-              // Calculate using same logic as usePayrollData
-              const totalPay = PayrollCalc.calculateTotalPay(
-                personAllocations as any,
-                person as any,
-                personWorkLogs as any,
-                personAbsences as any
-              );
-              const totalPaidAmount = PayrollCalc.calculateTotalPaid(paymentRecords as any);
-              const pendingAmount = PayrollCalc.calculatePendingAmount(totalPay, totalPaidAmount);
-
-              // Se há closings mas nenhum pagamento foi feito, há pagamento pendente
-              if (closings.length > 0 && totalPaidAmount === 0) {
-                allPaid = false;
-                break;
-              }
-
-              // If any person has pending amount, event is not complete
-              if (pendingAmount > 0) {
-                allPaid = false;
-                break;
-              }
-            }
-          }
-
-          if (allPaid) {
-            completeEvents.add(event.id);
-          }
-        } catch (error) {
-          console.error('Error checking payments for event:', event.id, error);
+        if (error) {
+          console.error('Error fetching events with payment status:', error);
+          return;
         }
-      }
 
-      setEventsWithCompletePayments(completeEvents);
+        // Filter events that have allocations but no pending payments
+        const completedEventIds = (eventsWithStatus || [])
+          .filter(e => e.allocated_count > 0 && !e.has_pending_payments)
+          .map(e => e.event_id);
+
+        setEventsWithCompletePayments(completedEventIds);
+      } catch (error) {
+        console.error('Error in checkCompletedPayments:', error);
+      }
     };
 
-    checkCompletePayments();
-  }, [events, isSuperAdmin]);
+    checkCompletedPayments();
+  }, [events, activeTeam, isSuperAdmin]);
   
   if (!activeTeam && !isSuperAdmin) {
     return <NoTeamSelected />;
@@ -230,7 +160,7 @@ const Dashboard = () => {
       if (event.status === 'cancelado') return false;
       
       // Excluir apenas eventos com pagamentos REALMENTE completos
-      if (eventsWithCompletePayments.has(event.id)) return false;
+      if (eventsWithCompletePayments.includes(event.id)) return false;
       
       // Incluir eventos com status 'concluido_pagamento_pendente' sempre
       if (event.status === 'concluido_pagamento_pendente') return true;

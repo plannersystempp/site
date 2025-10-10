@@ -17,6 +17,33 @@ export const usePayrollActions = (
   const handleRegisterPayment = async (personnelId: string, totalAmount: number, notes?: string) => {
     if (!user || !activeTeam) return;
 
+    // VALIDAÇÃO: Verificar se a pessoa está alocada no evento
+    const { data: allocation, error: allocError } = await supabase
+      .from('personnel_allocations')
+      .select('id')
+      .eq('event_id', selectedEventId)
+      .eq('personnel_id', personnelId)
+      .maybeSingle();
+
+    if (allocError) {
+      console.error('Error checking allocation:', allocError);
+      toast({
+        title: "Erro",
+        description: "Falha ao verificar alocação",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!allocation) {
+      toast({
+        title: "Erro de Validação",
+        description: "Esta pessoa não está alocada neste evento. Não é possível registrar pagamento.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const confirmation = window.confirm(
       `Confirma o registro de pagamento de ${formatCurrency(totalAmount)}?`
     );
@@ -31,7 +58,8 @@ export const usePayrollActions = (
           personnel_id: personnelId,
           total_amount_paid: totalAmount,
           team_id: activeTeam.id,
-          notes: notes || null
+          notes: notes || null,
+          paid_by_user_id: user.id
         }])
         .select()
         .single();
@@ -69,6 +97,33 @@ export const usePayrollActions = (
   const handleRegisterPartialPayment = async (personnelId: string, amount: number, notes: string) => {
     if (!user || !activeTeam) return;
 
+    // VALIDAÇÃO: Verificar se a pessoa está alocada no evento
+    const { data: allocation, error: allocError } = await supabase
+      .from('personnel_allocations')
+      .select('id')
+      .eq('event_id', selectedEventId)
+      .eq('personnel_id', personnelId)
+      .maybeSingle();
+
+    if (allocError) {
+      console.error('Error checking allocation:', allocError);
+      toast({
+        title: "Erro",
+        description: "Falha ao verificar alocação",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!allocation) {
+      toast({
+        title: "Erro de Validação",
+        description: "Esta pessoa não está alocada neste evento. Não é possível registrar pagamento.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const confirmation = window.confirm(
       `Confirma o registro de pagamento parcial de ${formatCurrency(amount)}?`
     );
@@ -83,7 +138,8 @@ export const usePayrollActions = (
           personnel_id: personnelId,
           total_amount_paid: amount,
           team_id: activeTeam.id,
-          notes: notes || null
+          notes: notes || null,
+          paid_by_user_id: user.id
         }])
         .select()
         .single();

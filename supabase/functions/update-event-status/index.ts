@@ -53,15 +53,77 @@ Deno.serve(async (req) => {
 
     console.log('Starting event status update job...')
 
-    // Execute the database function to update event statuses
-    const { error } = await supabase.rpc('update_event_statuses')
+    // Buscar eventos concluídos que precisam ter o status atualizado
+    const { data: events, error: fetchError } = await supabase
+      .from('events')
+      .select('id, status, end_date')
+      .in('status', ['planejado', 'em_andamento'])
+      .lt('end_date', new Date().toISOString().split('T')[0])
 
-    if (error) {
-      console.error('Error updating event statuses:', error)
-      throw error
+    if (fetchError) {
+      console.error('Error fetching events:', fetchError)
+      throw fetchError
     }
 
-    console.log('Event status update completed successfully')
+    console.log(`Found ${events?.length || 0} events to process`)
+
+    let updatedCount = 0
+
+    // Processar cada evento
+    for (const event of events || []) {
+      // Verificar se há alocações sem pagamento correspondente
+      const { data: allocations, error: allocError } = await supabase
+        .from('personnel_allocations')
+        .select('personnel_id')
+        .eq('event_id', event.id)
+
+      if (allocError) {
+        console.error(`Error fetching allocations for event ${event.id}:`, allocError)
+        continue
+      }
+
+      let hasUnpaidAllocations = false
+
+      // Verificar cada alocação
+      for (const alloc of allocations || []) {
+        const { data: payment, error: payError } = await supabase
+          .from('payroll_closings')
+          .select('id, total_amount_paid')
+          .eq('event_id', event.id)
+          .eq('personnel_id', alloc.personnel_id)
+          .maybeSingle()
+
+        if (payError) {
+          console.error(`Error fetching payment:`, payError)
+          continue
+        }
+
+        if (!payment || payment.total_amount_paid === 0) {
+          hasUnpaidAllocations = true
+          break
+        }
+      }
+
+      // Determinar novo status
+      const newStatus = hasUnpaidAllocations 
+        ? 'concluido_pagamento_pendente' 
+        : 'concluido'
+
+      // Atualizar evento
+      const { error: updateError } = await supabase
+        .from('events')
+        .update({ status: newStatus })
+        .eq('id', event.id)
+
+      if (updateError) {
+        console.error(`Error updating event ${event.id}:`, updateError)
+      } else {
+        updatedCount++
+        console.log(`Event ${event.id} updated to ${newStatus}`)
+      }
+    }
+
+    console.log(`Event status update completed: ${updatedCount} events updated`)
 
     return new Response(
       JSON.stringify({ 

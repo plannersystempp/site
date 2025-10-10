@@ -377,23 +377,33 @@ export function calculateBaseSalary(person: PersonnelData): number {
  * Componentes:
  * - Salário Base: Apenas para funcionários fixos
  * - Cachê: Dias trabalhados × Taxa diária
- * - Horas Extras: Total de horas × Taxa hora extra
+ * - Horas Extras: Total de horas × Taxa hora extra (com conversão diária se config fornecida)
  * 
  * @param allocations - Alocações do pessoal
  * @param person - Dados do pessoal
  * @param workLogs - Registros de trabalho
  * @param absences - Ausências registradas
+ * @param overtimeConfig - Configuração opcional de conversão de HE (se fornecida, usa cálculo dia a dia)
  * @returns Valor total bruto a pagar
  */
 export function calculateTotalPay(
   allocations: AllocationData[],
   person: PersonnelData,
   workLogs: WorkLogData[],
-  absences: AbsenceData[]
+  absences: AbsenceData[],
+  overtimeConfig?: OvertimeConfig
 ): number {
   const baseSalary = calculateBaseSalary(person);
   const cachePay = calculateCachePay(allocations, person, absences);
-  const overtimePay = calculateOvertimePay(workLogs, person);
+  
+  // Usar conversão diária se config fornecida, caso contrário usar cálculo simples
+  let overtimePay: number;
+  if (overtimeConfig) {
+    const result = calculateOvertimePayWithDailyConversion(workLogs, overtimeConfig);
+    overtimePay = result.payAmount;
+  } else {
+    overtimePay = calculateOvertimePay(workLogs, person);
+  }
   
   return baseSalary + cachePay + overtimePay;
 }
