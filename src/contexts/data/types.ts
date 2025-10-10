@@ -30,6 +30,8 @@ export interface Personnel {
   team_id: string;
   created_at: string;
   functions?: EventFunction[]; // Array of associated functions
+  overtime_threshold_hours?: number | null;
+  convert_overtime_to_daily?: boolean | null;
 }
 
 export interface EventFunction {

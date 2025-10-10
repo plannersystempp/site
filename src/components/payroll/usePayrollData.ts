@@ -134,13 +134,26 @@ export const usePayrollData = (selectedEventId: string) => {
       const totalOvertimeHours = PayrollCalc.calculateTotalOvertimeHours(workLogsData);
       const baseSalary = PayrollCalc.calculateBaseSalary(person);
       const cachePay = PayrollCalc.calculateCachePay(allocationsData, person, absencesData);
-      const overtimePay = PayrollCalc.calculateOvertimePay(workLogsData, person);
-      const totalPay = PayrollCalc.calculateTotalPay(
-        allocationsData,
-        person,
-        workLogsData,
-        absencesData
+      
+      // Calcular pagamento de horas extras com conversão (se configurado)
+      const overtimeRate = person.overtime_rate || 0;
+      const dailyCache = PayrollCalc.getDailyCacheRate(allocationsData, person);
+      
+      // Buscar config de HE do profissional (ou usar padrão da equipe - será implementado no componente)
+      const overtimeThreshold = (person as any).overtime_threshold_hours || 8;
+      const convertEnabled = (person as any).convert_overtime_to_daily || false;
+      
+      const overtimeResult = PayrollCalc.calculateOvertimePayWithConversion(
+        totalOvertimeHours,
+        {
+          threshold: overtimeThreshold,
+          convertEnabled,
+          dailyCache,
+          overtimeRate
+        }
       );
+      
+      const totalPay = baseSalary + cachePay + overtimeResult.payAmount;
       const totalPaidAmount = PayrollCalc.calculateTotalPaid(paymentRecords);
       const pendingAmount = PayrollCalc.calculatePendingAmount(totalPay, totalPaidAmount);
       const isPaid = PayrollCalc.isPaymentComplete(totalPaidAmount, pendingAmount);
@@ -149,7 +162,6 @@ export const usePayrollData = (selectedEventId: string) => {
       const absenceDetails = PayrollCalc.processAbsences(absencesData);
       const paymentHistory = PayrollCalc.processPaymentHistory(paymentRecords);
       const hasEventCache = PayrollCalc.hasEventSpecificCache(allocationsData);
-      const dailyRate = PayrollCalc.getDailyCacheRate(allocationsData, person);
 
       return {
         id: allocations[0].id,
@@ -158,10 +170,10 @@ export const usePayrollData = (selectedEventId: string) => {
         personType: person.type,
         workDays: totalWorkDays,
         regularHours,
-        totalOvertimeHours,
+        totalOvertimeHours: overtimeResult.displayHours,
         baseSalary,
         cachePay,
-        overtimePay,
+        overtimePay: overtimeResult.payAmount,
         totalPay,
         cacheRate: person.event_cache || 0,
         overtimeRate: person.overtime_rate || 0,
@@ -172,7 +184,10 @@ export const usePayrollData = (selectedEventId: string) => {
         absencesCount: absencesData.length,
         absences: absenceDetails,
         hasEventSpecificCache: hasEventCache,
-        eventSpecificCacheRate: dailyRate
+        eventSpecificCacheRate: dailyCache,
+        overtimeConversionApplied: overtimeResult.conversionApplied,
+        overtimeCachesUsed: overtimeResult.dailyCachesUsed,
+        overtimeRemainingHours: overtimeResult.remainingHours
       };
     }).filter(Boolean) as PayrollDetails[];
   }, [eventData, personnel]);

@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { APP_VERSION } from '@/constants/app';
 import { DangerZone } from '@/components/admin/DangerZone';
+import { TeamPayrollConfig } from './settings/TeamPayrollConfig';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -163,9 +164,10 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
+          <TabsTrigger value="payroll">Folha</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
 
@@ -270,6 +272,10 @@ export const SettingsPage: React.FC = () => {
               </form>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="payroll">
+          <TeamPayrollConfig />
         </TabsContent>
 
         <TabsContent value="account">

@@ -203,15 +203,76 @@ export function calculateTotalRegularHours(workLogs: WorkLogData[]): number {
  * // 10 horas extras × R$ 50/hora = R$ 500
  * calculateOvertimePay([workLog], person) // => 500
  */
-export function calculateOvertimePay(
-  workLogs: WorkLogData[],
-  person: PersonnelData
-): number {
+export const calculateOvertimePay = (workLogs: WorkLogData[], person: PersonnelData): number => {
   const totalOvertimeHours = calculateTotalOvertimeHours(workLogs);
-  const overtimeRate = person.overtime_rate || 0;
-  
-  return totalOvertimeHours * overtimeRate;
+  return totalOvertimeHours * person.overtime_rate;
+};
+
+/**
+ * Interface para configuração de conversão de horas extras
+ */
+export interface OvertimeConfig {
+  threshold: number;        // Limiar de horas para conversão (ex: 8)
+  convertEnabled: boolean;  // Se a conversão está ativa
+  dailyCache: number;       // Valor do cachê diário
+  overtimeRate: number;     // Taxa de hora extra (para horas restantes)
 }
+
+/**
+ * Resultado do cálculo de horas extras com conversão
+ */
+export interface OvertimePaymentResult {
+  payAmount: number;          // Valor total a pagar
+  displayHours: number;       // Horas reais trabalhadas (sempre mostrar)
+  conversionApplied: boolean; // Se conversão foi aplicada
+  dailyCachesUsed: number;    // Quantos cachês completos foram pagos
+  remainingHours: number;     // Horas restantes pagas avulsas
+}
+
+/**
+ * Calcula pagamento de horas extras com opção de conversão para cachê diário
+ */
+export const calculateOvertimePayWithConversion = (
+  totalOvertimeHours: number,
+  config: OvertimeConfig
+): OvertimePaymentResult => {
+  // Se conversão desativada, pagar hora a hora (comportamento atual)
+  if (!config.convertEnabled) {
+    return {
+      payAmount: totalOvertimeHours * config.overtimeRate,
+      displayHours: totalOvertimeHours,
+      conversionApplied: false,
+      dailyCachesUsed: 0,
+      remainingHours: totalOvertimeHours
+    };
+  }
+
+  // Se HE < limiar, pagar hora a hora
+  if (totalOvertimeHours < config.threshold) {
+    return {
+      payAmount: totalOvertimeHours * config.overtimeRate,
+      displayHours: totalOvertimeHours,
+      conversionApplied: false,
+      dailyCachesUsed: 0,
+      remainingHours: totalOvertimeHours
+    };
+  }
+
+  // Se HE >= limiar, pagar 1 cachê por cada "bloco" de limiar
+  const dailyCachesUsed = Math.floor(totalOvertimeHours / config.threshold);
+  const remainingHours = totalOvertimeHours % config.threshold;
+
+  const cachePayment = dailyCachesUsed * config.dailyCache;
+  const remainingPayment = remainingHours * config.overtimeRate;
+
+  return {
+    payAmount: cachePayment + remainingPayment,
+    displayHours: totalOvertimeHours,
+    conversionApplied: true,
+    dailyCachesUsed,
+    remainingHours
+  };
+};
 
 /**
  * Calcula o salário base para funcionários fixos

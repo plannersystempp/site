@@ -158,6 +158,14 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
               Horas Extras ({detail.totalOvertimeHours}h)
             </p>
             <p className="font-semibold text-sm sm:text-base">R$ {detail.overtimePay.toFixed(2)}</p>
+            {detail.overtimeConversionApplied && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {detail.overtimeCachesUsed} cachê(s)
+                {detail.overtimeRemainingHours && detail.overtimeRemainingHours > 0 && 
+                  ` + ${detail.overtimeRemainingHours}h avulsas`
+                }
+              </p>
+            )}
           </div>
           {/* PIX Key Section - Only visible to admins */}
           {isAdmin && pixKey && (

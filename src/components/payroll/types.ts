@@ -39,6 +39,9 @@ export interface PayrollDetails {
   absences: AbsenceDetail[];
   hasEventSpecificCache?: boolean;
   eventSpecificCacheRate?: number;
+  overtimeConversionApplied?: boolean;
+  overtimeCachesUsed?: number;
+  overtimeRemainingHours?: number;
 }
 
 export interface PaymentHistoryItem {
