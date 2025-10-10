@@ -48,7 +48,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
   useEffect(() => {
     if (!assignment || !open) return;
 
-    // Filtrar work logs globais para este funcionário e evento
+    // Filtrar work logs globais para este funcionÃ¡rio e evento
     const filteredLogs = globalWorkLogs.filter(log => 
       log.employee_id === assignment.personnel_id && 
       log.event_id === assignment.event_id
@@ -69,11 +69,11 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
 
     const hours = overtimeHours[date] || 0;
 
-    // Validação básica
-    if (hours < 0 || hours > 24) {
+    // ValidaÃ§Ã£o bÃ¡sica
+    if (hours < 0 || hours > 8) {
       toast({
         title: "Erro",
-        description: "As horas extras devem estar entre 0 e 24 horas",
+        description: "As horas extras devem estar entre 0 e 8 horas",
         variant: "destructive"
       });
       return;
@@ -89,28 +89,28 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
         hours 
       });
 
-      // Verificar se já existe um registro para esta data
+      // Verificar se jÃ¡ existe um registro para esta data
       const existingLog = workLogs.find(log => log.work_date === date);
 
       if (existingLog) {
-        // Atualizar registro existente usando o método do contexto
+        // Atualizar registro existente usando o mÃ©todo do contexto
         const updatedLog: WorkRecord = { 
           ...existingLog,
           overtime_hours: hours,
-          total_pay: 0, // Recalcular se necessário
-          team_id: existingLog.team_id || '' // Garantir que team_id está presente
+          total_pay: 0, // Recalcular se necessÃ¡rio
+          team_id: existingLog.team_id || '' // Garantir que team_id estÃ¡ presente
         };
 
         await updateWorkLog(updatedLog);
         console.log('Registro atualizado com sucesso via contexto');
       } else {
-        // Criar novo registro usando o método do contexto
+        // Criar novo registro usando o mÃ©todo do contexto
         const newRecord = {
           employee_id: assignment.personnel_id,
           event_id: assignment.event_id,
           work_date: date,
           overtime_hours: hours,
-          hours_worked: 8, // Padrão de 8 horas
+          hours_worked: 8, // PadrÃ£o de 8 horas
           total_pay: 0,
         };
 
@@ -137,14 +137,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
     }
   };
 
-  const handleZeroOutHours = async (date: string) => {
-    if (!window.confirm('Tem certeza que deseja zerar as horas extras desta data?')) {
-      return;
-    }
-
-    setOvertimeHours(prev => ({ ...prev, [date]: 0 }));
-    await handleSaveOvertimeHours(date);
-  };
+  
 
   const handleDeleteRecord = async (date: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este registro de horas?')) {
@@ -166,7 +159,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
 
         toast({
           title: "Sucesso",
-          description: "Registro de horas excluído com sucesso",
+          description: "Registro de horas excluÃ­do com sucesso",
         });
       }
     } catch (error) {
@@ -257,7 +250,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
-              Gestão de Horas Extras
+              GestÃ£o de Horas Extras
             </DialogTitle>
           </DialogHeader>
         </div>
@@ -265,13 +258,13 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
         <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base sm:text-lg">Informações da Alocação</CardTitle>
+              <CardTitle className="text-base sm:text-lg">InformaÃ§Ãµes da AlocaÃ§Ã£o</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                 <div>
-                  <Label className="text-muted-foreground text-xs sm:text-sm">Função:</Label>
-                  <p className="font-medium text-sm sm:text-base">{assignment.function_name || 'Função não definida'}</p>
+                  <Label className="text-muted-foreground text-xs sm:text-sm">FunÃ§Ã£o:</Label>
+                  <p className="font-medium text-sm sm:text-base">{assignment.function_name || 'FunÃ§Ã£o nÃ£o definida'}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-xs sm:text-sm">Dias de Trabalho:</Label>
@@ -317,7 +310,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                            )}
                            {!hasAbsence && existingLog && (
                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                               ✓ Registrado
+                               âœ“ Registrado
                              </Badge>
                            )}
                            {!hasAbsence && !existingLog && currentHours > 0 && (
@@ -336,7 +329,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                               <Input
                                 type="number"
                                 min="0"
-                                max="24"
+                                max="8"
                                 step="0.5"
                                 value={currentHours}
                                 onChange={(e) => setOvertimeHours(prev => ({
@@ -417,17 +410,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                                       <Edit2 className="w-3 h-3 sm:mr-1" />
                                       <span className="hidden sm:inline">{currentHours > 0 ? 'Editar' : 'Adicionar'}</span>
                                     </Button>
-                                    {currentHours > 0 && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleZeroOutHours(date)}
-                                        title="Zerar horas extras"
-                                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                                      >
-                                        <RotateCcw className="w-3 h-3" />
-                                      </Button>
-                                    )}
+                                    
                                     {existingLog && (
                                       <Button
                                         size="sm"
@@ -444,7 +427,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                                         variant="ghost"
                                         onClick={() => handleMarkAbsent(date)}
                                         className="h-8 px-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 min-h-[44px] sm:min-h-[auto]"
-                                        title="Lançar Falta"
+                                        title="LanÃ§ar Falta"
                                       >
                                       <UserX className="w-3 h-3 sm:mr-1" />
                                       <span className="hidden sm:inline">Falta</span>
@@ -495,3 +478,4 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
     </Dialog>
   );
 };
+

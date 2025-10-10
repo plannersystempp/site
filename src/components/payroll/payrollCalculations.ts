@@ -274,16 +274,20 @@ export const calculateOvertimePayWithDailyConversion = (
   let totalRemainingHours = 0;
   let totalDisplayHours = 0;
 
+  // Cobertura de um cachê diário sobre horas extras: até 8h no dia
+  // Regra não cumulativa: no máximo 1 cachê por dia
+  const OVERTIME_CACHE_COVERAGE_PER_DAY = 8;
+
   // Processar cada dia individualmente
   dailyHours.forEach((hoursInDay) => {
     totalDisplayHours += hoursInDay;
 
     if (hoursInDay >= config.threshold) {
-      // Dia com HE >= limiar → paga cachê(s)
-      const cachesForDay = Math.floor(hoursInDay / config.threshold);
-      const remainingForDay = hoursInDay % config.threshold;
-      
-      totalCachesUsed += cachesForDay;
+      // Regra: atingiu/ultrapassou o limiar no dia → 1 cachê diário (não cumulativo)
+      totalCachesUsed += 1;
+
+      // Esse cachê cobre até 8h de HE no dia; acima disso, paga-se hora a hora
+      const remainingForDay = Math.max(0, hoursInDay - OVERTIME_CACHE_COVERAGE_PER_DAY);
       totalRemainingHours += remainingForDay;
     } else {
       // Dia com HE < limiar → paga hora a hora

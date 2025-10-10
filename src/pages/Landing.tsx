@@ -75,7 +75,7 @@ export const Landing: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Registre horas trabalhadas com cálculo automático de horas extras acima de 12h por dia.
+                Registre horas trabalhadas com regras claras de HE: limiar diário (ex.: 4h) gera 1 cachê não cumulativo, cobrindo até 8h extras por dia.
               </p>
             </CardContent>
           </Card>

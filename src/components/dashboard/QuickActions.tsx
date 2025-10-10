@@ -42,6 +42,16 @@ export const QuickActions: React.FC = () => {
       return;
     }
 
+    // Validação de limite diário de horas extras (0 a 8h)
+    if (overtimeData.overtimeHours < 0 || overtimeData.overtimeHours > 8) {
+      toast({
+        title: "Horas inválidas",
+        description: "Informe um valor entre 0 e 8 horas.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       console.log('Searching for assignment with:', {
         personnelId: overtimeData.personnelId,
@@ -238,6 +248,7 @@ export const QuickActions: React.FC = () => {
                 id="overtimeHours"
                 type="number"
                 min="0"
+                max="8"
                 step="0.5"
                 value={overtimeData.overtimeHours}
                 onChange={(e) => setOvertimeData(prev => ({ ...prev, overtimeHours: Number(e.target.value) }))}

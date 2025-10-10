@@ -114,7 +114,7 @@ export const TeamPayrollConfig: React.FC = () => {
               Converter HE em Cachê Diário
             </Label>
             <p className="text-sm text-muted-foreground mt-1">
-              Pagar cachê cheio ao invés de hora a hora quando o limiar for atingido
+              Pagar 1 cachê diário (não cumulativo) quando o limiar do dia for atingido; o cachê cobre até 8h extras no mesmo dia.
             </p>
           </div>
           <Switch
@@ -141,15 +141,18 @@ export const TeamPayrollConfig: React.FC = () => {
               }
             />
             <p className="text-xs text-muted-foreground">
-              Horas extras acima deste valor acionam o pagamento de 1 cachê completo
+              Se as horas extras do dia forem iguais ou acima do limiar, paga-se 1 cachê diário (não cumulativo) para aquele dia.
             </p>
             <div className="bg-muted/50 p-3 rounded-lg text-sm">
               <p className="font-medium mb-1">Exemplo:</p>
-              <p className="text-muted-foreground">
-                Com limiar de {config.threshold}h, se um profissional trabalhar {config.threshold * 2}h extras,
-                ele receberá {Math.floor((config.threshold * 2) / config.threshold)} cachê(s) completo(s)
-                {(config.threshold * 2) % config.threshold > 0 && ` + ${(config.threshold * 2) % config.threshold}h avulsas`}.
-              </p>
+              <div className="space-y-1 text-muted-foreground">
+                <p>
+                  Com limiar de 4h, se trabalhar 4h extras ou mais em um dia, recebe 1 cachê completo (não cumulativo).
+                </p>
+                <p>
+                  Com limite máximo de 8h extras.
+                </p>
+              </div>
             </div>
           </div>
         )}

@@ -174,7 +174,7 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
           required
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Valor para até 12 horas de trabalho
+          Valor do cachê diário; na conversão de HE, cada cachê cobre até 8h extras no mesmo dia.
         </p>
       </div>
 
@@ -188,7 +188,7 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
           required
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Valor por hora acima de 12h de trabalho
+          Valor por hora para HE avulsas (dias abaixo do limiar ou acima de 8h no dia).
         </p>
       </div>
 
