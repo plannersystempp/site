@@ -230,7 +230,83 @@ export interface OvertimePaymentResult {
 }
 
 /**
- * Calcula pagamento de horas extras com opção de conversão para cachê diário
+ * Calcula pagamento de horas extras com conversão DIA A DIA para cachê diário
+ * 
+ * Esta função processa as horas extras diariamente, aplicando a conversão
+ * apenas quando um dia específico atinge ou ultrapassa o limiar configurado.
+ * 
+ * @param workLogs - Registros de trabalho (com work_date e overtime_hours)
+ * @param config - Configuração de conversão
+ * @returns Resultado detalhado do cálculo
+ * 
+ * @example
+ * // Config: 4h, cachê R$ 500, taxa R$ 50/h
+ * // Dia 1: 5h extras → 1 cachê + 1h avulsa
+ * // Dia 2: 1h extra → 1h avulsa
+ * // Dia 3: 3h extras → 3h avulsas
+ * // Total: 1 cachê (R$ 500) + 5h × R$ 50 (R$ 250) = R$ 750
+ */
+export const calculateOvertimePayWithDailyConversion = (
+  workLogs: WorkLogData[],
+  config: OvertimeConfig
+): OvertimePaymentResult => {
+  // Se conversão desativada, calcular soma simples
+  if (!config.convertEnabled) {
+    const totalHours = calculateTotalOvertimeHours(workLogs);
+    return {
+      payAmount: totalHours * config.overtimeRate,
+      displayHours: totalHours,
+      conversionApplied: false,
+      dailyCachesUsed: 0,
+      remainingHours: totalHours
+    };
+  }
+
+  // Agrupar horas extras por data
+  const dailyHours = new Map<string, number>();
+  workLogs.forEach(log => {
+    const date = log.work_date || '';
+    const hours = log.overtime_hours || 0;
+    dailyHours.set(date, (dailyHours.get(date) || 0) + hours);
+  });
+
+  let totalCachesUsed = 0;
+  let totalRemainingHours = 0;
+  let totalDisplayHours = 0;
+
+  // Processar cada dia individualmente
+  dailyHours.forEach((hoursInDay) => {
+    totalDisplayHours += hoursInDay;
+
+    if (hoursInDay >= config.threshold) {
+      // Dia com HE >= limiar → paga cachê(s)
+      const cachesForDay = Math.floor(hoursInDay / config.threshold);
+      const remainingForDay = hoursInDay % config.threshold;
+      
+      totalCachesUsed += cachesForDay;
+      totalRemainingHours += remainingForDay;
+    } else {
+      // Dia com HE < limiar → paga hora a hora
+      totalRemainingHours += hoursInDay;
+    }
+  });
+
+  const cachePayment = totalCachesUsed * config.dailyCache;
+  const remainingPayment = totalRemainingHours * config.overtimeRate;
+
+  return {
+    payAmount: cachePayment + remainingPayment,
+    displayHours: totalDisplayHours,
+    conversionApplied: totalCachesUsed > 0,
+    dailyCachesUsed: totalCachesUsed,
+    remainingHours: totalRemainingHours
+  };
+};
+
+/**
+ * @deprecated Use calculateOvertimePayWithDailyConversion para cálculo correto dia a dia
+ * 
+ * Calcula pagamento de horas extras com conversão no TOTAL (comportamento incorreto)
  */
 export const calculateOvertimePayWithConversion = (
   totalOvertimeHours: number,

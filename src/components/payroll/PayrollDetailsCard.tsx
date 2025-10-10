@@ -155,16 +155,22 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           </div>
           <div className={`${isMobile ? 'p-2 bg-muted/50 rounded-lg' : 'text-center'}`}>
             <p className="text-sm text-muted-foreground">
-              Horas Extras ({detail.totalOvertimeHours}h)
+              Horas Extras: {detail.totalOvertimeHours}h
             </p>
-            <p className="font-semibold text-sm sm:text-base">R$ {detail.overtimePay.toFixed(2)}</p>
-            {detail.overtimeConversionApplied && (
+            <p className="font-semibold text-sm sm:text-base">{formatCurrency(detail.overtimePay)}</p>
+            {detail.overtimeConversionApplied ? (
               <p className="text-xs text-muted-foreground mt-1">
-                {detail.overtimeCachesUsed} cachê(s)
+                {detail.overtimeCachesUsed} cachê{detail.overtimeCachesUsed > 1 ? 's' : ''} diário{detail.overtimeCachesUsed > 1 ? 's' : ''}
                 {detail.overtimeRemainingHours && detail.overtimeRemainingHours > 0 && 
-                  ` + ${detail.overtimeRemainingHours}h avulsas`
+                  ` + ${detail.overtimeRemainingHours.toFixed(1)}h avulsas`
                 }
               </p>
+            ) : (
+              detail.totalOvertimeHours > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {detail.totalOvertimeHours}h × {formatCurrency(detail.overtimeRate)}
+                </p>
+              )
             )}
           </div>
           {/* PIX Key Section - Only visible to admins */}

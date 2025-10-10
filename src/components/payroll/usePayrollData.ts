@@ -135,7 +135,7 @@ export const usePayrollData = (selectedEventId: string) => {
       const baseSalary = PayrollCalc.calculateBaseSalary(person);
       const cachePay = PayrollCalc.calculateCachePay(allocationsData, person, absencesData);
       
-      // Calcular pagamento de horas extras com conversão (se configurado)
+      // Calcular pagamento de horas extras com conversão DIA A DIA (se configurado)
       const overtimeRate = person.overtime_rate || 0;
       const dailyCache = PayrollCalc.getDailyCacheRate(allocationsData, person);
       
@@ -143,8 +143,8 @@ export const usePayrollData = (selectedEventId: string) => {
       const overtimeThreshold = (person as any).overtime_threshold_hours || 8;
       const convertEnabled = (person as any).convert_overtime_to_daily || false;
       
-      const overtimeResult = PayrollCalc.calculateOvertimePayWithConversion(
-        totalOvertimeHours,
+      const overtimeResult = PayrollCalc.calculateOvertimePayWithDailyConversion(
+        workLogsData, // Passar os logs completos (com work_date) para cálculo diário
         {
           threshold: overtimeThreshold,
           convertEnabled,
