@@ -14,17 +14,8 @@ interface EventSelectorProps {
   onEventChange: (eventId: string) => void;
 }
 
-// Helper function to check if a date is in the past (timezone-safe)
-const isDatePast = (dateStr?: string): boolean => {
-  if (!dateStr) return false;
-  const date = new Date(`${dateStr}T12:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date < today;
-};
-
 const getStatusConfig = (status: string, paymentDueDate?: string) => {
-  const isPastDue = isDatePast(paymentDueDate);
+  const isPastDue = paymentDueDate && new Date(paymentDueDate) < new Date();
   
   if (status === 'em_andamento') {
     return {
@@ -48,24 +39,14 @@ const getStatusConfig = (status: string, paymentDueDate?: string) => {
 };
 
 const getPaymentStatus = (status: string, paymentDueDate?: string) => {
-  const isPastDue = isDatePast(paymentDueDate);
+  const isPastDue = paymentDueDate && new Date(paymentDueDate) < new Date();
   
-  // Apenas mostrar "Pagamento Devido" se há pendências de pagamento
-  if (status === 'concluido_pagamento_pendente') {
+  if (status === 'concluido_pagamento_pendente' || (isPastDue && status !== 'concluido')) {
     return {
       label: 'Pagamento Devido',
       className: 'bg-red-500 text-white'
     };
   }
-  
-  // Se data venceu mas status é 'concluido' (totalmente pago), não mostrar badge
-  if (isPastDue && status !== 'concluido') {
-    return {
-      label: 'Pagamento Devido',
-      className: 'bg-red-500 text-white'
-    };
-  }
-  
   return null;
 };
 
@@ -132,9 +113,7 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
           const statusConfig = getStatusConfig(event.status, event.payment_due_date);
           const paymentStatus = getPaymentStatus(event.status, event.payment_due_date);
           const isSelected = selectedEventId === event.id;
-          // Destaque vermelho se: pagamento pendente OU vencido (exceto se totalmente pago)
-          const showDueRed = event.status === 'concluido_pagamento_pendente' || 
-                            (isDatePast(event.payment_due_date) && event.status !== 'concluido');
+          const isPastDue = event.payment_due_date && new Date(event.payment_due_date) < new Date();
 
           return (
             <Card 
@@ -191,7 +170,7 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
                 {/* Payment Due Date - Highlighted */}
                 {event.payment_due_date && (
                   <div className={`flex items-center gap-1.5 text-xs pt-1 ${
-                    showDueRed ? 'text-red-600 font-bold' : 'text-muted-foreground'
+                    isPastDue ? 'text-red-600 font-bold' : 'text-muted-foreground'
                   }`}>
                     <Clock className="h-3.5 w-3.5" />
                     <span>Vencimento: {formatDateBR(event.payment_due_date)}</span>
