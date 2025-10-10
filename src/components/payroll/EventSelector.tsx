@@ -41,12 +41,22 @@ const getStatusConfig = (status: string, paymentDueDate?: string) => {
 const getPaymentStatus = (status: string, paymentDueDate?: string) => {
   const isPastDue = paymentDueDate && new Date(paymentDueDate) < new Date();
   
-  if (status === 'concluido_pagamento_pendente' || (isPastDue && status !== 'concluido')) {
+  // Apenas mostrar "Pagamento Devido" se há pendências de pagamento
+  if (status === 'concluido_pagamento_pendente') {
     return {
       label: 'Pagamento Devido',
       className: 'bg-red-500 text-white'
     };
   }
+  
+  // Se data venceu mas status é 'concluido' (totalmente pago), não mostrar badge
+  if (isPastDue && status !== 'concluido') {
+    return {
+      label: 'Pagamento Devido',
+      className: 'bg-red-500 text-white'
+    };
+  }
+  
   return null;
 };
 
@@ -113,7 +123,9 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
           const statusConfig = getStatusConfig(event.status, event.payment_due_date);
           const paymentStatus = getPaymentStatus(event.status, event.payment_due_date);
           const isSelected = selectedEventId === event.id;
-          const isPastDue = event.payment_due_date && new Date(event.payment_due_date) < new Date();
+          const isPastDue = event.payment_due_date && 
+                            new Date(event.payment_due_date) < new Date() &&
+                            event.status !== 'concluido'; // Não marcar como vencido se já está totalmente pago
 
           return (
             <Card 
