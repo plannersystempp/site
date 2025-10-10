@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/utils/formatters';
 import { EventData } from './types';
+import { invalidateCache } from './eventStatusCache';
 
 export const usePayrollActions = (
   selectedEventId: string,
@@ -84,6 +85,9 @@ export const usePayrollActions = (
         title: "Sucesso",
         description: "Pagamento registrado com sucesso",
       });
+      
+      // Invalidar cache para forçar atualização nos dashboards
+      invalidateCache();
     } catch (error) {
       console.error('Error registering payment:', error);
       toast({
@@ -164,6 +168,9 @@ export const usePayrollActions = (
         title: "Sucesso",
         description: "Pagamento parcial registrado com sucesso",
       });
+      
+      // Invalidar cache para forçar atualização nos dashboards
+      invalidateCache();
     } catch (error) {
       console.error('Error registering partial payment:', error);
       toast({
@@ -192,6 +199,9 @@ export const usePayrollActions = (
         title: "Sucesso",
         description: `Pagamento de ${personName} foi cancelado com sucesso`,
       });
+      
+      // Invalidar cache para forçar atualização nos dashboards
+      invalidateCache();
     } catch (error) {
       console.error('Error canceling payment:', error);
       toast({

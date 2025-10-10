@@ -15,6 +15,7 @@ import { SkeletonCard } from './shared/SkeletonCard';
 import { QuickActions } from './dashboard/QuickActions';
 import { formatDateShort } from '@/utils/dateUtils';
 import * as PayrollCalc from './payroll/payrollCalculations';
+import { getCachedEventStatus } from './payroll/eventStatusCache';
 
 const Dashboard = () => {
   const { events, personnel, functions, loading } = useEnhancedData();
@@ -52,37 +53,17 @@ const Dashboard = () => {
     }
   }, [isSuperAdmin, loading]);
 
-  // Check which events have completed payments using optimized SQL function
+  // Check which events have completed payments using cached data
   useEffect(() => {
     const checkCompletedPayments = async () => {
       if (!activeTeam || isSuperAdmin) return;
 
       try {
-        // Using type assertion since the function was just created and types aren't regenerated yet
-        const { data: eventsWithStatus, error } = await (supabase.rpc as any)(
-          'get_events_with_payment_status', 
-          { p_team_id: activeTeam.id }
-        ) as {
-          data: Array<{
-            event_id: string;
-            event_name: string;
-            event_status: string;
-            end_date: string;
-            payment_due_date: string | null;
-            allocated_count: number;
-            paid_count: number;
-            has_pending_payments: boolean;
-          }> | null;
-          error: any;
-        };
-
-        if (error) {
-          console.error('Error fetching events with payment status:', error);
-          return;
-        }
+        // Usar cache para reduzir queries redundantes
+        const eventsWithStatus = await getCachedEventStatus(activeTeam.id);
 
         // Filter events that have allocations but no pending payments
-        const completedEventIds = (eventsWithStatus || [])
+        const completedEventIds = eventsWithStatus
           .filter(e => e.allocated_count > 0 && !e.has_pending_payments)
           .map(e => e.event_id);
 

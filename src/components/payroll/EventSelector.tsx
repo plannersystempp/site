@@ -9,7 +9,7 @@ import { formatDateBR } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatters';
 import type { Event } from '@/contexts/DataContext';
 import { useTeam } from '@/contexts/TeamContext';
-import { supabase } from '@/integrations/supabase/client';
+import { getCachedEventStatus } from './eventStatusCache';
 
 interface EventSelectorProps {
   events: Event[];
@@ -96,15 +96,9 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
     const fetchEventsStatus = async () => {
       if (!activeTeam) return;
       try {
-        const { data, error } = await supabase.rpc(
-          'get_events_with_payment_status',
-          { p_team_id: activeTeam.id }
-        );
-        if (error) {
-          console.error('Erro ao buscar status de eventos:', error);
-          return;
-        }
-        setEventsWithStatus(data || []);
+        // Usar cache para reduzir queries redundantes
+        const data = await getCachedEventStatus(activeTeam.id);
+        setEventsWithStatus(data);
       } catch (e) {
         console.error('Erro ao carregar status de eventos:', e);
       }
