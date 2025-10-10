@@ -377,10 +377,7 @@ const Dashboard = () => {
                       <div className="flex-1 min-w-0 text-left">
                         <h4 className="font-medium truncate">{event.name}</h4>
                         <p className="text-sm text-muted-foreground">
-                          {event.status === 'concluido_pagamento_pendente' 
-                            ? 'Pagamento pendente' 
-                            : `Vence: ${displayDate}`
-                          }
+                          {`Vence: ${displayDate}`}
                         </p>
                       </div>
                       <Badge className="bg-red-100 text-red-800">

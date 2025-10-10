@@ -255,7 +255,7 @@ export const EventSelector: React.FC<EventSelectorProps> = ({
                   }`}>
                     <Clock className="h-3.5 w-3.5" />
                     <span>
-                      {event.status === 'concluido_pagamento_pendente' ? 'Pendente' : 'Vence:'} {formatDateBR(dueStr)}
+                      {`Vence: ${formatDateBR(dueStr)}`}
                     </span>
                   </div>
                 )}
