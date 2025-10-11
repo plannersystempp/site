@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/utils/formatters';
 import { EventData } from './types';
 import { invalidateCache } from './eventStatusCache';
+import { notificationService } from '@/services/notificationService';
 
 export const usePayrollActions = (
   selectedEventId: string,
@@ -81,10 +82,26 @@ export const usePayrollActions = (
         }]
       }));
 
+      // Obter nome do evento para notificação
+      const { data: eventData } = await supabase
+        .from('events')
+        .select('name')
+        .eq('id', selectedEventId)
+        .single();
+
       toast({
         title: "Sucesso",
         description: "Pagamento registrado com sucesso",
       });
+      
+      // Enviar notificação
+      if (eventData && activeTeam?.id) {
+        await notificationService.notifyPaymentReceived(
+          totalAmount,
+          eventData.name,
+          activeTeam.id
+        );
+      }
       
       // Invalidar cache para forçar atualização nos dashboards
       invalidateCache();
@@ -164,10 +181,26 @@ export const usePayrollActions = (
         }]
       }));
 
+      // Obter nome do evento para notificação
+      const { data: eventData } = await supabase
+        .from('events')
+        .select('name')
+        .eq('id', selectedEventId)
+        .single();
+
       toast({
         title: "Sucesso",
         description: "Pagamento parcial registrado com sucesso",
       });
+      
+      // Enviar notificação
+      if (eventData && activeTeam?.id) {
+        await notificationService.notifyPaymentReceived(
+          amount,
+          eventData.name,
+          activeTeam.id
+        );
+      }
       
       // Invalidar cache para forçar atualização nos dashboards
       invalidateCache();

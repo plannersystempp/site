@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { notificationService } from '@/services/notificationService';
 import { 
   CreateEventData, 
   CreatePersonnelData, 
@@ -31,11 +32,22 @@ export class DataService {
     }
     
     console.log('Event created successfully:', data);
+    
+    // Enviar notificação
+    await notificationService.notifyEventCreated(data.name, teamId);
+    
     return data;
   }
 
   static async updateEvent(id: string, event: UpdateEventData) {
     console.log('Updating event:', id, event);
+    
+    // Obter dados anteriores para comparação
+    const { data: oldEvent } = await supabase
+      .from('events')
+      .select('name, status, team_id')
+      .eq('id', id)
+      .single();
     
     const { data, error } = await supabase
       .from('events')
@@ -50,6 +62,24 @@ export class DataService {
     }
     
     console.log('Event updated successfully:', data);
+    
+    // Enviar notificações se houver mudanças relevantes
+    if (oldEvent) {
+      const eventName = data.name;
+      
+      // Notificar atualização geral
+      await notificationService.notifyEventUpdated(eventName, data.team_id);
+      
+      // Notificar mudança de status se houver
+      if (event.status && event.status !== oldEvent.status) {
+        await notificationService.notifyEventStatusChanged(
+          eventName, 
+          event.status, 
+          data.team_id
+        );
+      }
+    }
+    
     return data;
   }
 
@@ -165,6 +195,12 @@ export class DataService {
   static async addAssignment(assignment: CreateAssignmentData, userId: string, teamId: string) {
     console.log('Creating assignment with data:', { assignment, userId, teamId });
     
+    // Obter dados do pessoal e evento para notificação
+    const [personnelData, eventData] = await Promise.all([
+      supabase.from('personnel').select('name').eq('id', assignment.personnel_id).single(),
+      supabase.from('events').select('name').eq('id', assignment.event_id).single()
+    ]);
+    
     const { data, error } = await supabase
       .from('personnel_allocations')
       .insert([{ ...assignment, team_id: teamId }])
@@ -177,6 +213,16 @@ export class DataService {
     }
     
     console.log('Assignment created successfully:', data);
+    
+    // Enviar notificação
+    if (personnelData.data && eventData.data) {
+      await notificationService.notifyAllocationCreated(
+        personnelData.data.name,
+        eventData.data.name,
+        teamId
+      );
+    }
+    
     return data;
   }
 
@@ -257,6 +303,16 @@ export class DataService {
   static async addAbsence(absence: CreateAbsenceData, userId: string) {
     console.log('Creating absence with data:', { absence, userId });
     
+    // Obter dados para notificação
+    const { data: allocation } = await supabase
+      .from('personnel_allocations')
+      .select(`
+        personnel:personnel_id(name),
+        event:event_id(name, team_id)
+      `)
+      .eq('id', absence.assignment_id)
+      .single();
+    
     const { data, error } = await supabase
       .from('absences')
       .insert(absence)
@@ -269,6 +325,17 @@ export class DataService {
     }
     
     console.log('Absence created successfully:', data);
+    
+    // Enviar notificação
+    if (allocation?.personnel && allocation?.event) {
+      await notificationService.notifyAbsenceRegistered(
+        (allocation.personnel as any).name,
+        (allocation.event as any).name,
+        absence.work_date,
+        (allocation.event as any).team_id
+      );
+    }
+    
     return data;
   }
 
