@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { VAPID_PUBLIC_KEY, isVapidConfigured } from '@/constants/notifications';
 
 interface NotificationPreferences {
   event_reminders: boolean;
@@ -114,34 +115,93 @@ export const useNotifications = () => {
 
   // Subscribe para push notifications
   const subscribeToPush = async () => {
-    if (!user?.id || !activeTeam?.id) return false;
+    if (!user?.id || !activeTeam?.id) {
+      console.error('User or team not available');
+      return false;
+    }
 
     try {
       setLoading(true);
 
-      // Verificar permissão
-      if (permission !== 'granted') {
-        const granted = await requestPermission();
-        if (!granted) return false;
+      // Verificar se VAPID está configurada
+      if (!isVapidConfigured()) {
+        toast({
+          title: 'Configuração Incompleta',
+          description: 'VAPID keys não foram configuradas. Contate o administrador.',
+          variant: 'destructive',
+        });
+        return false;
       }
 
-      // Obter service worker registration
+      // Verificar permissão
+      if (permission !== 'granted') {
+        console.log('Requesting notification permission...');
+        const granted = await requestPermission();
+        if (!granted) {
+          console.error('Permission not granted');
+          return false;
+        }
+      }
+
+      // Verificar se Service Worker está disponível
+      if (!('serviceWorker' in navigator)) {
+        console.error('Service Worker not supported');
+        toast({
+          title: 'Não Suportado',
+          description: 'Seu navegador não suporta notificações push',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Aguardar Service Worker estar pronto
+      console.log('Waiting for service worker...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('Service worker ready:', registration);
 
       // Verificar se já existe subscription
       let subscription = await registration.pushManager.getSubscription();
+      console.log('Existing subscription:', subscription ? 'Found' : 'None');
 
+      // Se não existir, criar nova subscription com VAPID
       if (!subscription) {
-        // NOTA: VAPID key será necessária na Fase 5
-        // Por enquanto, apenas salvamos que o usuário quer receber notificações
-        console.log('Push subscription would be created here with VAPID keys');
+        console.log('Creating new push subscription with VAPID...');
+        try {
+          const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+          
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: applicationServerKey as BufferSource
+          });
+          
+          console.log('Push subscription created successfully');
+        } catch (subscribeError) {
+          console.error('Error creating push subscription:', subscribeError);
+          toast({
+            title: 'Erro na Inscrição',
+            description: 'Falha ao criar inscrição push. Verifique a configuração VAPID.',
+            variant: 'destructive',
+          });
+          return false;
+        }
       }
 
-      // Salvar preferências no banco de dados
-      const subscriptionData = subscription 
-        ? JSON.parse(JSON.stringify(subscription.toJSON())) 
-        : null;
+      // Converter subscription para JSON
+      const subscriptionData = subscription ? JSON.parse(JSON.stringify(subscription.toJSON())) : null;
       
+      if (!subscriptionData) {
+        console.error('Failed to create subscription data');
+        toast({
+          title: 'Erro',
+          description: 'Falha ao processar inscrição de notificações',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      console.log('Saving subscription to database...');
+      
+      // Salvar preferências e subscription no banco de dados
       const { error } = await supabase
         .from('user_notification_preferences')
         .upsert([{
@@ -158,19 +218,36 @@ export const useNotifications = () => {
           status_changes: preferences.status_changes,
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
+      console.log('Subscription saved successfully');
       setIsSubscribed(true);
+      
       toast({
         title: 'Notificações Ativadas!',
         description: 'Você receberá notificações importantes do SIGE',
       });
+      
       return true;
     } catch (error) {
       console.error('Error subscribing to push:', error);
+      
+      // Mensagens de erro mais específicas
+      let errorMessage = 'Falha ao ativar notificações';
+      if (error instanceof Error) {
+        if (error.message.includes('not supported')) {
+          errorMessage = 'Push notifications não são suportadas neste navegador';
+        } else if (error.message.includes('denied')) {
+          errorMessage = 'Permissão de notificações foi negada';
+        }
+      }
+      
       toast({
         title: 'Erro',
-        description: 'Falha ao ativar notificações',
+        description: errorMessage,
         variant: 'destructive',
       });
       return false;
