@@ -1,0 +1,324 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTeam } from '@/contexts/TeamContext';
+import { useToast } from '@/hooks/use-toast';
+
+interface NotificationPreferences {
+  event_reminders: boolean;
+  payment_reminders: boolean;
+  event_start_24h: boolean;
+  event_start_48h: boolean;
+  allocation_updates: boolean;
+  absence_alerts: boolean;
+  status_changes: boolean;
+}
+
+export const useNotifications = () => {
+  const { user } = useAuth();
+  const { activeTeam } = useTeam();
+  const { toast } = useToast();
+  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [preferences, setPreferences] = useState<NotificationPreferences>({
+    event_reminders: true,
+    payment_reminders: true,
+    event_start_24h: true,
+    event_start_48h: false,
+    allocation_updates: true,
+    absence_alerts: true,
+    status_changes: false,
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Verificar permissão atual
+  useEffect(() => {
+    if ('Notification' in window) {
+      setPermission(Notification.permission);
+    }
+  }, []);
+
+  // Carregar preferências do usuário
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!user?.id || !activeTeam?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('user_notification_preferences')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('team_id', activeTeam.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          setPreferences({
+            event_reminders: data.event_reminders ?? true,
+            payment_reminders: data.payment_reminders ?? true,
+            event_start_24h: data.event_start_24h ?? true,
+            event_start_48h: data.event_start_48h ?? false,
+            allocation_updates: data.allocation_updates ?? true,
+            absence_alerts: data.absence_alerts ?? true,
+            status_changes: data.status_changes ?? false,
+          });
+
+          // Verificar se há subscription salva
+          if (data.push_subscription) {
+            setIsSubscribed(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading notification preferences:', error);
+      }
+    };
+
+    loadPreferences();
+  }, [user?.id, activeTeam?.id]);
+
+  // Solicitar permissão de notificações
+  const requestPermission = async () => {
+    if (!('Notification' in window)) {
+      toast({
+        title: 'Não Suportado',
+        description: 'Seu navegador não suporta notificações',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    try {
+      const result = await Notification.requestPermission();
+      setPermission(result);
+
+      if (result === 'granted') {
+        toast({
+          title: 'Sucesso!',
+          description: 'Permissão de notificações concedida',
+        });
+        return true;
+      } else {
+        toast({
+          title: 'Permissão Negada',
+          description: 'Você negou as notificações. Pode ativar nas configurações do navegador.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Error requesting permission:', error);
+      return false;
+    }
+  };
+
+  // Subscribe para push notifications
+  const subscribeToPush = async () => {
+    if (!user?.id || !activeTeam?.id) return false;
+
+    try {
+      setLoading(true);
+
+      // Verificar permissão
+      if (permission !== 'granted') {
+        const granted = await requestPermission();
+        if (!granted) return false;
+      }
+
+      // Obter service worker registration
+      const registration = await navigator.serviceWorker.ready;
+
+      // Verificar se já existe subscription
+      let subscription = await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        // NOTA: VAPID key será necessária na Fase 5
+        // Por enquanto, apenas salvamos que o usuário quer receber notificações
+        console.log('Push subscription would be created here with VAPID keys');
+      }
+
+      // Salvar preferências no banco de dados
+      const subscriptionData = subscription 
+        ? JSON.parse(JSON.stringify(subscription.toJSON())) 
+        : null;
+      
+      const { error } = await supabase
+        .from('user_notification_preferences')
+        .upsert([{
+          user_id: user.id,
+          team_id: activeTeam.id,
+          push_subscription: subscriptionData,
+          enabled: true,
+          event_reminders: preferences.event_reminders,
+          payment_reminders: preferences.payment_reminders,
+          event_start_24h: preferences.event_start_24h,
+          event_start_48h: preferences.event_start_48h,
+          allocation_updates: preferences.allocation_updates,
+          absence_alerts: preferences.absence_alerts,
+          status_changes: preferences.status_changes,
+        }]);
+
+      if (error) throw error;
+
+      setIsSubscribed(true);
+      toast({
+        title: 'Notificações Ativadas!',
+        description: 'Você receberá notificações importantes do SIGE',
+      });
+      return true;
+    } catch (error) {
+      console.error('Error subscribing to push:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao ativar notificações',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Unsubscribe de push notifications
+  const unsubscribeFromPush = async () => {
+    try {
+      setLoading(true);
+
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+
+      if (subscription) {
+        await subscription.unsubscribe();
+      }
+
+      // Remover subscription do banco
+      if (user?.id && activeTeam?.id) {
+        const { error } = await supabase
+          .from('user_notification_preferences')
+          .update({ 
+            push_subscription: null,
+            enabled: false
+          })
+          .eq('user_id', user.id)
+          .eq('team_id', activeTeam.id);
+
+        if (error) throw error;
+      }
+
+      setIsSubscribed(false);
+      toast({
+        title: 'Notificações Desativadas',
+        description: 'Você não receberá mais notificações push',
+      });
+    } catch (error) {
+      console.error('Error unsubscribing:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao desativar notificações',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Atualizar preferências
+  const updatePreferences = async (newPreferences: Partial<NotificationPreferences>) => {
+    if (!user?.id || !activeTeam?.id) return;
+
+    try {
+      setLoading(true);
+      const updated = { ...preferences, ...newPreferences };
+
+      const { error } = await supabase
+        .from('user_notification_preferences')
+        .upsert([{
+          user_id: user.id,
+          team_id: activeTeam.id,
+          event_reminders: updated.event_reminders,
+          payment_reminders: updated.payment_reminders,
+          event_start_24h: updated.event_start_24h,
+          event_start_48h: updated.event_start_48h,
+          allocation_updates: updated.allocation_updates,
+          absence_alerts: updated.absence_alerts,
+          status_changes: updated.status_changes,
+        }]);
+
+      if (error) throw error;
+
+      setPreferences(updated);
+      toast({
+        title: 'Salvo!',
+        description: 'Preferências de notificação atualizadas',
+      });
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao atualizar preferências',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Enviar notificação de teste (via Notification API local)
+  const sendTestNotification = async () => {
+    if (permission !== 'granted') {
+      toast({
+        title: 'Permissão Necessária',
+        description: 'Conceda permissão para notificações primeiro',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification('🎉 Teste de Notificação SIGE', {
+        body: 'Se você viu isso, as notificações estão funcionando!',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-192x192.png',
+        tag: 'test-notification',
+        data: { type: 'test', url: '/app' }
+      });
+
+      toast({
+        title: 'Notificação Enviada!',
+        description: 'Verifique se recebeu a notificação',
+      });
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      toast({
+        title: 'Erro',
+        description: 'Falha ao enviar notificação de teste',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return {
+    permission,
+    isSubscribed,
+    preferences,
+    loading,
+    requestPermission,
+    subscribeToPush,
+    unsubscribeFromPush,
+    updatePreferences,
+    sendTestNotification,
+  };
+};
+
+// Helper function para converter VAPID key (será usado na Fase 5)
+export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sige-v2.3.1';
+const CACHE_NAME = 'sige-v2.4.0';
 const urlsToCache = [
   '/manifest.json',
   '/icons/icon-192x192.png',
@@ -67,4 +67,82 @@ self.addEventListener('activate', (event) => {
       self.clients.claim()
     ])
   );
+});
+
+// Push notification event - receber notificações
+self.addEventListener('push', (event) => {
+  console.log('Push notification received:', event);
+  
+  let notificationData = {
+    title: 'SIGE',
+    body: 'Nova notificação',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    tag: 'sige-notification',
+    data: {}
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      notificationData = {
+        title: payload.title || notificationData.title,
+        body: payload.body || notificationData.body,
+        icon: payload.icon || notificationData.icon,
+        badge: payload.badge || notificationData.badge,
+        tag: payload.tag || notificationData.tag,
+        data: payload.data || {},
+        actions: payload.actions || []
+      };
+    } catch (e) {
+      console.error('Error parsing push data:', e);
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, {
+      body: notificationData.body,
+      icon: notificationData.icon,
+      badge: notificationData.badge,
+      tag: notificationData.tag,
+      data: notificationData.data,
+      actions: notificationData.actions,
+      vibrate: [200, 100, 200],
+      requireInteraction: false
+    })
+  );
+});
+
+// Notification click event - abrir app ao clicar
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || '/app';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUnmanaged: true })
+      .then((clientList) => {
+        // Verificar se já existe uma janela aberta
+        for (let client of clientList) {
+          if (client.url.includes('/app') && 'focus' in client) {
+            return client.focus().then(() => {
+              client.postMessage({
+                type: 'NOTIFICATION_CLICKED',
+                data: event.notification.data
+              });
+            });
+          }
+        }
+        // Se não houver janela aberta, abrir uma nova
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});
+
+// Notification close event - log quando notificação é fechada
+self.addEventListener('notificationclose', (event) => {
+  console.log('Notification closed:', event);
 });
