@@ -582,9 +582,9 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_read: boolean | null
           link: string | null
           message: string | null
-          read: boolean | null
           team_id: string | null
           title: string
           type: string
@@ -593,9 +593,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           link?: string | null
           message?: string | null
-          read?: boolean | null
           team_id?: string | null
           title: string
           type: string
@@ -604,9 +604,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           link?: string | null
           message?: string | null
-          read?: boolean | null
           team_id?: string | null
           title?: string
           type?: string
@@ -1330,39 +1330,57 @@ export type Database = {
       }
       user_notification_preferences: {
         Row: {
+          absence_alerts: boolean | null
+          allocation_updates: boolean | null
           created_at: string | null
           enabled: boolean | null
+          event_reminders: boolean | null
+          event_start_24h: boolean | null
+          event_start_48h: boolean | null
           event_updates: boolean | null
           id: string
           payment_received: boolean | null
           payment_reminders: boolean | null
           push_subscription: Json | null
+          status_changes: boolean | null
           team_id: string | null
           team_invites: boolean | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          absence_alerts?: boolean | null
+          allocation_updates?: boolean | null
           created_at?: string | null
           enabled?: boolean | null
+          event_reminders?: boolean | null
+          event_start_24h?: boolean | null
+          event_start_48h?: boolean | null
           event_updates?: boolean | null
           id?: string
           payment_received?: boolean | null
           payment_reminders?: boolean | null
           push_subscription?: Json | null
+          status_changes?: boolean | null
           team_id?: string | null
           team_invites?: boolean | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          absence_alerts?: boolean | null
+          allocation_updates?: boolean | null
           created_at?: string | null
           enabled?: boolean | null
+          event_reminders?: boolean | null
+          event_start_24h?: boolean | null
+          event_start_48h?: boolean | null
           event_updates?: boolean | null
           id?: string
           payment_received?: boolean | null
           payment_reminders?: boolean | null
           push_subscription?: Json | null
+          status_changes?: boolean | null
           team_id?: string | null
           team_invites?: boolean | null
           updated_at?: string | null
