@@ -20,6 +20,9 @@ import {
 } from '@/services/supplierService';
 import type { Supplier, SupplierItem, EventSupplierCost, SupplierRating } from '@/contexts/data/types';
 
+// Re-export types for easier imports
+export type { Supplier, SupplierItem, EventSupplierCost, SupplierRating } from '@/contexts/data/types';
+
 // Exportando as interfaces para uso em outros componentes
 export interface Event {
   id: string;

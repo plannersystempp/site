@@ -10,13 +10,15 @@ interface EmptyStateProps {
     label: string;
     onClick: () => void;
   };
+  children?: React.ReactNode;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   title,
   description,
-  action
+  action,
+  children
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -34,6 +36,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           {action.label}
         </Button>
       )}
+      {children}
     </div>
   );
 };

@@ -28,6 +28,7 @@ import { PayrollReportPage } from './pages/PayrollReportPage';
 import { Settings } from './components/admin/Settings';
 import { SettingsPage } from './components/SettingsPage';
 import { TeamManagement } from './components/teams/TeamManagement';
+import { ManageSuppliers } from './components/suppliers/ManageSuppliers';
 import { Card, CardContent } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
@@ -373,6 +374,7 @@ const AppContent = () => {
               <Route path="/funcoes" element={<ManageFunctions />} />
               <Route path="/eventos" element={<ManageEvents />} />
               <Route path="/eventos/:id" element={<EventDetail />} />
+              <Route path="/fornecedores" element={<ManageSuppliers />} />
               <Route path="/custos" element={<EstimatedCosts />} />
               <Route path="/folha" element={<PayrollManager />} />
               <Route path="/folha/:eventId" element={<PayrollEventView />} />

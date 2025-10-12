@@ -17,6 +17,7 @@ import { SkeletonCard } from '@/components/shared/SkeletonCard';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { AbsenceHistory } from './AbsenceHistory';
+import { EventCostsTab } from './costs/EventCostsTab';
 
 export const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,7 @@ export const EventDetail: React.FC = () => {
   const allocationsRef = useRef<HTMLDivElement | null>(null);
   const overviewRef = useRef<HTMLDivElement | null>(null);
   const absencesRef = useRef<HTMLDivElement | null>(null);
+  const costsRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToSection = (el: HTMLElement | null) => {
     if (!el) return;
@@ -52,6 +54,8 @@ export const EventDetail: React.FC = () => {
         ? overviewRef.current
         : activeTab === 'absences'
         ? absencesRef.current
+        : activeTab === 'costs'
+        ? costsRef.current
         : null;
 
     // Pequeno atraso para garantir montagem/medição do layout
@@ -440,11 +444,14 @@ export const EventDetail: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-8 space-y-6">
-          <TabsList className={`grid w-full h-10 md:h-12 ${user?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <TabsList className={`grid w-full h-10 md:h-12 ${user?.role === 'admin' ? 'grid-cols-4' : 'grid-cols-2'}`}>
             <TabsTrigger value="allocations" className="text-sm">Alocações</TabsTrigger>
             <TabsTrigger value="overview" className="text-sm">Visão Geral</TabsTrigger>
             {user?.role === 'admin' && (
-              <TabsTrigger value="absences" className="text-sm">Faltas</TabsTrigger>
+              <>
+                <TabsTrigger value="costs" className="text-sm">Custos</TabsTrigger>
+                <TabsTrigger value="absences" className="text-sm">Faltas</TabsTrigger>
+              </>
             )}
           </TabsList>
 

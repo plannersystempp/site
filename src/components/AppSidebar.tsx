@@ -13,7 +13,8 @@ import {
   ChevronUp,
   Briefcase,
   Mail,
-  ShieldCheck
+  ShieldCheck,
+  Package
 } from 'lucide-react';
 import {
   Sidebar,
@@ -44,6 +45,7 @@ const menuItems = [
   { title: 'Funções', url: '/app/funcoes', icon: Briefcase },
   { title: 'Pessoal', url: '/app/pessoal', icon: Users },
   { title: 'Eventos', url: '/app/eventos', icon: Calendar },
+  { title: 'Fornecedores', url: '/app/fornecedores', icon: Package },
 ];
 
 const financialItems = [

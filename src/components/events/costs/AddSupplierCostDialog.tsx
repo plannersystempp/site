@@ -1,0 +1,298 @@
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useEnhancedData, type EventSupplierCost } from '@/contexts/EnhancedDataContext';
+import { Loader2 } from 'lucide-react';
+
+interface AddSupplierCostDialogProps {
+  eventId: string;
+  cost?: EventSupplierCost | null;
+  onClose: () => void;
+}
+
+export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
+  eventId,
+  cost,
+  onClose
+}) => {
+  const { suppliers, supplierItems, addEventSupplierCost, updateEventSupplierCost } = useEnhancedData();
+  const [loading, setLoading] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');
+  const [formData, setFormData] = useState({
+    supplier_name: '',
+    description: '',
+    category: '',
+    unit_price: '',
+    quantity: '1',
+    payment_status: 'pending' as 'pending' | 'partially_paid' | 'paid',
+    paid_amount: '0',
+    payment_date: '',
+    notes: ''
+  });
+
+  useEffect(() => {
+    if (cost) {
+      setFormData({
+        supplier_name: cost.supplier_name,
+        description: cost.description,
+        category: cost.category || '',
+        unit_price: cost.unit_price.toString(),
+        quantity: cost.quantity.toString(),
+        payment_status: cost.payment_status,
+        paid_amount: cost.paid_amount.toString(),
+        payment_date: cost.payment_date || '',
+        notes: cost.notes || ''
+      });
+      if (cost.supplier_id) {
+        setSelectedSupplier(cost.supplier_id);
+      }
+    }
+  }, [cost]);
+
+  const availableItems = selectedSupplier
+    ? supplierItems.filter(item => item.supplier_id === selectedSupplier)
+    : [];
+
+  const handleSupplierChange = (supplierId: string) => {
+    setSelectedSupplier(supplierId);
+    const supplier = suppliers.find(s => s.id === supplierId);
+    if (supplier) {
+      setFormData(prev => ({ ...prev, supplier_name: supplier.name }));
+    }
+  };
+
+  const handleItemChange = (itemId: string) => {
+    setSelectedItem(itemId);
+    const item = supplierItems.find(i => i.id === itemId);
+    if (item) {
+      setFormData(prev => ({
+        ...prev,
+        description: item.item_name,
+        category: item.category || '',
+        unit_price: item.price?.toString() || ''
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const data = {
+        event_id: eventId,
+        supplier_id: selectedSupplier || undefined,
+        supplier_name: formData.supplier_name,
+        description: formData.description,
+        category: formData.category || undefined,
+        unit_price: parseFloat(formData.unit_price),
+        quantity: parseFloat(formData.quantity),
+        payment_status: formData.payment_status,
+        paid_amount: parseFloat(formData.paid_amount),
+        payment_date: formData.payment_date || undefined,
+        notes: formData.notes || undefined
+      };
+
+      if (cost) {
+        await updateEventSupplierCost({
+          ...cost,
+          ...data,
+          total_amount: data.unit_price * data.quantity
+        });
+      } else {
+        await addEventSupplierCost(data);
+      }
+      onClose();
+    } catch (error) {
+      console.error('Error saving cost:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const total = parseFloat(formData.unit_price || '0') * parseFloat(formData.quantity || '1');
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {cost ? 'Editar Custo' : 'Adicionar Custo de Fornecedor'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="supplier">Fornecedor</Label>
+              <Select value={selectedSupplier} onValueChange={handleSupplierChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um fornecedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Fornecedor avulso</SelectItem>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedSupplier && availableItems.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="item">Item</Label>
+                <Select value={selectedItem} onValueChange={handleItemChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableItems.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.item_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="supplier_name">Nome do Fornecedor *</Label>
+            <Input
+              id="supplier_name"
+              value={formData.supplier_name}
+              onChange={(e) => setFormData({ ...formData, supplier_name: e.target.value })}
+              placeholder="Nome do fornecedor"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição *</Label>
+            <Input
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Ex: Locação de equipamento de som"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Input
+                id="category"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                placeholder="Ex: Áudio"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="unit_price">Preço Unitário *</Label>
+              <Input
+                id="unit_price"
+                type="number"
+                step="0.01"
+                value={formData.unit_price}
+                onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Quantidade *</Label>
+              <Input
+                id="quantity"
+                type="number"
+                step="0.01"
+                value={formData.quantity}
+                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                placeholder="1"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="p-3 bg-muted rounded-lg">
+            <p className="text-sm font-medium">
+              Total: R$ {total.toFixed(2)}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="payment_status">Status do Pagamento</Label>
+              <Select
+                value={formData.payment_status}
+                onValueChange={(value: any) => setFormData({ ...formData, payment_status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="partially_paid">Pago Parcialmente</SelectItem>
+                  <SelectItem value="paid">Pago</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="paid_amount">Valor Pago</Label>
+              <Input
+                id="paid_amount"
+                type="number"
+                step="0.01"
+                value={formData.paid_amount}
+                onChange={(e) => setFormData({ ...formData, paid_amount: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payment_date">Data do Pagamento</Label>
+            <Input
+              id="payment_date"
+              type="date"
+              value={formData.payment_date}
+              onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Observações</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Informações adicionais"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-2 justify-end pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {cost ? 'Atualizar' : 'Adicionar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
