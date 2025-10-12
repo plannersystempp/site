@@ -89,3 +89,60 @@ export interface Absence {
   notes?: string;
   created_at: string;
 }
+
+// Supplier Management Types
+export interface Supplier {
+  id: string;
+  team_id: string;
+  name: string;
+  contact_person?: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  average_rating: number;
+  total_ratings: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierItem {
+  id: string;
+  supplier_id: string;
+  item_name: string;
+  description?: string;
+  category?: string;
+  price?: number;
+  unit?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierRating {
+  id: string;
+  team_id: string;
+  supplier_id: string;
+  event_id: string;
+  rated_by: string;
+  rating: number;
+  notes?: string;
+  created_at: string;
+}
+
+export interface EventSupplierCost {
+  id: string;
+  team_id: string;
+  event_id: string;
+  supplier_id?: string;
+  supplier_name: string;
+  description: string;
+  category?: string;
+  unit_price: number;
+  quantity: number;
+  total_amount: number;
+  payment_status: 'pending' | 'partially_paid' | 'paid';
+  paid_amount: number;
+  payment_date?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}

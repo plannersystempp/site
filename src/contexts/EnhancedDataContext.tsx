@@ -4,6 +4,21 @@ import { useAuth } from './AuthContext';
 import { useTeam } from './TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { fetchPersonnelByRole, type PersonnelRedacted } from '@/services/personnelService';
+import {
+  fetchSuppliers,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
+  fetchAllSupplierItems,
+  createSupplierItem,
+  updateSupplierItem,
+  deleteSupplierItem,
+  createEventSupplierCost,
+  updateEventSupplierCost,
+  deleteEventSupplierCost,
+  createSupplierRating
+} from '@/services/supplierService';
+import type { Supplier, SupplierItem, EventSupplierCost, SupplierRating } from '@/contexts/data/types';
 
 // Exportando as interfaces para uso em outros componentes
 export interface Event {
@@ -119,6 +134,10 @@ interface EnhancedDataContextType {
   divisions: Division[];
   assignments: Assignment[];
   workLogs: WorkRecord[];
+  suppliers: Supplier[];
+  supplierItems: SupplierItem[];
+  eventSupplierCosts: EventSupplierCost[];
+  supplierRatings: SupplierRating[];
   loading: boolean;
   addEvent: (event: Omit<Event, 'id' | 'created_at' | 'team_id'>) => Promise<string | null>;
   updateEvent: (event: Event) => Promise<void>;
@@ -137,6 +156,16 @@ interface EnhancedDataContextType {
   addWorkLog: (workLog: Omit<WorkRecord, 'id' | 'created_at' | 'team_id'>) => Promise<void>;
   updateWorkLog: (workLog: WorkRecord) => Promise<void>;
   deleteWorkLog: (id: string) => Promise<void>;
+  addSupplier: (supplier: Omit<Supplier, 'id' | 'created_at' | 'updated_at' | 'team_id' | 'average_rating' | 'total_ratings'>) => Promise<string | null>;
+  updateSupplier: (supplier: Supplier) => Promise<void>;
+  deleteSupplier: (id: string) => Promise<void>;
+  addSupplierItem: (item: Omit<SupplierItem, 'id' | 'created_at' | 'updated_at'>) => Promise<string | null>;
+  updateSupplierItem: (item: SupplierItem) => Promise<void>;
+  deleteSupplierItem: (id: string) => Promise<void>;
+  addEventSupplierCost: (cost: Omit<EventSupplierCost, 'id' | 'created_at' | 'updated_at' | 'total_amount' | 'team_id'>) => Promise<string | null>;
+  updateEventSupplierCost: (cost: EventSupplierCost) => Promise<void>;
+  deleteEventSupplierCost: (id: string) => Promise<void>;
+  addSupplierRating: (rating: Omit<SupplierRating, 'id' | 'created_at' | 'team_id' | 'rated_by'>) => Promise<void>;
 }
 
 const EnhancedDataContext = createContext<EnhancedDataContextType | undefined>(undefined);
@@ -153,6 +182,10 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [workLogs, setWorkLogs] = useState<WorkRecord[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [supplierItems, setSupplierItems] = useState<SupplierItem[]>([]);
+  const [eventSupplierCosts, setEventSupplierCosts] = useState<EventSupplierCost[]>([]);
+  const [supplierRatings, setSupplierRatings] = useState<SupplierRating[]>([]);
   const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -247,7 +280,9 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         functionsResult,
         divisionsResult,
         assignmentsResult,
-        workRecordsResult
+        workRecordsResult,
+        suppliersData,
+        supplierItemsData
       ] = await Promise.all([
         isSuperAdmin 
           ? supabase.from('events').select('*')
@@ -263,7 +298,13 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
           : supabase.from('personnel_allocations').select('*').eq('team_id', activeTeam!.id),
         isSuperAdmin 
           ? supabase.from('work_records').select('*')
-          : supabase.from('work_records').select('*').eq('team_id', activeTeam!.id)
+          : supabase.from('work_records').select('*').eq('team_id', activeTeam!.id),
+        isSuperAdmin
+          ? Promise.resolve([])
+          : fetchSuppliers(activeTeam!.id),
+        isSuperAdmin
+          ? Promise.resolve([])
+          : fetchAllSupplierItems(activeTeam!.id)
       ]);
 
       // Fetch personnel with functions using the new method
@@ -302,6 +343,10 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Set personnel with functions
       setPersonnel(personnelWithFunctions);
+
+      // Set suppliers and supplier items
+      setSuppliers(suppliersData || []);
+      setSupplierItems(supplierItemsData || []);
       
       // Process functions
       if (functionsResult.data && Array.isArray(functionsResult.data)) {
@@ -1136,6 +1181,208 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  // ============= SUPPLIER CRUD FUNCTIONS =============
+
+  const addSupplier = async (supplier: Omit<Supplier, 'id' | 'created_at' | 'updated_at' | 'team_id' | 'average_rating' | 'total_ratings'>): Promise<string | null> => {
+    if (!user || !activeTeam) {
+      toast({
+        title: "Erro",
+        description: !user ? "Usuário não autenticado" : "Selecione uma equipe ativa",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      const id = await createSupplier(supplier, activeTeam.id);
+      const newSupplier: Supplier = {
+        ...supplier,
+        id,
+        team_id: activeTeam.id,
+        average_rating: 0,
+        total_ratings: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setSuppliers(prev => [newSupplier, ...prev]);
+      toast({ title: "Fornecedor criado com sucesso" });
+      return id;
+    } catch (error) {
+      console.error('Error adding supplier:', error);
+      toast({ title: "Erro ao criar fornecedor", variant: "destructive" });
+      return null;
+    }
+  };
+
+  const updateSupplierData = async (supplier: Supplier): Promise<void> => {
+    if (!activeTeam) return;
+
+    try {
+      await updateSupplier(supplier.id, supplier);
+      setSuppliers(prev => prev.map(s => s.id === supplier.id ? supplier : s));
+      toast({ title: "Fornecedor atualizado com sucesso" });
+    } catch (error) {
+      console.error('Error updating supplier:', error);
+      toast({ title: "Erro ao atualizar fornecedor", variant: "destructive" });
+    }
+  };
+
+  const removeSupplier = async (id: string): Promise<void> => {
+    try {
+      await deleteSupplier(id);
+      setSuppliers(prev => prev.filter(s => s.id !== id));
+      toast({ title: "Fornecedor deletado com sucesso" });
+    } catch (error: any) {
+      console.error('Error deleting supplier:', error);
+      toast({ 
+        title: "Erro ao deletar fornecedor", 
+        description: error.message || "Erro desconhecido",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const addSupplierItem = async (item: Omit<SupplierItem, 'id' | 'created_at' | 'updated_at'>): Promise<string | null> => {
+    if (!user || !activeTeam) {
+      toast({
+        title: "Erro",
+        description: !user ? "Usuário não autenticado" : "Selecione uma equipe ativa",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      const id = await createSupplierItem(item);
+      const newItem: SupplierItem = {
+        ...item,
+        id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setSupplierItems(prev => [newItem, ...prev]);
+      toast({ title: "Item adicionado com sucesso" });
+      return id;
+    } catch (error) {
+      console.error('Error adding supplier item:', error);
+      toast({ title: "Erro ao adicionar item", variant: "destructive" });
+      return null;
+    }
+  };
+
+  const updateSupplierItemData = async (item: SupplierItem): Promise<void> => {
+    try {
+      await updateSupplierItem(item.id, item);
+      setSupplierItems(prev => prev.map(i => i.id === item.id ? item : i));
+      toast({ title: "Item atualizado com sucesso" });
+    } catch (error) {
+      console.error('Error updating supplier item:', error);
+      toast({ title: "Erro ao atualizar item", variant: "destructive" });
+    }
+  };
+
+  const removeSupplierItem = async (id: string): Promise<void> => {
+    try {
+      await deleteSupplierItem(id);
+      setSupplierItems(prev => prev.filter(i => i.id !== id));
+      toast({ title: "Item deletado com sucesso" });
+    } catch (error) {
+      console.error('Error deleting supplier item:', error);
+      toast({ title: "Erro ao deletar item", variant: "destructive" });
+    }
+  };
+
+  const addEventSupplierCost = async (cost: Omit<EventSupplierCost, 'id' | 'created_at' | 'updated_at' | 'total_amount' | 'team_id'>): Promise<string | null> => {
+    if (!user || !activeTeam) {
+      toast({
+        title: "Erro",
+        description: !user ? "Usuário não autenticado" : "Selecione uma equipe ativa",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      const id = await createEventSupplierCost(cost, activeTeam.id);
+      const total_amount = cost.unit_price * cost.quantity;
+      const newCost: EventSupplierCost = {
+        ...cost,
+        id,
+        team_id: activeTeam.id,
+        total_amount,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setEventSupplierCosts(prev => [newCost, ...prev]);
+      toast({ title: "Custo adicionado com sucesso" });
+      return id;
+    } catch (error) {
+      console.error('Error adding event supplier cost:', error);
+      toast({ title: "Erro ao adicionar custo", variant: "destructive" });
+      return null;
+    }
+  };
+
+  const updateEventSupplierCostData = async (cost: EventSupplierCost): Promise<void> => {
+    try {
+      await updateEventSupplierCost(cost.id, cost);
+      setEventSupplierCosts(prev => prev.map(c => c.id === cost.id ? cost : c));
+      toast({ title: "Custo atualizado com sucesso" });
+    } catch (error) {
+      console.error('Error updating event supplier cost:', error);
+      toast({ title: "Erro ao atualizar custo", variant: "destructive" });
+    }
+  };
+
+  const removeEventSupplierCost = async (id: string): Promise<void> => {
+    try {
+      await deleteEventSupplierCost(id);
+      setEventSupplierCosts(prev => prev.filter(c => c.id !== id));
+      toast({ title: "Custo deletado com sucesso" });
+    } catch (error) {
+      console.error('Error deleting event supplier cost:', error);
+      toast({ title: "Erro ao deletar custo", variant: "destructive" });
+    }
+  };
+
+  const addSupplierRating = async (rating: Omit<SupplierRating, 'id' | 'created_at' | 'team_id' | 'rated_by'>): Promise<void> => {
+    if (!user || !activeTeam) {
+      toast({
+        title: "Erro",
+        description: !user ? "Usuário não autenticado" : "Selecione uma equipe ativa",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const id = await createSupplierRating(rating, activeTeam.id, user.id);
+      const newRating: SupplierRating = {
+        ...rating,
+        id,
+        team_id: activeTeam.id,
+        rated_by: user.id,
+        created_at: new Date().toISOString()
+      };
+      setSupplierRatings(prev => [newRating, ...prev]);
+      
+      // Update supplier average rating in local state
+      setSuppliers(prev => prev.map(s => {
+        if (s.id === rating.supplier_id) {
+          const newTotal = s.total_ratings + 1;
+          const newAvg = ((s.average_rating * s.total_ratings) + rating.rating) / newTotal;
+          return { ...s, average_rating: newAvg, total_ratings: newTotal };
+        }
+        return s;
+      }));
+      
+      toast({ title: "Avaliação registrada com sucesso" });
+    } catch (error) {
+      console.error('Error adding supplier rating:', error);
+      toast({ title: "Erro ao avaliar fornecedor", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     initializeData();
   }, [user, activeTeam]);
@@ -1147,6 +1394,10 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
     divisions,
     assignments,
     workLogs,
+    suppliers,
+    supplierItems,
+    eventSupplierCosts,
+    supplierRatings,
     loading,
     addEvent,
     updateEvent,
@@ -1165,6 +1416,16 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
     addWorkLog,
     updateWorkLog,
     deleteWorkLog,
+    addSupplier,
+    updateSupplier: updateSupplierData,
+    deleteSupplier: removeSupplier,
+    addSupplierItem,
+    updateSupplierItem: updateSupplierItemData,
+    deleteSupplierItem: removeSupplierItem,
+    addEventSupplierCost,
+    updateEventSupplierCost: updateEventSupplierCostData,
+    deleteEventSupplierCost: removeEventSupplierCost,
+    addSupplierRating,
   };
 
   return (
