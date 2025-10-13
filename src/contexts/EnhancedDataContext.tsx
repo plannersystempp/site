@@ -1311,7 +1311,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         ...cost,
         id,
         team_id: activeTeam.id,
-        // total_amount é calculado pelo banco
+        total_amount: cost.unit_price * cost.quantity, // Calculado localmente para o estado
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

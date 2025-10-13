@@ -271,7 +271,7 @@ export const useNotifications = () => {
             absence_alerts: preferences.absence_alerts,
             status_changes: preferences.status_changes,
           }
-        ], { onConflict: 'user_id,team_id', returning: 'minimal' });
+        ], { onConflict: 'user_id,team_id' });
 
       if (error) {
         console.error('Database error:', error);
@@ -376,7 +376,7 @@ export const useNotifications = () => {
             absence_alerts: updated.absence_alerts,
             status_changes: updated.status_changes,
           }
-        ], { onConflict: 'user_id,team_id', returning: 'minimal' });
+        ], { onConflict: 'user_id,team_id' });
 
       if (error) throw error;
 

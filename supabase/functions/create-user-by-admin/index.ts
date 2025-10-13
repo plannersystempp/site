@@ -216,7 +216,7 @@ const handler = async (req: Request): Promise<Response> => {
         name: name,
         role: role,
         is_approved: true
-      }, { onConflict: 'user_id', returning: 'minimal' });
+      }, { onConflict: 'user_id' });
 
     if (profileError) {
       console.error('Profile error:', profileError);
@@ -244,7 +244,7 @@ const handler = async (req: Request): Promise<Response> => {
           user_id: userId,
           role: role,
           status: 'approved'
-        }, { onConflict: 'team_id,user_id', ignoreDuplicates: false, returning: 'minimal' });
+        }, { onConflict: 'team_id,user_id', ignoreDuplicates: false });
 
       if (teamError) {
         console.error(`Team member error (attempt ${retryCount + 1}):`, teamError);
