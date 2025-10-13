@@ -1307,12 +1307,11 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       const id = await createEventSupplierCost(cost, activeTeam.id);
-      const total_amount = cost.unit_price * cost.quantity;
       const newCost: EventSupplierCost = {
         ...cost,
         id,
         team_id: activeTeam.id,
-        total_amount,
+        // total_amount é calculado pelo banco
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

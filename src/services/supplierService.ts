@@ -228,15 +228,11 @@ export const createEventSupplierCost = async (
   teamId: string
 ): Promise<string> => {
   try {
-    // Calculate total_amount
-    const total_amount = data.unit_price * data.quantity;
-
     const { data: cost, error } = await supabase
       .from('event_supplier_costs')
       .insert([{
         ...data,
-        team_id: teamId,
-        total_amount
+        team_id: teamId
       }])
       .select()
       .single();
@@ -252,24 +248,12 @@ export const createEventSupplierCost = async (
 
 export const updateEventSupplierCost = async (
   id: string,
-  data: Partial<Omit<EventSupplierCost, 'id' | 'created_at' | 'team_id'>>
+  data: Partial<Omit<EventSupplierCost, 'id' | 'created_at' | 'team_id' | 'total_amount'>>
 ): Promise<void> => {
   try {
-    // Recalculate total if unit_price or quantity changed
-    const updateData = { ...data };
-    if (data.unit_price !== undefined || data.quantity !== undefined) {
-      const { data: existing } = await supabase
-        .from('event_supplier_costs')
-        .select('unit_price, quantity')
-        .eq('id', id)
-        .single();
-
-      if (existing) {
-        const unit_price = data.unit_price ?? existing.unit_price;
-        const quantity = data.quantity ?? existing.quantity;
-        updateData.total_amount = unit_price * quantity;
-      }
-    }
+    // Exclude generated/readonly fields from update
+    const { total_amount, created_at, team_id, id: _ignoreId, ...rest } = data as any;
+    const updateData = { ...rest };
 
     const { error } = await supabase
       .from('event_supplier_costs')

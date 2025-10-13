@@ -132,7 +132,7 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
         await updateEventSupplierCost({
           ...cost,
           ...data,
-          total_amount: data.unit_price * data.quantity
+          // total_amount é gerado no banco
         });
         toast({ title: "Custo atualizado com sucesso" });
       } else {

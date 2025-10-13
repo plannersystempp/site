@@ -359,7 +359,7 @@ export type Database = {
           supplier_id?: string | null
           supplier_name: string
           team_id: string
-          total_amount?: number | null
+          // total_amount é coluna gerada pelo banco
           unit_price: number
           updated_at?: string | null
         }
@@ -377,7 +377,7 @@ export type Database = {
           supplier_id?: string | null
           supplier_name?: string
           team_id?: string
-          total_amount?: number | null
+          // total_amount é coluna gerada pelo banco
           unit_price?: number
           updated_at?: string | null
         }
