@@ -228,12 +228,17 @@ export const createEventSupplierCost = async (
   teamId: string
 ): Promise<string> => {
   try {
+    // Sanitização explícita: remover campos gerados/gerenciados pelo banco
+    const { total_amount, id, created_at, updated_at, team_id: _t, ...rest } = data as any;
+    
+    const payload = {
+      ...rest,
+      team_id: teamId,
+    };
+
     const { data: cost, error } = await supabase
       .from('event_supplier_costs')
-      .insert([{
-        ...data,
-        team_id: teamId
-      }])
+      .insert([payload])
       .select()
       .single();
 
@@ -251,8 +256,9 @@ export const updateEventSupplierCost = async (
   data: Partial<Omit<EventSupplierCost, 'id' | 'created_at' | 'team_id' | 'total_amount'>>
 ): Promise<void> => {
   try {
-    // Exclude generated/readonly fields from update
-    const { total_amount, created_at, team_id, id: _ignoreId, ...rest } = data as any;
+    // Sanitização explícita: remover campos gerados/gerenciados pelo banco
+    const { total_amount, created_at, team_id, id: _ignore, updated_at, ...rest } = data as any;
+    
     const updateData = { ...rest };
 
     const { error } = await supabase

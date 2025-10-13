@@ -21,6 +21,7 @@ interface NotificationPayload {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight ANTES de qualquer validação
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
