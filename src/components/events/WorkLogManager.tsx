@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { parseHoursInput, formatHours } from '@/utils/formatters';
 import { Clock, Edit2, Save, X, Trash2, RotateCcw, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAbsencesQuery, useCreateAbsenceMutation, useDeleteAbsenceMutation } from '@/hooks/queries/useAbsencesQuery';
@@ -36,6 +37,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
   const { toast } = useToast();
   const [workLogs, setWorkLogs] = useState<WorkRecord[]>([]);
   const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [overtimeHoursText, setOvertimeHoursText] = useState<{[key:string]: string}>({});
   const [overtimeHours, setOvertimeHours] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(false);
 
@@ -67,13 +69,13 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
   const handleSaveOvertimeHours = async (date: string) => {
     if (!assignment || !user) return;
 
-    const hours = overtimeHours[date] || 0;
+    const hours = parseHoursInput(overtimeHoursText[date] ?? String(overtimeHours[date] ?? '')) || 0;
 
     // ValidaÃ§Ã£o bÃ¡sica
     if (hours < 0 || hours > 8) {
       toast({
         title: "Erro",
-        description: "As horas extras devem estar entre 0 e 8 horas",
+        description: "Horas extras inválidas. Informe entre 0:00 e 08:00",
         variant: "destructive"
       });
       return;
@@ -123,7 +125,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
       
       toast({
         title: "Sucesso",
-        description: `${hours}h extras salvas para ${new Date(date + 'T12:00:00').toLocaleDateString('pt-BR')}`,
+        description: `${formatHours(hours)} extras salvas para ${new Date(date + 'T12:00:00').toLocaleDateString('pt-BR')}`,
       });
     } catch (error) {
       console.error('Erro ao salvar horas extras:', error);
@@ -310,7 +312,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                            )}
                            {!hasAbsence && existingLog && (
                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                               âœ“ Registrado
+                               Registrado
                              </Badge>
                            )}
                            {!hasAbsence && !existingLog && currentHours > 0 && (
@@ -327,20 +329,16 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                             <div className="flex items-center gap-2 bg-muted/50 p-2 rounded flex-1 sm:flex-none">
                               <Label className="text-xs whitespace-nowrap">Horas extras:</Label>
                               <Input
-                                type="number"
-                                min="0"
-                                max="8"
-                                step="0.5"
-                                value={currentHours}
-                                onChange={(e) => setOvertimeHours(prev => ({
+                                type="text"
+                                value={overtimeHoursText[date] ?? formatHours(currentHours)}
+                                onChange={(e) => setOvertimeHoursText(prev => ({
                                   ...prev,
-                                  [date]: parseFloat(e.target.value) || 0
+                                  [date]: e.target.value
                                 }))}
-                                className="w-16 sm:w-20 h-8 text-center"
-                                placeholder="0"
+                                className="w-20 sm:w-24 h-8 text-center"
+                                placeholder="Ex: 2.5 ou 02:30"
                                 autoFocus
                               />
-                              <span className="text-sm text-muted-foreground">h</span>
                             </div>
                             <div className="flex gap-1">
                                <Button
@@ -357,6 +355,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                                  variant="outline"
                                  onClick={() => {
                                    setEditingDate(null);
+                                   setOvertimeHoursText(prev => ({...prev, [date]: ''}));
                                    // Restaurar valor original
                                    if (existingLog) {
                                      setOvertimeHours(prev => ({
@@ -376,7 +375,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                           <div className="flex items-center justify-between w-full sm:w-auto gap-2">
                             <div className="text-sm font-medium">
                               <span className={currentHours > 0 ? "text-orange-600 font-semibold" : "text-muted-foreground"}>
-                                {currentHours}h extras
+                                {formatHours(currentHours)} extras
                               </span>
                             </div>
                               <div className="flex gap-1">
@@ -399,9 +398,9 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                                         variant="outline"
                                         onClick={() => {
                                           setEditingDate(date);
-                                          setOvertimeHours(prev => ({
+                                          setOvertimeHoursText(prev => ({
                                             ...prev,
-                                            [date]: currentHours
+                                            [date]: formatHours(currentHours)
                                           }));
                                         }}
                                         title="Editar horas extras"

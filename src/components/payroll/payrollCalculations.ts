@@ -131,13 +131,15 @@ export function getDailyCacheRate(
   allocations: AllocationData[],
   person: PersonnelData
 ): number {
-  const firstAllocation = allocations[0];
-  
-  // Prioriza event_specific_cache se existir e for maior que 0
-  if (firstAllocation?.event_specific_cache && firstAllocation.event_specific_cache > 0) {
-    return firstAllocation.event_specific_cache;
+  // Verifica todas as alocações e usa o maior cachê específico definido (> 0)
+  const specificRates = allocations
+    .map(a => (a.event_specific_cache ?? 0))
+    .filter(rate => rate > 0);
+
+  if (specificRates.length > 0) {
+    return Math.max(...specificRates);
   }
-  
+
   // Caso contrário, usa o cachê padrão da pessoa
   return person.event_cache || 0;
 }
@@ -504,9 +506,6 @@ export function processPaymentHistory(paymentRecords: PaymentRecord[]): Array<{
  * @returns true se há event_specific_cache definido
  */
 export function hasEventSpecificCache(allocations: AllocationData[]): boolean {
-  const firstAllocation = allocations[0];
-  return !!(
-    firstAllocation?.event_specific_cache && 
-    firstAllocation.event_specific_cache > 0
-  );
+  // Verdadeiro se qualquer alocação tiver cachê específico definido (> 0)
+  return allocations.some(a => (a.event_specific_cache ?? 0) > 0);
 }
