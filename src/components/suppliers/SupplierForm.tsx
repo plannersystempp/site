@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useEnhancedData, type Supplier } from '@/contexts/EnhancedDataContext';
+import { useTeam } from '@/contexts/TeamContext';
 import { Loader2 } from 'lucide-react';
+import { notificationService } from '@/services/notificationService';
 
 interface SupplierFormProps {
   supplier?: Supplier | null;
@@ -14,6 +16,7 @@ interface SupplierFormProps {
 
 export const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose }) => {
   const { addSupplier, updateSupplier } = useEnhancedData();
+  const { activeTeam } = useTeam();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -37,6 +40,12 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validações básicas
+    if (!formData.name.trim()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -44,6 +53,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose })
         await updateSupplier({ ...supplier, ...formData });
       } else {
         await addSupplier(formData);
+        
+        // Enviar notificação apenas quando criar novo fornecedor
+        if (activeTeam?.id) {
+          await notificationService.notifySupplierAdded(formData.name, activeTeam.id);
+        }
       }
       onClose();
     } catch (error) {

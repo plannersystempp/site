@@ -553,11 +553,18 @@ export const EventDetail: React.FC = () => {
           </TabsContent>
 
           {user?.role === 'admin' && (
-            <TabsContent value="absences" forceMount>
-              <div ref={absencesRef}>
-                <AbsenceHistory eventId={event.id} />
-              </div>
-            </TabsContent>
+            <>
+              <TabsContent value="costs" forceMount>
+                <div ref={costsRef}>
+                  <EventCostsTab eventId={event.id} />
+                </div>
+              </TabsContent>
+              <TabsContent value="absences" forceMount>
+                <div ref={absencesRef}>
+                  <AbsenceHistory eventId={event.id} />
+                </div>
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </div>

@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign } from 'lucide-react';
+import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign, Package } from 'lucide-react';
 import { LoadingSpinner } from './shared/LoadingSpinner';
 import { EmptyState } from './shared/EmptyState';
 import { NoTeamSelected } from './shared/NoTeamSelected';
@@ -18,7 +18,7 @@ import * as PayrollCalc from './payroll/payrollCalculations';
 import { getCachedEventStatus } from './payroll/eventStatusCache';
 
 const Dashboard = () => {
-  const { events, personnel, functions, loading } = useEnhancedData();
+  const { events, personnel, functions, eventSupplierCosts, suppliers, loading } = useEnhancedData();
   const { activeTeam } = useTeam();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -272,6 +272,50 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Estatísticas de Fornecedores (Fase 5) */}
+      {!isSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Fornecedores
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-2xl font-bold">{suppliers.length}</div>
+                <p className="text-xs text-muted-foreground">Total Cadastrados</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {eventSupplierCosts.filter(c => c.payment_status === 'pending').length}
+                </div>
+                <p className="text-xs text-muted-foreground">Custos Pendentes</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">
+                  R$ {eventSupplierCosts
+                    .filter(c => c.payment_status === 'paid')
+                    .reduce((sum, c) => sum + (c.paid_amount || 0), 0)
+                    .toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Pago</p>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-600">
+                  R$ {eventSupplierCosts
+                    .filter(c => c.payment_status !== 'paid')
+                    .reduce((sum, c) => sum + ((c.total_amount || 0) - (c.paid_amount || 0)), 0)
+                    .toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">Total Pendente</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <Card>

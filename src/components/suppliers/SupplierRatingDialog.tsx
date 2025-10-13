@@ -4,20 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useEnhancedData, type Supplier } from '@/contexts/EnhancedDataContext';
+import { useTeam } from '@/contexts/TeamContext';
+import { useToast } from '@/hooks/use-toast';
 import { Star } from 'lucide-react';
+import { notificationService } from '@/services/notificationService';
 
 interface SupplierRatingDialogProps {
   supplier: Supplier;
   eventId: string;
+  eventName: string;
   onClose: () => void;
 }
 
 export const SupplierRatingDialog: React.FC<SupplierRatingDialogProps> = ({
   supplier,
   eventId,
+  eventName,
   onClose
 }) => {
   const { addSupplierRating } = useEnhancedData();
+  const { activeTeam } = useTeam();
+  const { toast } = useToast();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [notes, setNotes] = useState('');
@@ -25,7 +32,14 @@ export const SupplierRatingDialog: React.FC<SupplierRatingDialogProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating === 0) return;
+    if (rating === 0) {
+      toast({
+        title: "Selecione uma avaliação",
+        description: "Clique nas estrelas para avaliar o fornecedor",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -35,9 +49,30 @@ export const SupplierRatingDialog: React.FC<SupplierRatingDialogProps> = ({
         rating,
         notes: notes || undefined
       });
+
+      // Enviar notificação
+      if (activeTeam?.id) {
+        await notificationService.notifySupplierRated(
+          supplier.name,
+          rating,
+          eventName,
+          activeTeam.id
+        );
+      }
+
+      toast({
+        title: "Avaliação registrada",
+        description: `${supplier.name} recebeu ${rating} estrela(s)`
+      });
+
       onClose();
     } catch (error) {
       console.error('Error rating supplier:', error);
+      toast({
+        title: "Erro ao avaliar",
+        description: "Não foi possível registrar a avaliação",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

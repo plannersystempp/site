@@ -6,20 +6,27 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEnhancedData, type EventSupplierCost } from '@/contexts/EnhancedDataContext';
+import { useTeam } from '@/contexts/TeamContext';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { notificationService } from '@/services/notificationService';
 
 interface AddSupplierCostDialogProps {
   eventId: string;
+  eventName: string;
   cost?: EventSupplierCost | null;
   onClose: () => void;
 }
 
 export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
   eventId,
+  eventName,
   cost,
   onClose
 }) => {
   const { suppliers, supplierItems, addEventSupplierCost, updateEventSupplierCost } = useEnhancedData();
+  const { activeTeam } = useTeam();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
@@ -81,6 +88,29 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validações
+    if (!formData.supplier_name.trim() || !formData.description.trim() || !formData.unit_price) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha fornecedor, descrição e preço unitário",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const unitPrice = parseFloat(formData.unit_price);
+    const quantity = parseFloat(formData.quantity);
+
+    if (unitPrice <= 0 || quantity <= 0) {
+      toast({
+        title: "Valores inválidos",
+        description: "Preço e quantidade devem ser maiores que zero",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -90,8 +120,8 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
         supplier_name: formData.supplier_name,
         description: formData.description,
         category: formData.category || undefined,
-        unit_price: parseFloat(formData.unit_price),
-        quantity: parseFloat(formData.quantity),
+        unit_price: unitPrice,
+        quantity,
         payment_status: formData.payment_status,
         paid_amount: parseFloat(formData.paid_amount),
         payment_date: formData.payment_date || undefined,
@@ -104,12 +134,30 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
           ...data,
           total_amount: data.unit_price * data.quantity
         });
+        toast({ title: "Custo atualizado com sucesso" });
       } else {
         await addEventSupplierCost(data);
+        
+        // Enviar notificação
+        if (activeTeam?.id) {
+          await notificationService.notifySupplierCostAdded(
+            formData.supplier_name,
+            eventName,
+            unitPrice * quantity,
+            activeTeam.id
+          );
+        }
+        
+        toast({ title: "Custo adicionado com sucesso" });
       }
       onClose();
     } catch (error) {
       console.error('Error saving cost:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar o custo",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

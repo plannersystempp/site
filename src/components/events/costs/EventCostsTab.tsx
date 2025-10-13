@@ -13,13 +13,15 @@ interface EventCostsTabProps {
 }
 
 export const EventCostsTab: React.FC<EventCostsTabProps> = ({ eventId }) => {
-  const { eventSupplierCosts } = useEnhancedData();
+  const { eventSupplierCosts, events } = useEnhancedData();
   const { user } = useAuth();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingCost, setEditingCost] = useState<any>(null);
 
   const isAdmin = user?.role === 'admin';
   const costs = eventSupplierCosts.filter(cost => cost.event_id === eventId);
+  const event = events.find(e => e.id === eventId);
+  const eventName = event?.name || 'Evento';
 
   const handleEdit = (cost: any) => {
     setEditingCost(cost);
@@ -75,6 +77,7 @@ export const EventCostsTab: React.FC<EventCostsTabProps> = ({ eventId }) => {
       {showAddDialog && (
         <AddSupplierCostDialog
           eventId={eventId}
+          eventName={eventName}
           cost={editingCost}
           onClose={handleCloseDialog}
         />

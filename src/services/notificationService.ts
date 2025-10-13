@@ -169,6 +169,58 @@ class NotificationService {
       data: { type: 'payment-received', amount, eventName },
     });
   }
+
+  // ============= SUPPLIER NOTIFICATIONS =============
+  
+  async notifySupplierAdded(supplierName: string, teamId: string) {
+    await this.notify({
+      teamId,
+      title: '🏢 Novo Fornecedor Cadastrado',
+      body: `"${supplierName}" foi adicionado aos seus fornecedores`,
+      tag: 'supplier-added',
+      data: { type: 'supplier-added', supplierName },
+    });
+  }
+
+  async notifySupplierCostAdded(supplierName: string, eventName: string, amount: number, teamId: string) {
+    await this.notify({
+      teamId,
+      title: '💵 Custo de Fornecedor Adicionado',
+      body: `Custo de R$ ${amount.toFixed(2)} de "${supplierName}" adicionado ao evento "${eventName}"`,
+      tag: 'supplier-cost-added',
+      data: { type: 'supplier-cost-added', supplierName, eventName, amount },
+    });
+  }
+
+  async notifySupplierPaymentDue(supplierName: string, eventName: string, daysUntilDue: number, teamId: string) {
+    await this.notify({
+      teamId,
+      title: '⚠️ Pagamento de Fornecedor Pendente',
+      body: `Pagamento de "${supplierName}" para "${eventName}" vence em ${daysUntilDue} dias`,
+      tag: 'supplier-payment-due',
+      data: { type: 'supplier-payment-due', supplierName, eventName, daysUntilDue },
+    });
+  }
+
+  async notifySupplierPaymentReceived(supplierName: string, amount: number, eventName: string, teamId: string) {
+    await this.notify({
+      teamId,
+      title: '✅ Pagamento a Fornecedor Registrado',
+      body: `Pagamento de R$ ${amount.toFixed(2)} registrado para "${supplierName}" (${eventName})`,
+      tag: 'supplier-payment-received',
+      data: { type: 'supplier-payment-received', supplierName, amount, eventName },
+    });
+  }
+
+  async notifySupplierRated(supplierName: string, rating: number, eventName: string, teamId: string) {
+    await this.notify({
+      teamId,
+      title: '⭐ Fornecedor Avaliado',
+      body: `"${supplierName}" recebeu ${rating} estrelas no evento "${eventName}"`,
+      tag: 'supplier-rated',
+      data: { type: 'supplier-rated', supplierName, rating, eventName },
+    });
+  }
 }
 
 export const notificationService = new NotificationService();
