@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTeam } from '@/contexts/TeamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,8 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
   canEdit,
   onRate
 }) => {
+  const { userRole } = useTeam();
+  const isCoordinator = userRole === 'coordinator';
   return (
     <div className="space-y-3 overflow-x-auto">
       {personnel.map((person) => (
@@ -105,14 +108,18 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                       <div className="text-muted-foreground">Salário</div>
                     </div>
                   )}
-                  <div className="text-center">
-                    <div className="font-medium text-blue-600">{formatCurrency(person.event_cache)}</div>
-                    <div className="text-muted-foreground">Cachê</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-orange-600">{formatCurrency(person.overtime_rate)}</div>
-                    <div className="text-muted-foreground">H.Extra</div>
-                  </div>
+                  {!isCoordinator && (
+                    <>
+                      <div className="text-center">
+                        <div className="font-medium text-blue-600">{formatCurrency(person.event_cache)}</div>
+                        <div className="text-muted-foreground">Cachê</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-orange-600">{formatCurrency(person.overtime_rate)}</div>
+                        <div className="text-muted-foreground">H.Extra</div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {canEdit(person) && (
@@ -242,14 +249,18 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                       <div className="text-xs text-muted-foreground">Salário</div>
                     </div>
                   )}
-                  <div className="text-center">
-                    <div className="font-medium text-blue-600">{formatCurrency(person.event_cache)}</div>
-                    <div className="text-xs text-muted-foreground">Cachê</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-orange-600">{formatCurrency(person.overtime_rate)}</div>
-                    <div className="text-xs text-muted-foreground">H.Extra</div>
-                  </div>
+                  {!isCoordinator && (
+                    <>
+                      <div className="text-center">
+                        <div className="font-medium text-blue-600">{formatCurrency(person.event_cache)}</div>
+                        <div className="text-xs text-muted-foreground">Cachê</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-orange-600">{formatCurrency(person.overtime_rate)}</div>
+                        <div className="text-xs text-muted-foreground">H.Extra</div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

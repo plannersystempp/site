@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTeam } from '@/contexts/TeamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,8 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
   canEdit,
   onRate
 }) => {
+  const { userRole } = useTeam();
+  const isCoordinator = userRole === 'coordinator';
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
       {personnel.map((person) => {
@@ -131,13 +134,13 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
                         <span className="font-medium text-green-600">{formatCurrency(person.monthly_salary)}</span>
                       </div>
                     )}
-                    {person.event_cache > 0 && (
+                    {!isCoordinator && person.event_cache > 0 && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Cachê:</span>
                         <span className="font-medium text-blue-600">{formatCurrency(person.event_cache)}</span>
                       </div>
                     )}
-                    {person.overtime_rate > 0 && (
+                    {!isCoordinator && person.overtime_rate > 0 && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">H. extra:</span>
                         <span className="font-medium text-orange-600">{formatCurrency(person.overtime_rate)}</span>

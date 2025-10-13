@@ -228,14 +228,12 @@ export const createEventSupplierCost = async (
   teamId: string
 ): Promise<string> => {
   try {
-    // Sanitização explícita: remover campos gerados/gerenciados pelo banco
     const { total_amount, id, created_at, updated_at, team_id: _t, ...rest } = data as any;
-    
     const payload = {
       ...rest,
       team_id: teamId,
-    };
-
+      total_amount: (rest.unit_price ?? 0) * (rest.quantity ?? 0)
+    } as any;
     const { data: cost, error } = await supabase
       .from('event_supplier_costs')
       .insert([payload])
@@ -256,10 +254,9 @@ export const updateEventSupplierCost = async (
   data: Partial<Omit<EventSupplierCost, 'id' | 'created_at' | 'team_id' | 'total_amount'>>
 ): Promise<void> => {
   try {
-    // Sanitização explícita: remover campos gerados/gerenciados pelo banco
-    const { total_amount, created_at, team_id, id: _ignore, updated_at, ...rest } = data as any;
-    
-    const updateData = { ...rest };
+    // Sanitização explícita: remover campos gerados/readonly
+    const { total_amount, created_at, team_id, id: _ignoreId, updated_at, ...rest } = data as any;
+    const updateData = { ...rest } as any;
 
     const { error } = await supabase
       .from('event_supplier_costs')
@@ -300,10 +297,32 @@ export const fetchEventSupplierCosts = async (eventId: string): Promise<EventSup
     if (error) throw error;
     return (data || []).map(cost => ({
       ...cost,
+      total_amount: cost.total_amount ?? ((cost.unit_price ?? 0) * (cost.quantity ?? 0)),
       payment_status: cost.payment_status as 'pending' | 'partially_paid' | 'paid'
     }));
   } catch (error) {
     console.error('Error fetching event supplier costs:', error);
+    throw error;
+  }
+};
+
+// Busca custos de fornecedores por equipe (todos os eventos da equipe)
+export const fetchTeamSupplierCosts = async (teamId: string): Promise<EventSupplierCost[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('event_supplier_costs')
+      .select('*')
+      .eq('team_id', teamId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(cost => ({
+      ...cost,
+      total_amount: cost.total_amount ?? ((cost.unit_price ?? 0) * (cost.quantity ?? 0)),
+      payment_status: cost.payment_status as 'pending' | 'partially_paid' | 'paid'
+    }));
+  } catch (error) {
+    console.error('Error fetching team supplier costs:', error);
     throw error;
   }
 };

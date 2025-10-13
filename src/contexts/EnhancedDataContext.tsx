@@ -285,7 +285,8 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         assignmentsResult,
         workRecordsResult,
         suppliersData,
-        supplierItemsData
+        supplierItemsData,
+        eventCostsResult
       ] = await Promise.all([
         isSuperAdmin 
           ? supabase.from('events').select('*')
@@ -307,7 +308,10 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
           : fetchSuppliers(activeTeam!.id),
         isSuperAdmin
           ? Promise.resolve([])
-          : fetchAllSupplierItems(activeTeam!.id)
+          : fetchAllSupplierItems(activeTeam!.id),
+        isSuperAdmin
+          ? supabase.from('event_supplier_costs').select('*')
+          : supabase.from('event_supplier_costs').select('*').eq('team_id', activeTeam!.id)
       ]);
 
       // Fetch personnel with functions using the new method
@@ -350,6 +354,63 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // Set suppliers and supplier items
       setSuppliers(suppliersData || []);
       setSupplierItems(supplierItemsData || []);
+
+      // Process supplier costs (with fallback by event_id if team_id missing)
+      {
+        let rawCosts: any[] = Array.isArray(eventCostsResult.data) ? eventCostsResult.data : [];
+
+        // Fallback: if not superadmin and no costs by team_id, try by event_id list
+        if (!isSuperAdmin && rawCosts.length === 0) {
+          const teamEventIds = Array.isArray(eventsResult.data)
+            ? eventsResult.data
+                .filter((e: any) => isValidDataObject(e) && e.id)
+                .map((e: any) => e.id)
+            : [];
+
+          if (teamEventIds.length > 0) {
+            const { data: costsByEvents } = await supabase
+              .from('event_supplier_costs')
+              .select('*')
+              .in('event_id', teamEventIds)
+              .order('created_at', { ascending: false });
+            rawCosts = Array.isArray(costsByEvents) ? costsByEvents : [];
+          }
+        }
+
+        if (rawCosts.length > 0) {
+          const validCosts: EventSupplierCost[] = [];
+          for (const cost of rawCosts) {
+            if (isValidDataObject(cost)) {
+              const unitPrice = Number(cost.unit_price) || 0;
+              const quantity = Number(cost.quantity) || 0;
+              const totalAmount = (cost.total_amount != null && !Number.isNaN(Number(cost.total_amount)))
+                ? Number(cost.total_amount)
+                : unitPrice * quantity;
+              validCosts.push({
+                id: cost.id != null ? String(cost.id) : '',
+                team_id: cost.team_id != null ? String(cost.team_id) : (activeTeam?.id || ''),
+                event_id: cost.event_id != null ? String(cost.event_id) : '',
+                supplier_id: cost.supplier_id != null ? String(cost.supplier_id) : null,
+                supplier_name: cost.supplier_name || '',
+                description: cost.description || '',
+                category: cost.category || null,
+                unit_price: unitPrice,
+                quantity: quantity,
+                total_amount: totalAmount,
+                payment_status: (cost.payment_status as 'pending' | 'partially_paid' | 'paid') || 'pending',
+                paid_amount: Number(cost.paid_amount) || 0,
+                payment_date: cost.payment_date || null,
+                notes: cost.notes || null,
+                created_at: cost.created_at || new Date().toISOString(),
+                updated_at: cost.updated_at || new Date().toISOString()
+              });
+            }
+          }
+          setEventSupplierCosts(validCosts);
+        } else {
+          setEventSupplierCosts([]);
+        }
+      }
       
       // Process functions
       if (functionsResult.data && Array.isArray(functionsResult.data)) {
@@ -1311,7 +1372,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         ...cost,
         id,
         team_id: activeTeam.id,
-        total_amount: cost.unit_price * cost.quantity, // Calculado localmente para o estado
+        total_amount: cost.unit_price * cost.quantity,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -1328,7 +1389,9 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const updateEventSupplierCostData = async (cost: EventSupplierCost): Promise<void> => {
     try {
       await updateEventSupplierCost(cost.id, cost);
-      setEventSupplierCosts(prev => prev.map(c => c.id === cost.id ? cost : c));
+      const updatedTotal = cost.unit_price * cost.quantity;
+      const updatedCost: EventSupplierCost = { ...cost, total_amount: updatedTotal };
+      setEventSupplierCosts(prev => prev.map(c => c.id === cost.id ? updatedCost : c));
       toast({ title: "Custo atualizado com sucesso" });
     } catch (error) {
       console.error('Error updating event supplier cost:', error);

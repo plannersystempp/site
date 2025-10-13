@@ -21,14 +21,37 @@ interface NotificationPayload {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight ANTES de qualquer validação
+  // Preflight CORS antes de validações
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  // Exigir Authorization para requisições reais
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ error: 'Missing Authorization header' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    // Cliente com contexto do usuário para validar JWT
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    const { data: authData, error: authError } = await userClient.auth.getUser();
+    if (authError || !authData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Cliente com Service Role para consultar preferências e enviar push
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const payload: NotificationPayload = await req.json();

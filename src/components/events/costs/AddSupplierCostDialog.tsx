@@ -114,9 +114,10 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
     setLoading(true);
 
     try {
+      const supplierIdSanitized = selectedSupplier && selectedSupplier !== 'none' ? selectedSupplier : undefined;
       const data = {
         event_id: eventId,
-        supplier_id: selectedSupplier || undefined,
+        supplier_id: supplierIdSanitized,
         supplier_name: formData.supplier_name,
         description: formData.description,
         category: formData.category || undefined,
@@ -134,9 +135,12 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
           ...data,
           // total_amount é gerado no banco
         });
-        toast({ title: "Custo atualizado com sucesso" });
       } else {
-        await addEventSupplierCost(data);
+        const newId = await addEventSupplierCost(data);
+        if (!newId) {
+          // O contexto já mostra o toast de erro; apenas interrompe o fluxo
+          return;
+        }
         
         // Enviar notificação
         if (activeTeam?.id) {
@@ -147,8 +151,6 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
             activeTeam.id
           );
         }
-        
-        toast({ title: "Custo adicionado com sucesso" });
       }
       onClose();
     } catch (error) {

@@ -110,6 +110,9 @@ export const AppSidebar = () => {
                   if (userRole === 'superadmin') {
                     return item.title !== 'Pessoal' && item.title !== 'Eventos';
                   }
+                  if (userRole === 'coordinator') {
+                    return item.title !== 'Funções';
+                  }
                   return true;
                 })
                 .map((item) => (

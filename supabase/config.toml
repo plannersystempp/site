@@ -2,3 +2,4 @@ project_id = "atogozlqfwxztjyycjoy"
 
 [functions.send-push-notification]
 verify_jwt = true
+# Mantemos verify_jwt para requisições reais; preflight OPTIONS não exige JWT
