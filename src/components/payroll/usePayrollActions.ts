@@ -60,8 +60,7 @@ export const usePayrollActions = (
           personnel_id: personnelId,
           total_amount_paid: totalAmount,
           team_id: activeTeam.id,
-          notes: notes || null,
-          paid_by_user_id: user.id
+          notes: notes || null
         }])
         .select()
         .single();
@@ -159,8 +158,7 @@ export const usePayrollActions = (
           personnel_id: personnelId,
           total_amount_paid: amount,
           team_id: activeTeam.id,
-          notes: notes || null,
-          paid_by_user_id: user.id
+          notes: notes || null
         }])
         .select()
         .single();
