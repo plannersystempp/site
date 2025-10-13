@@ -38,8 +38,10 @@ export const usePWA = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Register service worker
-    if ('serviceWorker' in navigator) {
+    // Registrar Service Worker somente em modo PWA
+    const isPwaQuery = new URLSearchParams(window.location.search).get('pwa') === '1';
+    const isPWA = isStandalone || isInWebAppiOS || isPwaQuery;
+    if ('serviceWorker' in navigator && isPWA) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
@@ -60,6 +62,8 @@ export const usePWA = () => {
         .catch((error) => {
           console.log('Service Worker registration failed:', error);
         });
+    } else if ('serviceWorker' in navigator) {
+      console.log('[PWA] Skipping Service Worker registration: not in PWA mode');
     }
 
     return () => {
