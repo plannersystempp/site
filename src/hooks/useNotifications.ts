@@ -145,17 +145,7 @@ export const useNotifications = () => {
         return false;
       }
 
-      // Verificar se VAPID está configurada
-      if (!isVapidConfigured()) {
-        toast({
-          title: 'Configuração Incompleta',
-          description: 'VAPID keys não foram configuradas. Contate o administrador.',
-          variant: 'destructive',
-        });
-        return false;
-      }
-
-      // Verificar permissão
+      // Verificar permissão primeiro
       if (permission !== 'granted') {
         console.log('Requesting notification permission...');
         const granted = await requestPermission();
@@ -163,6 +153,17 @@ export const useNotifications = () => {
           console.error('Permission not granted');
           return false;
         }
+      }
+
+      // Verificar se VAPID está configurada depois da permissão
+      const vapid = (import.meta.env.VITE_VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY || '').trim();
+      if (!vapid) {
+        toast({
+          title: 'Configuração Incompleta',
+          description: 'VAPID keys não foram configuradas. Contate o administrador.',
+          variant: 'destructive',
+        });
+        return false;
       }
 
       // Verificar se Service Worker está disponível
@@ -215,7 +216,7 @@ export const useNotifications = () => {
       if (!subscription) {
         console.log('Creating new push subscription with VAPID...');
         try {
-          const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+          const applicationServerKey = urlBase64ToUint8Array(vapid);
           
           subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,

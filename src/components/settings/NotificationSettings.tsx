@@ -75,7 +75,7 @@ export const NotificationSettings: React.FC = () => {
           </div>
           {!isSubscribed ? (
             <Button
-              onClick={permission === 'granted' ? subscribeToPush : requestPermission}
+              onClick={subscribeToPush}
               disabled={loading || permission === 'denied'}
               variant="default"
             >
