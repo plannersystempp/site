@@ -629,6 +629,7 @@ export type Database = {
           id: string
           notes: string | null
           paid_at: string | null
+          paid_by_id: string | null
           personnel_id: string
           team_id: string
           total_amount_paid: number
@@ -639,6 +640,7 @@ export type Database = {
           id?: string
           notes?: string | null
           paid_at?: string | null
+          paid_by_id?: string | null
           personnel_id: string
           team_id: string
           total_amount_paid?: number
@@ -649,6 +651,7 @@ export type Database = {
           id?: string
           notes?: string | null
           paid_at?: string | null
+          paid_by_id?: string | null
           personnel_id?: string
           team_id?: string
           total_amount_paid?: number
