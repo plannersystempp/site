@@ -123,6 +123,28 @@ export const useNotifications = () => {
     try {
       setLoading(true);
 
+      // Verificar se o contexto é seguro (HTTPS ou localhost)
+      if (!window.isSecureContext) {
+        console.error('Insecure context: Push requires HTTPS or localhost');
+        toast({
+          title: 'Contexto Não Seguro',
+          description: 'Push notifications exigem HTTPS ou localhost.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Verificar suporte ao PushManager
+      if (!('PushManager' in window)) {
+        console.error('PushManager not available in this browser');
+        toast({
+          title: 'Não Suportado',
+          description: 'Seu navegador não suporta Push API.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
       // Verificar se VAPID está configurada
       if (!isVapidConfigured()) {
         toast({
@@ -159,6 +181,32 @@ export const useNotifications = () => {
       const registration = await navigator.serviceWorker.ready;
       console.log('Service worker ready:', registration);
 
+      // Caso incomum: pushManager indisponível mesmo com SW pronto
+      if (!registration.pushManager) {
+        console.error('PushManager not available on registration');
+        try {
+          console.log('Attempting to re-register service worker with explicit scope');
+          await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+          const reg2 = await navigator.serviceWorker.ready;
+          if (!reg2.pushManager) {
+            toast({
+              title: 'Push Indisponível',
+              description: 'Falha ao inicializar Push Service no navegador.',
+              variant: 'destructive',
+            });
+            return false;
+          }
+        } catch (reRegError) {
+          console.error('Service worker re-registration failed:', reRegError);
+          toast({
+            title: 'Erro no Service Worker',
+            description: 'Falha ao registrar o Service Worker para push.',
+            variant: 'destructive',
+          });
+          return false;
+        }
+      }
+
       // Verificar se já existe subscription
       let subscription = await registration.pushManager.getSubscription();
       console.log('Existing subscription:', subscription ? 'Found' : 'None');
@@ -177,9 +225,14 @@ export const useNotifications = () => {
           console.log('Push subscription created successfully');
         } catch (subscribeError) {
           console.error('Error creating push subscription:', subscribeError);
+          // Mensagens específicas para erros comuns
+          const isAbort = subscribeError && (subscribeError as Error).name === 'AbortError';
+          const message = isAbort
+            ? 'Registro falhou: Push service indisponível. Verifique permissões do navegador e políticas de sistema.'
+            : 'Falha ao criar inscrição push. Verifique a configuração VAPID e suporte do navegador.';
           toast({
             title: 'Erro na Inscrição',
-            description: 'Falha ao criar inscrição push. Verifique a configuração VAPID.',
+            description: message,
             variant: 'destructive',
           });
           return false;
@@ -204,19 +257,21 @@ export const useNotifications = () => {
       // Salvar preferências e subscription no banco de dados
       const { error } = await supabase
         .from('user_notification_preferences')
-        .upsert([{
-          user_id: user.id,
-          team_id: activeTeam.id,
-          push_subscription: subscriptionData,
-          enabled: true,
-          event_reminders: preferences.event_reminders,
-          payment_reminders: preferences.payment_reminders,
-          event_start_24h: preferences.event_start_24h,
-          event_start_48h: preferences.event_start_48h,
-          allocation_updates: preferences.allocation_updates,
-          absence_alerts: preferences.absence_alerts,
-          status_changes: preferences.status_changes,
-        }]);
+        .upsert([
+          {
+            user_id: user.id,
+            team_id: activeTeam.id,
+            push_subscription: subscriptionData,
+            enabled: true,
+            event_reminders: preferences.event_reminders,
+            payment_reminders: preferences.payment_reminders,
+            event_start_24h: preferences.event_start_24h,
+            event_start_48h: preferences.event_start_48h,
+            allocation_updates: preferences.allocation_updates,
+            absence_alerts: preferences.absence_alerts,
+            status_changes: preferences.status_changes,
+          }
+        ], { onConflict: 'user_id,team_id' });
 
       if (error) {
         console.error('Database error:', error);
@@ -309,17 +364,19 @@ export const useNotifications = () => {
 
       const { error } = await supabase
         .from('user_notification_preferences')
-        .upsert([{
-          user_id: user.id,
-          team_id: activeTeam.id,
-          event_reminders: updated.event_reminders,
-          payment_reminders: updated.payment_reminders,
-          event_start_24h: updated.event_start_24h,
-          event_start_48h: updated.event_start_48h,
-          allocation_updates: updated.allocation_updates,
-          absence_alerts: updated.absence_alerts,
-          status_changes: updated.status_changes,
-        }]);
+        .upsert([
+          {
+            user_id: user.id,
+            team_id: activeTeam.id,
+            event_reminders: updated.event_reminders,
+            payment_reminders: updated.payment_reminders,
+            event_start_24h: updated.event_start_24h,
+            event_start_48h: updated.event_start_48h,
+            allocation_updates: updated.allocation_updates,
+            absence_alerts: updated.absence_alerts,
+            status_changes: updated.status_changes,
+          }
+        ], { onConflict: 'user_id,team_id' });
 
       if (error) throw error;
 
