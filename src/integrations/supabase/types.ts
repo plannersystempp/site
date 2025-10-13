@@ -1209,40 +1209,76 @@ export type Database = {
       }
       suppliers: {
         Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip_code: string | null
           average_rating: number | null
+          cnpj: string | null
           contact_person: string | null
           created_at: string | null
           email: string | null
           id: string
+          legal_name: string | null
+          municipal_registration: string | null
           name: string
           notes: string | null
           phone: string | null
+          phone_secondary: string | null
+          state_registration: string | null
           team_id: string
           total_ratings: number | null
           updated_at: string | null
         }
         Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           average_rating?: number | null
+          cnpj?: string | null
           contact_person?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          legal_name?: string | null
+          municipal_registration?: string | null
           name: string
           notes?: string | null
           phone?: string | null
+          phone_secondary?: string | null
+          state_registration?: string | null
           team_id: string
           total_ratings?: number | null
           updated_at?: string | null
         }
         Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           average_rating?: number | null
+          cnpj?: string | null
           contact_person?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
+          legal_name?: string | null
+          municipal_registration?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
+          phone_secondary?: string | null
+          state_registration?: string | null
           team_id?: string
           total_ratings?: number | null
           updated_at?: string | null

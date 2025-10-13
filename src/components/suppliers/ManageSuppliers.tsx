@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { SupplierForm } from './SupplierForm';
 import { SupplierCard } from './SupplierCard';
 import { ExportDropdown } from '@/components/shared/ExportDropdown';
+import { formatCNPJ, formatPhoneBrazil } from '@/utils/supplierUtils';
 
 export const ManageSuppliers: React.FC = () => {
   const { suppliers, supplierItems } = useEnhancedData();
@@ -21,18 +22,33 @@ export const ManageSuppliers: React.FC = () => {
 
   const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.legal_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.cnpj?.includes(searchTerm.replace(/\D/g, '')) ||
     supplier.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    supplier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.address_city?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const exportData = filteredSuppliers.map(supplier => ({
-    nome: supplier.name,
-    contato: supplier.contact_person || '',
-    telefone: supplier.phone || '',
+    nome_fantasia: supplier.name,
+    razao_social: supplier.legal_name || '',
+    cnpj: supplier.cnpj ? formatCNPJ(supplier.cnpj) : '',
+    inscricao_estadual: supplier.state_registration || '',
+    inscricao_municipal: supplier.municipal_registration || '',
+    cep: supplier.address_zip_code || '',
+    logradouro: supplier.address_street || '',
+    numero: supplier.address_number || '',
+    complemento: supplier.address_complement || '',
+    bairro: supplier.address_neighborhood || '',
+    cidade: supplier.address_city || '',
+    estado: supplier.address_state || '',
+    pessoa_contato: supplier.contact_person || '',
+    telefone_1: supplier.phone ? formatPhoneBrazil(supplier.phone) : '',
+    telefone_2: supplier.phone_secondary ? formatPhoneBrazil(supplier.phone_secondary) : '',
     email: supplier.email || '',
     avaliacao_media: supplier.average_rating.toFixed(1),
     total_avaliacoes: supplier.total_ratings,
-    notas: supplier.notes || ''
+    observacoes: supplier.notes || ''
   }));
 
   return (
@@ -49,7 +65,12 @@ export const ManageSuppliers: React.FC = () => {
           <div className="order-2 sm:order-1 flex-1">
             <ExportDropdown
               data={exportData}
-              headers={['nome', 'contato', 'telefone', 'email', 'avaliacao_media', 'total_avaliacoes', 'notas']}
+              headers={[
+                'nome_fantasia', 'razao_social', 'cnpj', 'inscricao_estadual', 'inscricao_municipal',
+                'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'estado',
+                'pessoa_contato', 'telefone_1', 'telefone_2', 'email', 
+                'avaliacao_media', 'total_avaliacoes', 'observacoes'
+              ]}
               filename="fornecedores"
               title="Relatório de Fornecedores"
               disabled={filteredSuppliers.length === 0}
@@ -90,7 +111,7 @@ export const ManageSuppliers: React.FC = () => {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
-          placeholder="Buscar por nome, contato ou email..."
+          placeholder="Buscar por nome, CNPJ, contato, email ou cidade..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-9"

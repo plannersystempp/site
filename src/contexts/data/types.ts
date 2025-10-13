@@ -94,10 +94,30 @@ export interface Absence {
 export interface Supplier {
   id: string;
   team_id: string;
-  name: string;
-  contact_person?: string;
-  phone?: string;
-  email?: string;
+  
+  // Dados da Empresa
+  name: string;                        // Nome Fantasia
+  legal_name?: string;                 // Razão Social
+  cnpj?: string;                       // CNPJ
+  state_registration?: string;         // Inscrição Estadual
+  municipal_registration?: string;     // Inscrição Municipal
+  
+  // Endereço
+  address_zip_code?: string;           // CEP
+  address_street?: string;             // Logradouro
+  address_number?: string;             // Número
+  address_complement?: string;         // Complemento
+  address_neighborhood?: string;       // Bairro
+  address_city?: string;               // Cidade
+  address_state?: string;              // Estado (UF)
+  
+  // Contatos
+  contact_person?: string;             // Pessoa de Contato
+  phone?: string;                      // Telefone 1
+  phone_secondary?: string;            // Telefone 2
+  email?: string;                      // E-mail
+  
+  // Observações e metadados
   notes?: string;
   average_rating: number;
   total_ratings: number;

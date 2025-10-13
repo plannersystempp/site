@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Mail, Edit, Star, Package } from 'lucide-react';
+import { Phone, Mail, Edit, Star, Package, MapPin, Building2 } from 'lucide-react';
 import { useEnhancedData, type Supplier } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { SupplierItemsManager } from './SupplierItemsManager';
+import { formatCNPJ, formatPhoneBrazil } from '@/utils/supplierUtils';
 
 interface SupplierCardProps {
   supplier: Supplier;
@@ -40,12 +41,26 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({ supplier, onEdit }) 
     );
   };
 
+  const getAddress = () => {
+    const parts = [];
+    if (supplier.address_city) parts.push(supplier.address_city);
+    if (supplier.address_state) parts.push(supplier.address_state);
+    return parts.join(' - ');
+  };
+
   return (
     <>
       <Card className="h-full flex flex-col">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-base line-clamp-1">{supplier.name}</CardTitle>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base line-clamp-1">{supplier.name}</CardTitle>
+              {supplier.legal_name && (
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                  {supplier.legal_name}
+                </p>
+              )}
+            </div>
             {isAdmin && (
               <Button
                 variant="ghost"
@@ -61,27 +76,57 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({ supplier, onEdit }) 
         </CardHeader>
 
         <CardContent className="flex-1 space-y-3 text-sm">
+          {/* CNPJ Badge */}
+          {supplier.cnpj && (
+            <div className="flex gap-2 flex-wrap">
+              <Badge variant="outline" className="font-mono text-xs">
+                <Building2 className="h-3 w-3 mr-1" />
+                {formatCNPJ(supplier.cnpj)}
+              </Badge>
+            </div>
+          )}
+
+          {/* Endereço */}
+          {getAddress() && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">{getAddress()}</span>
+            </div>
+          )}
+
+          {/* Pessoa de Contato */}
           {supplier.contact_person && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="font-medium">Contato:</span>
-              <span className="truncate">{supplier.contact_person}</span>
+            <div className="text-muted-foreground">
+              <span className="font-medium text-xs">Contato:</span>{' '}
+              <span className="truncate text-xs">{supplier.contact_person}</span>
             </div>
           )}
 
-          {supplier.phone && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">{supplier.phone}</span>
-            </div>
-          )}
+          {/* Telefones */}
+          <div className="space-y-1">
+            {supplier.phone && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate text-xs">{formatPhoneBrazil(supplier.phone)}</span>
+              </div>
+            )}
+            {supplier.phone_secondary && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate text-xs">{formatPhoneBrazil(supplier.phone_secondary)}</span>
+              </div>
+            )}
+          </div>
 
+          {/* Email */}
           {supplier.email && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Mail className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">{supplier.email}</span>
+              <span className="truncate text-xs">{supplier.email}</span>
             </div>
           )}
 
+          {/* Ver Itens */}
           <div className="pt-2 border-t">
             <Button
               variant="outline"
@@ -94,6 +139,7 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({ supplier, onEdit }) 
             </Button>
           </div>
 
+          {/* Observações */}
           {supplier.notes && (
             <div className="text-xs text-muted-foreground pt-2 border-t">
               <p className="line-clamp-2">{supplier.notes}</p>

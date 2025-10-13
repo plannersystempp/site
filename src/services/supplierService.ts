@@ -8,10 +8,31 @@ export const createSupplier = async (
   teamId: string
 ): Promise<string> => {
   try {
+    // Validar CNPJ se fornecido
+    if (data.cnpj) {
+      const { validateCNPJ } = await import('@/utils/supplierUtils');
+      if (!validateCNPJ(data.cnpj)) {
+        throw new Error('CNPJ inválido');
+      }
+      
+      // Verificar se CNPJ já existe na equipe
+      const { data: existing } = await supabase
+        .from('suppliers')
+        .select('id')
+        .eq('team_id', teamId)
+        .eq('cnpj', data.cnpj.replace(/\D/g, ''))
+        .single();
+      
+      if (existing) {
+        throw new Error('CNPJ já cadastrado nesta equipe');
+      }
+    }
+
     const { data: supplier, error } = await supabase
       .from('suppliers')
       .insert([{
         ...data,
+        cnpj: data.cnpj ? data.cnpj.replace(/\D/g, '') : null,
         team_id: teamId,
         average_rating: 0,
         total_ratings: 0
@@ -33,9 +54,22 @@ export const updateSupplier = async (
   data: Partial<Omit<Supplier, 'id' | 'created_at' | 'team_id' | 'average_rating' | 'total_ratings'>>
 ): Promise<void> => {
   try {
+    // Validar CNPJ se fornecido
+    if (data.cnpj) {
+      const { validateCNPJ } = await import('@/utils/supplierUtils');
+      if (!validateCNPJ(data.cnpj)) {
+        throw new Error('CNPJ inválido');
+      }
+    }
+
+    const updateData = {
+      ...data,
+      cnpj: data.cnpj ? data.cnpj.replace(/\D/g, '') : data.cnpj
+    };
+
     const { error } = await supabase
       .from('suppliers')
-      .update(data)
+      .update(updateData)
       .eq('id', id);
 
     if (error) throw error;
