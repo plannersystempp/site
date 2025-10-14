@@ -1368,11 +1368,14 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     try {
       const id = await createEventSupplierCost(cost, activeTeam.id);
+      
+      // Calcular total_amount localmente apenas para o estado da aplicação.
+      // O banco recalcula automaticamente via coluna gerada.
       const newCost: EventSupplierCost = {
         ...cost,
         id,
         team_id: activeTeam.id,
-        total_amount: cost.unit_price * cost.quantity,
+        total_amount: cost.unit_price * cost.quantity, // Estado local para exibição imediata
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

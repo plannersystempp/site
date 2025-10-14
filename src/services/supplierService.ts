@@ -223,6 +223,11 @@ export const fetchAllSupplierItems = async (teamId: string): Promise<SupplierIte
 
 // ============= EVENT SUPPLIER COSTS =============
 
+/**
+ * IMPORTANTE: total_amount é uma coluna GENERATED no banco de dados.
+ * NÃO deve ser incluída no payload de insert/update.
+ * O banco calcula automaticamente: unit_price * quantity
+ */
 export const createEventSupplierCost = async (
   data: Omit<EventSupplierCost, 'id' | 'created_at' | 'updated_at' | 'total_amount' | 'team_id'>,
   teamId: string
@@ -231,8 +236,8 @@ export const createEventSupplierCost = async (
     const { total_amount, id, created_at, updated_at, team_id: _t, ...rest } = data as any;
     const payload = {
       ...rest,
-      team_id: teamId,
-      total_amount: (rest.unit_price ?? 0) * (rest.quantity ?? 0)
+      team_id: teamId
+      // total_amount será calculado automaticamente pelo banco via coluna gerada
     } as any;
     const { data: cost, error } = await supabase
       .from('event_supplier_costs')
