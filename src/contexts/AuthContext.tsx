@@ -133,11 +133,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Error getting session:', error);
-          if (error.message?.includes('refresh_token_not_found')) {
-            console.log('Refresh token not found - user will need to login again');
+          const msg = (error.message || '').toLowerCase();
+          const isRefreshMissing = msg.includes('refresh token not found') || msg.includes('refresh_token_not_found');
+          const isInvalidRefresh = msg.includes('invalid refresh token');
+
+          if (isRefreshMissing || isInvalidRefresh) {
+            console.warn('Invalid or missing refresh token detected. Clearing session and redirecting to login.');
+            try {
+              // Force clear any persisted Supabase auth state
+              await supabase.auth.signOut();
+              // Also clear possible leftover keys to be safe
+              Object.keys(localStorage)
+                .filter(k => k.startsWith('sb-') || k.startsWith('supabase'))
+                .forEach(k => {
+                  try { localStorage.removeItem(k); } catch {}
+                });
+            } catch (signOutErr) {
+              console.error('Error during forced signOut:', signOutErr);
+            }
+            // Ensure local state reflects signed out
+            handleAuthChange('FORCED_SIGNOUT_DUE_TO_REFRESH_ERROR', null);
+            return;
           }
         }
 

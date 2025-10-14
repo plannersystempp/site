@@ -43,6 +43,12 @@
         50% { transform: translateX(10%); }
         100% { transform: translateX(120%); }
       }
+      /* Mobile: no PWA loading text, only logo */
+      @media (max-width: 767px) {
+        .splash-text, .splash-spinner, .splash-progress { display: none !important; }
+        .splash-inner { gap: 0; }
+      }
+
       /* Tablets */
       @media (min-width: 768px) {
         .splash-logo { width:200px; }

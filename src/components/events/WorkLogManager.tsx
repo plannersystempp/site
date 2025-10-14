@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { parseHoursInput, formatHours } from '@/utils/formatters';
+import { parseHoursInput, formatHours, formatHoursInputLive, pushLeftAddDigit, pushLeftBackspace } from '@/utils/formatters';
 import { Clock, Edit2, Save, X, Trash2, RotateCcw, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAbsencesQuery, useCreateAbsenceMutation, useDeleteAbsenceMutation } from '@/hooks/queries/useAbsencesQuery';
@@ -161,7 +161,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
 
         toast({
           title: "Sucesso",
-          description: "Registro de horas excluÃ­do com sucesso",
+          description: "Registro de horas excluído com sucesso",
         });
       }
     } catch (error) {
@@ -252,7 +252,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
-              GestÃ£o de Horas Extras
+              Gestão de Horas Extras
             </DialogTitle>
           </DialogHeader>
         </div>
@@ -260,13 +260,13 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
         <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base sm:text-lg">InformaÃ§Ãµes da AlocaÃ§Ã£o</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Informações da Alocação</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                 <div>
-                  <Label className="text-muted-foreground text-xs sm:text-sm">FunÃ§Ã£o:</Label>
-                  <p className="font-medium text-sm sm:text-base">{assignment.function_name || 'FunÃ§Ã£o nÃ£o definida'}</p>
+                  <Label className="text-muted-foreground text-xs sm:text-sm">Função:</Label>
+                  <p className="font-medium text-sm sm:text-base">{assignment.function_name || 'Função não definida'}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-xs sm:text-sm">Dias de Trabalho:</Label>
@@ -330,13 +330,49 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                               <Label className="text-xs whitespace-nowrap">Horas extras:</Label>
                               <Input
                                 type="text"
+                                inputMode="numeric"
                                 value={overtimeHoursText[date] ?? formatHours(currentHours)}
-                                onChange={(e) => setOvertimeHoursText(prev => ({
-                                  ...prev,
-                                  [date]: e.target.value
-                                }))}
+                                onKeyDown={(e) => {
+                                  const prevVal = overtimeHoursText[date] ?? formatHours(currentHours);
+                                  // Permitir navegação
+                                  if (["ArrowLeft","ArrowRight","Tab"].includes(e.key)) return;
+                                  // Digitando números: push-left
+                                  if (/^\d$/.test(e.key)) {
+                                    e.preventDefault();
+                                    const masked = pushLeftAddDigit(prevVal, e.key);
+                                    setOvertimeHoursText(prev => ({ ...prev, [date]: masked }));
+                                    // Mantém cursor no fim
+                                    const el = e.target as HTMLInputElement;
+                                    requestAnimationFrame(() => el.setSelectionRange(masked.length, masked.length));
+                                    return;
+                                  }
+                                  // Backspace: remove último dígito
+                                  if (e.key === 'Backspace') {
+                                    e.preventDefault();
+                                    const masked = pushLeftBackspace(prevVal);
+                                    setOvertimeHoursText(prev => ({ ...prev, [date]: masked }));
+                                    const el = e.target as HTMLInputElement;
+                                    requestAnimationFrame(() => el.setSelectionRange(masked.length, masked.length));
+                                    return;
+                                  }
+                                  // Bloquear outros caracteres
+                                  if (!['Enter','Escape'].includes(e.key)) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                onChange={(e) => {
+                                  // Suporte a colar texto ou mudar via IME
+                                  const masked = formatHoursInputLive(e.target.value);
+                                  setOvertimeHoursText(prev => ({ ...prev, [date]: masked }));
+                                }}
+                                onPaste={(e) => {
+                                  e.preventDefault();
+                                  const text = e.clipboardData.getData('text') || '';
+                                  const masked = formatHoursInputLive(text);
+                                  setOvertimeHoursText(prev => ({ ...prev, [date]: masked }));
+                                }}
                                 className="w-20 sm:w-24 h-8 text-center"
-                                placeholder="Ex: 2.5 ou 02:30"
+                                placeholder="Ex: 02:00"
                                 autoFocus
                               />
                             </div>
@@ -426,7 +462,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                                         variant="ghost"
                                         onClick={() => handleMarkAbsent(date)}
                                         className="h-8 px-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 min-h-[44px] sm:min-h-[auto]"
-                                        title="LanÃ§ar Falta"
+                                        title="Lançar Falta"
                                       >
                                       <UserX className="w-3 h-3 sm:mr-1" />
                                       <span className="hidden sm:inline">Falta</span>

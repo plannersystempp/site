@@ -80,3 +80,88 @@ export const formatHours = (hours: number): string => {
   
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };
+
+/**
+ * Formata a entrada de texto para horas no formato HH:MM enquanto o usuário digita.
+ * Regras:
+ * - Dígitos apenas: até 2 dígitos = horas (HH:00); 3-4 dígitos = HHMM (ex: 230 -> 02:30)
+ * - Com ':' já presente: normaliza para HH:MM com padding
+ * - Decimal com ponto/vírgula: 2.5 -> 02:30
+ */
+export const formatHoursInputLive = (input: string): string => {
+  if (!input) return '';
+
+  const raw = input.replace(/[^\d:.,]/g, '');
+
+  // Já no formato com dois pontos
+  if (raw.includes(':')) {
+    const [hoursRaw, minutesRaw = ''] = raw.split(':');
+    const hoursDigits = hoursRaw.replace(/\D/g, '').slice(0, 2);
+    const minutesDigits = minutesRaw.replace(/\D/g, '').slice(0, 2);
+
+    const hh = String(hoursDigits || '0').padStart(2, '0');
+    const mmNum = minutesDigits ? parseInt(minutesDigits, 10) : 0;
+    const mm = String(Math.min(isNaN(mmNum) ? 0 : mmNum, 59)).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  // Decimal (ex: "2.5" ou "2,5")
+  if (raw.includes('.') || raw.includes(',')) {
+    const asNum = parseFloat(raw.replace(',', '.'));
+    if (isNaN(asNum)) return '';
+    return formatHours(asNum);
+  }
+
+  // Dígitos somente: minutos-primeiro
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 0) return '';
+  if (digits.length <= 2) {
+    // Tratar como minutos
+    const mmNum = parseInt(digits, 10);
+    const mm = String(Math.min(isNaN(mmNum) ? 0 : mmNum, 59)).padStart(2, '0');
+    return `00:${mm}`;
+  }
+
+  // 3 ou mais dígitos: últimos 2 são minutos, anteriores horas
+  const h = digits.slice(0, digits.length - 2);
+  const m = digits.slice(-2);
+  const hh = String(parseInt(h, 10) || 0).padStart(2, '0');
+  const mmNum = parseInt(m, 10);
+  const mm = String(Math.min(isNaN(mmNum) ? 0 : mmNum, 59)).padStart(2, '0');
+  return `${hh}:${mm}`;
+};
+
+// ====== Helpers para digitação minutos-primeiro (push-left) ======
+
+/** Extrai apenas dígitos de uma string mascarada */
+export const extractDigits = (masked: string): string => masked.replace(/\D/g, '');
+
+/** Aplica máscara HH:MM assumindo que os dois últimos dígitos são minutos */
+export const applyMinutesFirstMaskFromDigits = (digits: string): string => {
+  if (!digits) return '';
+  if (digits.length <= 2) {
+    const mmNum = parseInt(digits, 10);
+    const mm = String(Math.min(isNaN(mmNum) ? 0 : mmNum, 59)).padStart(2, '0');
+    return `00:${mm}`;
+  }
+  const h = digits.slice(0, digits.length - 2);
+  const m = digits.slice(-2);
+  const hh = String(parseInt(h, 10) || 0).padStart(2, '0');
+  const mmNum = parseInt(m, 10);
+  const mm = String(Math.min(isNaN(mmNum) ? 0 : mmNum, 59)).padStart(2, '0');
+  return `${hh}:${mm}`;
+};
+
+/** Adiciona um dígito empurrando para a esquerda (minutos-primeiro) */
+export const pushLeftAddDigit = (currentMasked: string, digit: string): string => {
+  if (!/^[0-9]$/.test(digit)) return currentMasked || '';
+  const digits = extractDigits(currentMasked) + digit;
+  return applyMinutesFirstMaskFromDigits(digits);
+};
+
+/** Remove o último dígito (backspace) mantendo minutos-primeiro */
+export const pushLeftBackspace = (currentMasked: string): string => {
+  const digits = extractDigits(currentMasked);
+  const newDigits = digits.slice(0, -1);
+  return applyMinutesFirstMaskFromDigits(newDigits);
+};
