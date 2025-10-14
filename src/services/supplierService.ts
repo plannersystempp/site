@@ -224,6 +224,21 @@ export const fetchAllSupplierItems = async (teamId: string): Promise<SupplierIte
 // ============= EVENT SUPPLIER COSTS =============
 
 /**
+ * Sanitiza categoria para garantir valor válido no banco.
+ * Valores aceitos: som, luz, video, catering, transporte, cenografia, seguranca, outro
+ */
+function sanitizeCategoryValue(input?: string): 'som' | 'luz' | 'video' | 'catering' | 'transporte' | 'cenografia' | 'seguranca' | 'outro' {
+  if (!input) return 'outro';
+  
+  const validCategories = ['som', 'luz', 'video', 'catering', 'transporte', 'cenografia', 'seguranca', 'outro'];
+  const normalized = input.toLowerCase().trim();
+  
+  return validCategories.includes(normalized) 
+    ? normalized as any
+    : 'outro';
+}
+
+/**
  * IMPORTANTE: total_amount é uma coluna GENERATED no banco de dados.
  * NÃO deve ser incluída no payload de insert/update.
  * O banco calcula automaticamente: unit_price * quantity
@@ -234,8 +249,13 @@ export const createEventSupplierCost = async (
 ): Promise<string> => {
   try {
     const { total_amount, id, created_at, updated_at, team_id: _t, ...rest } = data as any;
+    
+    // Sanitizar categoria para garantir que seja um valor válido do banco
+    const sanitizedCategory = sanitizeCategoryValue(rest.category);
+    
     const payload = {
       ...rest,
+      category: sanitizedCategory,
       team_id: teamId
       // total_amount será calculado automaticamente pelo banco via coluna gerada
     } as any;

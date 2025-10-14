@@ -11,6 +11,45 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { notificationService } from '@/services/notificationService';
 
+/**
+ * Normaliza categoria para um dos valores aceitos pelo banco de dados.
+ * Mapeia sinônimos e variações para os valores válidos.
+ */
+function sanitizeCategory(input?: string): 'som' | 'luz' | 'video' | 'catering' | 'transporte' | 'cenografia' | 'seguranca' | 'outro' {
+  if (!input) return 'outro';
+  
+  const normalized = input
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .trim();
+  
+  const categoryMap: Record<string, 'som' | 'luz' | 'video' | 'catering' | 'transporte' | 'cenografia' | 'seguranca' | 'outro'> = {
+    'som': 'som',
+    'audio': 'som',
+    'áudio': 'som',
+    'luz': 'luz',
+    'iluminacao': 'luz',
+    'iluminação': 'luz',
+    'video': 'video',
+    'vídeo': 'video',
+    'catering': 'catering',
+    'alimentacao': 'catering',
+    'alimentação': 'catering',
+    'transporte': 'transporte',
+    'logistica': 'transporte',
+    'logística': 'transporte',
+    'cenografia': 'cenografia',
+    'montagem': 'cenografia',
+    'seguranca': 'seguranca',
+    'segurança': 'seguranca',
+    'outro': 'outro',
+    'outros': 'outro'
+  };
+  
+  return categoryMap[normalized] || 'outro';
+}
+
 interface AddSupplierCostDialogProps {
   eventId: string;
   eventName: string;
@@ -33,7 +72,7 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
   const [formData, setFormData] = useState({
     supplier_name: '',
     description: '',
-    category: '',
+    category: 'outro' as 'som' | 'luz' | 'video' | 'catering' | 'transporte' | 'cenografia' | 'seguranca' | 'outro',
     unit_price: '',
     quantity: '1',
     payment_status: 'pending' as 'pending' | 'partially_paid' | 'paid',
@@ -47,7 +86,7 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
       setFormData({
         supplier_name: cost.supplier_name,
         description: cost.description,
-        category: cost.category || '',
+        category: sanitizeCategory(cost.category),
         unit_price: cost.unit_price.toString(),
         quantity: cost.quantity.toString(),
         payment_status: cost.payment_status,
@@ -80,7 +119,7 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
       setFormData(prev => ({
         ...prev,
         description: item.item_name,
-        category: item.category || '',
+        category: sanitizeCategory(item.category),
         unit_price: item.price?.toString() || ''
       }));
     }
@@ -115,12 +154,13 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
 
     try {
       const supplierIdSanitized = selectedSupplier && selectedSupplier !== 'none' ? selectedSupplier : undefined;
+      const sanitizedCategory = sanitizeCategory(formData.category);
       const data = {
         event_id: eventId,
         supplier_id: supplierIdSanitized,
         supplier_name: formData.supplier_name,
         description: formData.description,
-        category: formData.category || undefined,
+        category: sanitizedCategory,
         unit_price: unitPrice,
         quantity,
         payment_status: formData.payment_status,
@@ -239,12 +279,24 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Categoria</Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="Ex: Áudio"
-              />
+              <Select 
+                value={formData.category} 
+                onValueChange={(value: any) => setFormData({ ...formData, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="som">Som/Áudio</SelectItem>
+                  <SelectItem value="luz">Luz/Iluminação</SelectItem>
+                  <SelectItem value="video">Vídeo</SelectItem>
+                  <SelectItem value="catering">Catering/Alimentação</SelectItem>
+                  <SelectItem value="transporte">Transporte/Logística</SelectItem>
+                  <SelectItem value="cenografia">Cenografia/Montagem</SelectItem>
+                  <SelectItem value="seguranca">Segurança</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
