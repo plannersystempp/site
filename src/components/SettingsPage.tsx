@@ -192,16 +192,21 @@ export const SettingsPage: React.FC = () => {
         <div className="md:hidden">
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" className="w-full justify-between">
+              <Button 
+                variant="outline" 
+                className="w-full justify-between sheet-trigger touch-manipulation"
+                style={{ touchAction: 'manipulation' }}
+              >
                 <span>{getTabLabel(activeTab)}</span>
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-auto">
+            <SheetContent side="bottom" className="h-auto touch-manipulation">
               <div className="grid gap-2 py-4">
                 <Button
                   variant={activeTab === 'profile' ? 'default' : 'ghost'}
-                  className="justify-start"
+                  className="justify-start touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => {
                     setActiveTab('profile');
                     setIsMenuOpen(false);
@@ -212,7 +217,8 @@ export const SettingsPage: React.FC = () => {
                 </Button>
                 <Button
                   variant={activeTab === 'security' ? 'default' : 'ghost'}
-                  className="justify-start"
+                  className="justify-start touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => {
                     setActiveTab('security');
                     setIsMenuOpen(false);
@@ -223,7 +229,8 @@ export const SettingsPage: React.FC = () => {
                 </Button>
                 <Button
                   variant={activeTab === 'notifications' ? 'default' : 'ghost'}
-                  className="justify-start"
+                  className="justify-start touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => {
                     setActiveTab('notifications');
                     setIsMenuOpen(false);
@@ -234,7 +241,8 @@ export const SettingsPage: React.FC = () => {
                 </Button>
                 <Button
                   variant={activeTab === 'payroll' ? 'default' : 'ghost'}
-                  className="justify-start"
+                  className="justify-start touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => {
                     setActiveTab('payroll');
                     setIsMenuOpen(false);
@@ -245,7 +253,8 @@ export const SettingsPage: React.FC = () => {
                 </Button>
                 <Button
                   variant={activeTab === 'account' ? 'default' : 'ghost'}
-                  className="justify-start"
+                  className="justify-start touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
                   onClick={() => {
                     setActiveTab('account');
                     setIsMenuOpen(false);

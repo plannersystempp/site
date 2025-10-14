@@ -496,6 +496,57 @@ html {
   }
 }
 
+/* PWA-specific optimizations */
+@media (display-mode: standalone) {
+  /* Ensure touch targets are properly sized in PWA mode */
+  button, .button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+  
+  /* Improve touch responsiveness for interactive elements */
+  .sheet-trigger, .dialog-trigger, [data-radix-collection-item] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Ensure proper spacing for PWA safe areas */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Optimize sheet components for PWA */
+  [data-radix-dialog-content] {
+    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+
+/* iOS PWA specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .is-pwa body,
+  @media (display-mode: standalone) {
+    /* Fix for iOS PWA viewport issues */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  /* Improve touch handling on iOS PWA */
+  .is-pwa button,
+  .is-pwa .button,
+  @media (display-mode: standalone) {
+    button, .button {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  }
+}
+
 /* REMOÇÃO COMPLETA DO BADGE LOVABLE - CSS ROBUSTO E ESPECÍFICO */
 /* Esta seção deve permanecer no final do arquivo para máxima prioridade */
 
