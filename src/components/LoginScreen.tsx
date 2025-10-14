@@ -272,19 +272,19 @@ export const LoginScreen: React.FC = () => {
             });
           }
         } else if (error.message?.includes('Email not confirmed')) {
-          toast({
-            title: "Email não confirmado",
-            description: "Verifique seu email e clique no link de confirmação antes de fazer login.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Erro no login",
-            description: error.message,
-            variant: "destructive"
-          });
-        }
+        toast({
+          title: "Email não confirmado",
+          description: "Verifique seu email e clique no link de confirmação antes de fazer login.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erro no login",
+          description: error.message,
+          variant: "destructive"
+        });
       }
+    }
     }
   };
 

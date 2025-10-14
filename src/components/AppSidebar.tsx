@@ -108,7 +108,7 @@ export const AppSidebar = () => {
               {menuItems
                 .filter(item => {
                   if (userRole === 'superadmin') {
-                    return item.title !== 'Pessoal' && item.title !== 'Eventos';
+                    return item.title !== 'Pessoal' && item.title !== 'Eventos' && item.title !== 'Funções';
                   }
                   if (userRole === 'coordinator') {
                     return item.title !== 'Funções';

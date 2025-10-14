@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Settings as SettingsIcon, Lock, User, ArrowLeft } from 'lucide-react';
+import { Settings as SettingsIcon, Lock, User, ArrowLeft, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { validatePassword } from '@/utils/validation';
 import { Link } from 'react-router-dom';
@@ -14,6 +14,7 @@ import { APP_VERSION } from '@/constants/app';
 import { DangerZone } from '@/components/admin/DangerZone';
 import { TeamPayrollConfig } from './settings/TeamPayrollConfig';
 import { NotificationSettings } from './settings/NotificationSettings';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -28,6 +29,8 @@ export const SettingsPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -144,6 +147,17 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
+  const getTabLabel = (tab: string) => {
+    const labels = {
+      profile: 'Perfil',
+      security: 'Segurança',
+      notifications: 'Notificações',
+      payroll: 'Folha',
+      account: 'Conta'
+    };
+    return labels[tab as keyof typeof labels] || 'Configurações';
+  };
+
   return (
     <div className="p-6 space-y-6 relative min-h-screen">
       <div className="flex items-center gap-4">
@@ -164,14 +178,86 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        {/* Menu Desktop - Abas horizontais */}
+        <TabsList className="hidden md:grid w-full grid-cols-5">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="payroll">Folha</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
+
+        {/* Menu Mobile - Hambúrguer */}
+        <div className="md:hidden">
+          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                <span>{getTabLabel(activeTab)}</span>
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-auto">
+              <div className="grid gap-2 py-4">
+                <Button
+                  variant={activeTab === 'profile' ? 'default' : 'ghost'}
+                  className="justify-start"
+                  onClick={() => {
+                    setActiveTab('profile');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Perfil
+                </Button>
+                <Button
+                  variant={activeTab === 'security' ? 'default' : 'ghost'}
+                  className="justify-start"
+                  onClick={() => {
+                    setActiveTab('security');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Segurança
+                </Button>
+                <Button
+                  variant={activeTab === 'notifications' ? 'default' : 'ghost'}
+                  className="justify-start"
+                  onClick={() => {
+                    setActiveTab('notifications');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <SettingsIcon className="w-4 h-4 mr-2" />
+                  Notificações
+                </Button>
+                <Button
+                  variant={activeTab === 'payroll' ? 'default' : 'ghost'}
+                  className="justify-start"
+                  onClick={() => {
+                    setActiveTab('payroll');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <SettingsIcon className="w-4 h-4 mr-2" />
+                  Folha
+                </Button>
+                <Button
+                  variant={activeTab === 'account' ? 'default' : 'ghost'}
+                  className="justify-start"
+                  onClick={() => {
+                    setActiveTab('account');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <SettingsIcon className="w-4 h-4 mr-2" />
+                  Conta
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
 
         <TabsContent value="profile">
           <Card>

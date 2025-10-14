@@ -317,7 +317,7 @@ const Dashboard = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 ${isSuperAdmin ? 'lg:grid-cols-2' : 'lg:grid-cols-2 xl:grid-cols-3'} gap-6`}>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -390,51 +390,54 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-red-600" />
-              Pagamentos Próximos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {upcomingPayments.length === 0 ? (
-              <EmptyState
-                title="Nenhum pagamento próximo"
-                description="Não há pagamentos pendentes ou com vencimento nos próximos 15 dias."
-              />
-            ) : (
-              <div className="space-y-2">
-                {upcomingPayments.map(event => {
-                  const displayDate = event.payment_due_date 
-                    ? formatDateShort(event.payment_due_date)
-                    : event.end_date 
-                      ? formatDateShort(event.end_date)
-                      : 'Data não definida';
-                  
-                  return (
-                    <button 
-                      key={event.id} 
-                      className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors border-red-200 bg-red-50/30 cursor-pointer"
-                      onClick={() => navigate(`/app/folha/${event.id}`)}
-                    >
-                      <div className="flex-1 min-w-0 text-left">
-                        <h4 className="font-medium truncate">{event.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {`Vence: ${displayDate}`}
-                        </p>
-                      </div>
-                      <Badge className="bg-red-100 text-red-800">
-                        <AlertCircle className="h-4 w-4" />
-                        <span className="ml-1 hidden sm:inline">Pendente</span>
-                      </Badge>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Card de Pagamentos Próximos - apenas para não-superadmin */}
+        {!isSuperAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-red-600" />
+                Pagamentos Próximos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upcomingPayments.length === 0 ? (
+                <EmptyState
+                  title="Nenhum pagamento próximo"
+                  description="Não há pagamentos pendentes ou com vencimento nos próximos 15 dias."
+                />
+              ) : (
+                <div className="space-y-2">
+                  {upcomingPayments.map(event => {
+                    const displayDate = event.payment_due_date 
+                      ? formatDateShort(event.payment_due_date)
+                      : event.end_date 
+                        ? formatDateShort(event.end_date)
+                        : 'Data não definida';
+                    
+                    return (
+                      <button 
+                        key={event.id} 
+                        className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors border-red-200 bg-red-50/30 cursor-pointer"
+                        onClick={() => navigate(`/app/folha/${event.id}`)}
+                      >
+                        <div className="flex-1 min-w-0 text-left">
+                          <h4 className="font-medium truncate">{event.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {`Vence: ${displayDate}`}
+                          </p>
+                        </div>
+                        <Badge className="bg-red-100 text-red-800">
+                          <AlertCircle className="h-4 w-4" />
+                          <span className="ml-1 hidden sm:inline">Pendente</span>
+                        </Badge>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
