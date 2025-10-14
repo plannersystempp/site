@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone, DollarSign } from 'lucide-react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AllocationManager } from './AllocationManager';
 import { EventForm } from './EventForm';
@@ -180,6 +180,16 @@ export const EventDetail: React.FC = () => {
         </div>
         
         <div className="flex gap-2 no-print">
+          {/* Botão de Folha de Pagamento */}
+          <Button 
+            variant="secondary" 
+            onClick={() => navigate(`/app/folha/${event.id}`)}
+            className="flex items-center gap-2"
+          >
+            <DollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">Folha de Pagamento</span>
+            <span className="sm:hidden">Folha</span>
+          </Button>
           {/* Botão secundário - Imprimir (outline) */}
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="w-4 h-4 mr-2" />

@@ -187,11 +187,12 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 11px;
+    table-layout: auto;
   }
 
   .payroll-th {
     border: 1px solid #e5e7eb;
-    padding: 8px 6px;
+    padding: 10px 8px;
     background-color: #f9fafb !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -202,9 +203,10 @@
 
   .payroll-td {
     border: 1px solid #e5e7eb;
-    padding: 6px;
+    padding: 8px 10px;
     page-break-inside: avoid;
     color: black !important;
+    line-height: 1.5;
   }
 
   .payroll-row-even {
@@ -227,6 +229,7 @@
     font-weight: bold;
     background-color: white !important;
     color: black !important;
+    line-height: 1.6;
   }
 
   /* Evita quebras de página indesejadas */
@@ -243,6 +246,7 @@
     page-break-inside: avoid;
     orphans: 3;
     widows: 3;
+    line-height: 1.5;
   }
 
   /* Garante que o total apareça apenas uma vez no final */
@@ -266,6 +270,18 @@
   /* Evita páginas vazias */
   .print-section {
     page-break-after: avoid;
+  }
+
+  /* Evitar quebra de linhas nos valores numéricos (menos na coluna de nome) */
+  .payroll-table th:not(:first-child),
+  .payroll-table td:not(:first-child) {
+    white-space: nowrap;
+  }
+
+  /* Permitir quebra de linhas apenas para nome/tipo */
+  .payroll-person-name,
+  .payroll-person-type {
+    white-space: normal;
   }
 }
 

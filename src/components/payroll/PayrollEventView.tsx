@@ -71,6 +71,12 @@ export const PayrollEventView: React.FC = () => {
     navigate('/app/folha');
   };
 
+  const handleGoToEvent = () => {
+    if (eventId) {
+      navigate(`/app/folha/${eventId}`);
+    }
+  };
+
   if (!activeTeam) {
     return (
       <NoTeamSelected
@@ -116,14 +122,24 @@ export const PayrollEventView: React.FC = () => {
     <div className={`w-full max-w-full ${isMobile ? 'px-0 py-3' : 'p-4 md:p-6'} space-y-4 md:space-y-6 overflow-x-hidden`}>
       {/* Cabeçalho com informações do evento */}
       <div className="space-y-3">
-        <Button 
-          variant="ghost" 
-          onClick={handleBackToSelection}
-          className="mb-2 -ml-2"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar à Seleção
-        </Button>
+        <div className={`${isMobile ? 'flex flex-col gap-2' : 'flex items-center justify-between'}`}>
+          <Button 
+            variant="ghost" 
+            onClick={handleBackToSelection}
+            className={`${isMobile ? 'self-start' : ''} -ml-2`}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar à Seleção
+          </Button>
+          
+          <Button 
+            onClick={handleGoToEvent}
+            className={`${isMobile ? 'w-full' : 'w-auto'}`}
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            {isMobile ? 'Ver Evento' : 'Ver Detalhes do Evento'}
+          </Button>
+        </div>
         
         <div className="space-y-1">
           <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold leading-tight`}>

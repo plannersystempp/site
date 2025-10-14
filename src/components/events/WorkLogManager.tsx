@@ -325,7 +325,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
 
                       <div className="flex items-center gap-2 w-full sm:w-auto">
                          {isEditing ? (
-                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
                             <div className="flex items-center gap-2 bg-muted/50 p-2 rounded flex-1 sm:flex-none">
                               <Label className="text-xs whitespace-nowrap">Horas extras:</Label>
                               <Input
@@ -376,7 +376,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                                 autoFocus
                               />
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 ml-auto">
                                <Button
                                  size="sm"
                                  onClick={() => handleSaveOvertimeHours(date)}
