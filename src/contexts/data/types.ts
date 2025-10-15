@@ -21,12 +21,21 @@ export interface Personnel {
   name: string;
   email?: string;
   phone?: string;
+  phone_secondary?: string;
   cpf?: string;
   cnpj?: string;
   type: 'fixo' | 'freelancer';
   monthly_salary: number;
   event_cache: number;
   overtime_rate: number;
+  photo_url?: string;
+  address_zip_code?: string;
+  address_street?: string;
+  address_number?: string;
+  address_complement?: string;
+  address_neighborhood?: string;
+  address_city?: string;
+  address_state?: string;
   team_id: string;
   created_at: string;
   functions?: EventFunction[]; // Array of associated functions

@@ -30,6 +30,14 @@ interface PersonnelFormData {
   cpf: string;
   cnpj: string;
   pixKey: string;
+  photo_url: string;
+  address_zip_code: string;
+  address_street: string;
+  address_number: string;
+  address_complement: string;
+  address_neighborhood: string;
+  address_city: string;
+  address_state: string;
 }
 
 export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose, onSuccess }) => {
@@ -48,7 +56,15 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     overtime_rate: 0,
     cpf: '',
     cnpj: '',
-    pixKey: ''
+    pixKey: '',
+    photo_url: '',
+    address_zip_code: '',
+    address_street: '',
+    address_number: '',
+    address_complement: '',
+    address_neighborhood: '',
+    address_city: '',
+    address_state: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -66,7 +82,15 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         overtime_rate: personnel.overtime_rate || 0,
         cpf: personnel.cpf || '',
         cnpj: personnel.cnpj || '',
-        pixKey: prev.pixKey || '' // Preserve existing PIX key if already fetched
+        pixKey: prev.pixKey || '', // Preserve existing PIX key if already fetched
+        photo_url: personnel.photo_url || '',
+        address_zip_code: personnel.address_zip_code || '',
+        address_street: personnel.address_street || '',
+        address_number: personnel.address_number || '',
+        address_complement: personnel.address_complement || '',
+        address_neighborhood: personnel.address_neighborhood || '',
+        address_city: personnel.address_city || '',
+        address_state: personnel.address_state || ''
       }));
     }
   }, [personnel]);
@@ -258,6 +282,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
             <PersonnelFormFields
               formData={formData}
               functions={functions}
+              personnelId={personnel?.id}
               onFieldChange={handleFieldChange}
               onPhoneChange={handlePhoneChange}
             />

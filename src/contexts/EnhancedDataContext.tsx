@@ -47,12 +47,21 @@ export interface Personnel {
   name: string;
   email?: string;
   phone?: string;
+  phone_secondary?: string;
   type: 'fixo' | 'freelancer';
   monthly_salary?: number;
   event_cache?: number;
   overtime_rate?: number;
   cpf?: string;
   cnpj?: string;
+  photo_url?: string;
+  address_zip_code?: string;
+  address_street?: string;
+  address_number?: string;
+  address_complement?: string;
+  address_neighborhood?: string;
+  address_city?: string;
+  address_state?: string;
   created_at: string;
   functions?: Func[]; // Array of associated functions
   primaryFunctionId?: string;

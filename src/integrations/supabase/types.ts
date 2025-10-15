@@ -359,7 +359,7 @@ export type Database = {
           supplier_id?: string | null
           supplier_name: string
           team_id: string
-          // total_amount é coluna gerada pelo banco
+          total_amount?: number | null
           unit_price: number
           updated_at?: string | null
         }
@@ -377,7 +377,7 @@ export type Database = {
           supplier_id?: string | null
           supplier_name?: string
           team_id?: string
-          // total_amount é coluna gerada pelo banco
+          total_amount?: number | null
           unit_price?: number
           updated_at?: string | null
         }
@@ -663,6 +663,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_closings_paid_by_id_fkey"
+            columns: ["paid_by_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "payroll_closings_personnel_id_fkey"

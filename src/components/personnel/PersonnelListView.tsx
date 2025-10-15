@@ -38,7 +38,24 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
             {/* Desktop Layout */}
             <div className="hidden md:flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                {/* Photo or avatar */}
+                {person.photo_url ? (
+                  <img 
+                    src={person.photo_url} 
+                    alt={person.name}
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ display: person.photo_url ? 'none' : 'flex' }}
+                >
                   <User className="w-5 h-5 text-primary" />
                 </div>
                 
@@ -147,7 +164,24 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
             <div className="md:hidden space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  {/* Photo or avatar */}
+                  {person.photo_url ? (
+                    <img 
+                      src={person.photo_url} 
+                      alt={person.name}
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ display: person.photo_url ? 'none' : 'flex' }}
+                  >
                     <User className="w-5 h-5 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">

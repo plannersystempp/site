@@ -40,7 +40,25 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
             <div className="p-3 sm:p-4">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  {/* Photo or avatar */}
+                  {person.photo_url ? (
+                    <img 
+                      src={person.photo_url} 
+                      alt={person.name}
+                      className="w-10 h-10 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
+                      onError={(e) => {
+                        // Fallback para ícone se imagem não carregar
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-10 h-10 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ display: person.photo_url ? 'none' : 'flex' }}
+                  >
                     <User className="w-5 h-5 sm:w-4 sm:h-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">

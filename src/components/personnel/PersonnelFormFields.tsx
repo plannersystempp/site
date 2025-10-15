@@ -1,13 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { Func } from '@/contexts/EnhancedDataContext';
 import { formatCurrency } from '@/utils/formatters';
 import { FunctionMultiSelect } from './FunctionMultiSelect';
+import { PersonnelPhotoUpload } from './PersonnelPhotoUpload';
 import { useTeam } from '@/contexts/TeamContext';
+import { toast } from '@/hooks/use-toast';
+import { Loader2, Search } from 'lucide-react';
+import {
+  applyCEPMask,
+  fetchAddressByCEP,
+  BRAZILIAN_STATES
+} from '@/utils/supplierUtils';
 
 interface PersonnelFormData {
   name: string;
@@ -22,11 +31,20 @@ interface PersonnelFormData {
   cpf: string;
   cnpj: string;
   pixKey: string;
+  photo_url: string;
+  address_zip_code: string;
+  address_street: string;
+  address_number: string;
+  address_complement: string;
+  address_neighborhood: string;
+  address_city: string;
+  address_state: string;
 }
 
 interface PersonnelFormFieldsProps {
   formData: PersonnelFormData;
   functions: Func[];
+  personnelId?: string;
   onFieldChange: (field: keyof PersonnelFormData, value: string | number | string[]) => void;
   onPhoneChange: (value: string) => void;
 }
@@ -34,11 +52,13 @@ interface PersonnelFormFieldsProps {
 export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
   formData,
   functions,
+  personnelId,
   onFieldChange,
   onPhoneChange
 }) => {
   const { userRole } = useTeam();
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+  const [loadingCEP, setLoadingCEP] = useState(false);
 
   const handlePhoneChange = (value: string) => {
     // Allow international format with +55
@@ -68,8 +88,59 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
     }
   };
 
+  const handleCEPSearch = async () => {
+    const cep = formData.address_zip_code.replace(/\D/g, '');
+    if (cep.length !== 8) {
+      toast({
+        title: 'CEP inválido',
+        description: 'CEP deve ter 8 dígitos',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setLoadingCEP(true);
+    try {
+      const address = await fetchAddressByCEP(cep);
+      if (address) {
+        onFieldChange('address_street', address.street);
+        onFieldChange('address_neighborhood', address.neighborhood);
+        onFieldChange('address_city', address.city);
+        onFieldChange('address_state', address.state);
+        toast({
+          title: 'Endereço encontrado!',
+          description: 'Dados preenchidos automaticamente'
+        });
+      } else {
+        toast({
+          title: 'CEP não encontrado',
+          description: 'Verifique o CEP e tente novamente',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro ao buscar CEP',
+        description: 'Tente novamente mais tarde',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingCEP(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Seção de Foto */}
+      <div className="pb-4 border-b">
+        <PersonnelPhotoUpload
+          currentPhotoUrl={formData.photo_url}
+          personnelId={personnelId}
+          personnelName={formData.name}
+          onPhotoChange={(url) => onFieldChange('photo_url', url || '')}
+        />
+      </div>
+
       <div>
         <Label htmlFor="name">Nome <span className="text-red-500">*</span></Label>
         <Input
@@ -206,6 +277,118 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
           </p>
         </div>
       )}
+
+      {/* Seção de Endereço */}
+      <div className="space-y-4 pt-4 border-t">
+        <h3 className="text-sm font-medium flex items-center gap-2">
+          <span>📍</span>
+          Endereço
+        </h3>
+        
+        {/* CEP com botão de busca */}
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Label htmlFor="address_zip_code">CEP</Label>
+            <Input
+              id="address_zip_code"
+              value={formData.address_zip_code}
+              onChange={(e) => onFieldChange('address_zip_code', applyCEPMask(e.target.value))}
+              placeholder="00000-000"
+              maxLength={9}
+            />
+          </div>
+          <div className="pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCEPSearch}
+              disabled={loadingCEP || formData.address_zip_code.replace(/\D/g, '').length !== 8}
+            >
+              {loadingCEP ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Logradouro e Número */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <Label htmlFor="address_street">Logradouro</Label>
+            <Input
+              id="address_street"
+              value={formData.address_street}
+              onChange={(e) => onFieldChange('address_street', e.target.value)}
+              placeholder="Rua, Avenida, etc."
+            />
+          </div>
+          <div>
+            <Label htmlFor="address_number">Número</Label>
+            <Input
+              id="address_number"
+              value={formData.address_number}
+              onChange={(e) => onFieldChange('address_number', e.target.value)}
+              placeholder="123"
+            />
+          </div>
+        </div>
+
+        {/* Complemento e Bairro */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="address_complement">Complemento</Label>
+            <Input
+              id="address_complement"
+              value={formData.address_complement}
+              onChange={(e) => onFieldChange('address_complement', e.target.value)}
+              placeholder="Apto, Sala, etc."
+            />
+          </div>
+          <div>
+            <Label htmlFor="address_neighborhood">Bairro</Label>
+            <Input
+              id="address_neighborhood"
+              value={formData.address_neighborhood}
+              onChange={(e) => onFieldChange('address_neighborhood', e.target.value)}
+              placeholder="Nome do bairro"
+            />
+          </div>
+        </div>
+
+        {/* Cidade e Estado */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="address_city">Cidade</Label>
+            <Input
+              id="address_city"
+              value={formData.address_city}
+              onChange={(e) => onFieldChange('address_city', e.target.value)}
+              placeholder="Nome da cidade"
+            />
+          </div>
+          <div>
+            <Label htmlFor="address_state">Estado (UF)</Label>
+            <Select 
+              value={formData.address_state}
+              onValueChange={(value) => onFieldChange('address_state', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o estado" />
+              </SelectTrigger>
+              <SelectContent>
+                {BRAZILIAN_STATES.map(state => (
+                  <SelectItem key={state.value} value={state.value}>
+                    {state.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
