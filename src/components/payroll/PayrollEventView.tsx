@@ -73,7 +73,7 @@ export const PayrollEventView: React.FC = () => {
 
   const handleGoToEvent = () => {
     if (eventId) {
-      navigate(`/app/folha/${eventId}`);
+      navigate(`/app/eventos/${eventId}`);
     }
   };
 
