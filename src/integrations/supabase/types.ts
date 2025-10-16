@@ -1118,6 +1118,51 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          billing_cycle: string
+          created_at: string | null
+          description: string | null
+          display_name: string
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          limits: Json
+          name: string
+          price: number
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          billing_cycle: string
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          limits?: Json
+          name: string
+          price?: number
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          billing_cycle?: string
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          limits?: Json
+          name?: string
+          price?: number
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       supplier_items: {
         Row: {
           category: string | null
@@ -1333,6 +1378,101 @@ export type Database = {
             foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_subscriptions: {
+        Row: {
+          canceled_at: string | null
+          created_at: string | null
+          current_period_ends_at: string
+          current_period_starts_at: string
+          gateway_customer_id: string | null
+          gateway_subscription_id: string | null
+          id: string
+          plan_id: string
+          status: string
+          team_id: string
+          trial_ends_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_ends_at: string
+          current_period_starts_at?: string
+          gateway_customer_id?: string | null
+          gateway_subscription_id?: string | null
+          id?: string
+          plan_id: string
+          status?: string
+          team_id: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_ends_at?: string
+          current_period_starts_at?: string
+          gateway_customer_id?: string | null
+          gateway_subscription_id?: string | null
+          id?: string
+          plan_id?: string
+          status?: string
+          team_id?: string
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_subscriptions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_usage: {
+        Row: {
+          current_events_this_month: number | null
+          current_personnel: number | null
+          current_team_members: number | null
+          last_calculated_at: string | null
+          team_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          current_events_this_month?: number | null
+          current_personnel?: number | null
+          current_team_members?: number | null
+          last_calculated_at?: string | null
+          team_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          current_events_this_month?: number | null
+          current_personnel?: number | null
+          current_team_members?: number | null
+          last_calculated_at?: string | null
+          team_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_usage_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
@@ -1566,6 +1706,10 @@ export type Database = {
           has_pending_payments: boolean
           suggested_status: string
         }[]
+      }
+      check_subscription_limits: {
+        Args: { p_action: string; p_team_id: string }
+        Returns: Json
       }
       ensure_user_profile: {
         Args: { p_email: string; p_name: string; p_user_id: string }
