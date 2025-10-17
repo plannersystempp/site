@@ -301,13 +301,13 @@ export default function SuperAdmin() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="users">Usuários</TabsTrigger>
-          <TabsTrigger value="teams">Equipes</TabsTrigger>
-          <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
-          <TabsTrigger value="orphans">Órfãos</TabsTrigger>
-          <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
-          <TabsTrigger value="audit">Auditoria</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6 md:grid-cols-6 overflow-x-auto md:overflow-x-visible justify-start md:justify-center">
+          <TabsTrigger value="users" className="flex-shrink-0">Usuários</TabsTrigger>
+          <TabsTrigger value="teams" className="flex-shrink-0">Equipes</TabsTrigger>
+          <TabsTrigger value="subscriptions" className="flex-shrink-0">Assinaturas</TabsTrigger>
+          <TabsTrigger value="orphans" className="flex-shrink-0">Órfãos</TabsTrigger>
+          <TabsTrigger value="deletion-logs" className="flex-shrink-0">Exclusões</TabsTrigger>
+          <TabsTrigger value="audit" className="flex-shrink-0">Auditoria</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
@@ -473,11 +473,11 @@ export default function SuperAdmin() {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <UserCog className="h-4 w-4" />
+                                <Button variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 relative z-10">
+                                  <UserCog className="h-5 w-5 md:h-4 md:w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                              <DropdownMenuContent align="end" className="z-[9999]">
                                 <DropdownMenuLabel>Ações</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem

@@ -203,11 +203,11 @@ export function SubscriptionManagementTab() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
+                            <Button variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 relative z-10">
+                              <MoreVertical className="h-5 w-5 md:h-4 md:w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="z-[9999]">
                             <DropdownMenuItem
                               onClick={() => {
                                 setSelectedSubscriptionId(sub.id);
