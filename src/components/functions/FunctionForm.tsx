@@ -13,7 +13,7 @@ import type { Func } from '@/contexts/EnhancedDataContext';
 interface FunctionFormProps {
   eventFunction?: Func;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (createdFunctionId?: string) => void;
 }
 
 interface FunctionFormData {
@@ -49,14 +49,15 @@ export const FunctionForm: React.FC<FunctionFormProps> = ({ eventFunction, onClo
           title: "Função atualizada",
           description: "A função foi atualizada com sucesso.",
         });
+        onSuccess();
       } else {
-        await addFunction(data);
+        const newFuncId = await addFunction(data);
         toast({
           title: "Função criada",
           description: "A função foi criada com sucesso.",
         });
+        onSuccess(newFuncId || undefined);
       }
-      onSuccess();
     } catch (error) {
       console.error('Erro ao salvar função:', error);
       toast({

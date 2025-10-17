@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check, ChevronDown, X, Star } from 'lucide-react';
+import { Check, ChevronDown, X, Star, Plus } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { FunctionForm } from '@/components/functions/FunctionForm';
+import { functionKeys } from '@/hooks/queries/useFunctionsQuery';
 import type { Func } from '@/contexts/EnhancedDataContext';
 
 interface FunctionMultiSelectProps {
@@ -26,7 +29,9 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
   primaryFunctionId,
   onPrimaryChange
 }) => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const queryClient = useQueryClient();
 
   const selectedFunctions = functions.filter(func => 
     selectedFunctionIds.includes(func.id)
@@ -71,6 +76,20 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
       toggleFunction(functionId);
     }
     onPrimaryChange?.(functionId);
+  };
+
+  const handleCreateSuccess = async (createdFunctionId?: string) => {
+    setShowCreateDialog(false);
+    
+    if (createdFunctionId) {
+      // Invalidar query para atualizar lista de funções
+      await queryClient.invalidateQueries({ queryKey: functionKeys.all });
+      
+      // Auto-selecionar função criada após pequeno delay para garantir atualização da lista
+      setTimeout(() => {
+        toggleFunction(createdFunctionId);
+      }, 150);
+    }
   };
 
   return (
@@ -141,6 +160,19 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
             <CommandInput placeholder="Pesquisar funções..." />
             <CommandList>
               <CommandEmpty>Nenhuma função encontrada.</CommandEmpty>
+              
+              {/* Botão para criar nova função */}
+              <CommandItem
+                onSelect={() => {
+                  setShowCreateDialog(true);
+                  setOpen(false);
+                }}
+                className="flex items-center gap-2 cursor-pointer bg-primary/5 hover:bg-primary/10 border-b aria-selected:bg-primary/10"
+              >
+                <Plus className="h-4 w-4 text-primary" />
+                <span className="font-medium text-primary">Nova Função</span>
+              </CommandItem>
+              
               <CommandGroup>
                 {functions.map((func) => (
                   <CommandItem
@@ -179,6 +211,14 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
           </Command>
         </PopoverContent>
       </Popover>
+
+      {/* Dialog para criar nova função */}
+      {showCreateDialog && (
+        <FunctionForm
+          onClose={() => setShowCreateDialog(false)}
+          onSuccess={handleCreateSuccess}
+        />
+      )}
     </div>
   );
 };
