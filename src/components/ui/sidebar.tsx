@@ -204,9 +204,16 @@ const Sidebar = React.forwardRef<
             }
             side={side}
             onInteractOutside={(e) => {
-              // Permitir interação com dropdowns
-              if (e.target instanceof Element && e.target.closest('[data-radix-dropdown-menu-content]')) {
-                e.preventDefault();
+              // Permitir interação com dropdowns e menus
+              const el = e.target as Element | null
+              if (
+                el && (
+                  el.closest('[data-dropdown-menu-content="true"]') ||
+                  el.closest('[role="menu"]') ||
+                  el.closest('[data-radix-popper-content]')
+                )
+              ) {
+                e.preventDefault()
               }
             }}
           >

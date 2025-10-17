@@ -40,6 +40,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useTheme } from '@/providers/ThemeProvider';
 
 const menuItems = [
   { title: 'Dashboard', url: '/app', icon: Home },
@@ -67,6 +69,8 @@ export const AppSidebar = () => {
   const { user, logout } = useAuth();
   const { userRole, activeTeam } = useTeam();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const isMobile = useIsMobile();
+  const { setTheme } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -226,52 +230,96 @@ export const AppSidebar = () => {
           </a>
         </div>
         
-            <DropdownMenu open={showUserMenu} onOpenChange={setShowUserMenu} modal={false}>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton 
-                  size="lg" 
+            {isMobile ? (
+              <>
+                <SidebarMenuButton
+                  size="lg"
+                  onClick={() => setShowUserMenu((v) => !v)}
                   className={cn(
                     "w-full justify-between h-14 md:h-12 relative z-10",
                     showUserMenu && "bg-sidebar-accent"
                   )}
                 >
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <div className="flex flex-col min-w-0 flex-1 text-left">
-                  <span className="text-sm font-medium truncate">{user?.name}</span>
-                  <span className="text-xs text-muted-foreground capitalize">{userRole}</span>
-                </div>
-              </div>
-              <ChevronUp className="h-4 w-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            side="top" 
-            align="center" 
-            className="w-[--radix-popper-anchor-width] z-[9999]"
-            sideOffset={12}
-            collisionPadding={16}
-          >
-            <DropdownMenuItem asChild>
-              <Link to="/app/configuracoes">
-                <Settings className="mr-2 h-4 w-4" />
-                Configurações
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <div className="p-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Tema</span>
-                <ThemeToggle />
-              </div>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <div className="flex flex-col min-w-0 flex-1 text-left">
+                      <span className="text-sm font-medium truncate">{user?.name}</span>
+                      <span className="text-xs text-muted-foreground capitalize">{userRole}</span>
+                    </div>
+                  </div>
+                  <ChevronUp className="h-4 w-4" />
+                </SidebarMenuButton>
+                {showUserMenu && (
+                  <div className="mt-2 rounded-md border bg-popover text-popover-foreground shadow-md">
+                    <Link to="/app/configuracoes" className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Configurações
+                    </Link>
+                    <div className="h-px my-1 bg-muted" />
+                    <div className="px-2 py-1.5 text-sm space-y-2">
+                      <div className="font-medium">Tema</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setTheme('light')}>Claro</Button>
+                        <Button variant="outline" size="sm" onClick={() => setTheme('dark')}>Escuro</Button>
+                        <Button variant="outline" size="sm" onClick={() => setTheme('system')}>Sistema</Button>
+                      </div>
+                    </div>
+                    <div className="h-px my-1 bg-muted" />
+                    <button onClick={handleLogout} className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sair
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <DropdownMenu open={showUserMenu} onOpenChange={(open) => { console.log('UserMenu open:', open); setShowUserMenu(open); }} modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton 
+                    size="lg" 
+                    className={cn(
+                      "w-full justify-between h-14 md:h-12 relative z-10",
+                      showUserMenu && "bg-sidebar-accent"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <div className="flex flex-col min-w-0 flex-1 text-left">
+                        <span className="text-sm font-medium truncate">{user?.name}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{userRole}</span>
+                      </div>
+                    </div>
+                    <ChevronUp className="h-4 w-4" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  side="top" 
+                  align="center" 
+                  className="w-[--radix-popper-anchor-width] z-[9999]"
+                  sideOffset={12}
+                  collisionPadding={16}
+                >
+                  <DropdownMenuItem asChild>
+                    <Link to="/app/configuracoes">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Configurações
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <div className="p-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Tema</span>
+                      <ThemeToggle />
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
       </SidebarFooter>
     </Sidebar>
   );
