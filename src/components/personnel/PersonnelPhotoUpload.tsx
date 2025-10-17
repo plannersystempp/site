@@ -24,27 +24,45 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhotoUrl || null);
   const [imageLoading, setImageLoading] = useState(false);
+  const [isInternalUpload, setIsInternalUpload] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync previewUrl with currentPhotoUrl when it changes (e.g., when editing existing personnel)
   useEffect(() => {
+    // Skip validation if the URL was set by our own upload
+    if (isInternalUpload) {
+      setIsInternalUpload(false);
+      return;
+    }
+
     setImageLoading(true);
     setPreviewUrl(currentPhotoUrl || null);
     
-    // Handle image loading state for photos from database
-    if (currentPhotoUrl) {
+    // Only validate external URLs (from database)
+    if (currentPhotoUrl && currentPhotoUrl !== previewUrl) {
       const img = new Image();
-      img.onload = () => setImageLoading(false);
+      const timeout = setTimeout(() => {
+        console.warn('Photo load timeout, may be CDN propagation delay');
+        setImageLoading(false);
+      }, 5000); // 5 segundos de timeout para CDN
+
+      img.onload = () => {
+        clearTimeout(timeout);
+        setImageLoading(false);
+      };
+      
       img.onerror = () => {
-        console.warn('Failed to load photo:', currentPhotoUrl);
+        clearTimeout(timeout);
+        console.warn('Failed to load photo from database:', currentPhotoUrl);
         setImageLoading(false);
         setPreviewUrl(null);
       };
+      
       img.src = currentPhotoUrl;
     } else {
       setImageLoading(false);
     }
-  }, [currentPhotoUrl]);
+  }, [currentPhotoUrl, isInternalUpload]);
 
   const validateFile = (file: File): { valid: boolean; error?: string } => {
     // Validar tipo de arquivo
@@ -156,6 +174,8 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
         .from('personnel-photos')
         .getPublicUrl(fileName);
 
+      // Success: set preview and notify parent
+      setIsInternalUpload(true); // Mark as internal upload to skip validation
       setPreviewUrl(publicUrl);
       onPhotoChange(publicUrl);
 
@@ -165,9 +185,18 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
       });
     } catch (error: any) {
       console.error('Error uploading photo:', error);
+      
+      // Diferenciar tipos de erro
+      const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
+      const isStorageError = error.message?.includes('storage') || error.message?.includes('bucket');
+      
       toast({
         title: 'Erro no upload',
-        description: error.message || 'Não foi possível fazer upload da foto',
+        description: isNetworkError 
+          ? 'Problema de conexão. Verifique sua internet e tente novamente.'
+          : isStorageError
+          ? 'Erro no servidor de arquivos. Tente novamente em alguns segundos.'
+          : error.message || 'Não foi possível fazer upload da foto',
         variant: 'destructive'
       });
     } finally {
@@ -212,7 +241,7 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
       <div className="flex items-center gap-4">
         {/* Avatar Preview */}
         <Avatar className="h-20 w-20 ring-2 ring-border">
-          {imageLoading ? (
+          {(imageLoading || uploading) ? (
             <AvatarFallback className="bg-primary/10">
               <Loader2 className="h-8 w-8 text-primary animate-spin" />
             </AvatarFallback>
@@ -221,9 +250,12 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
               <AvatarImage 
                 src={previewUrl || undefined} 
                 alt={personnelName || 'Foto'}
-                onError={() => {
-                  console.warn('Failed to load photo:', previewUrl);
-                  setPreviewUrl(null);
+                onError={(e) => {
+                  // Only handle errors for photos from database, not fresh uploads
+                  if (!uploading && !isInternalUpload) {
+                    console.warn('Failed to display photo:', previewUrl);
+                    setPreviewUrl(null);
+                  }
                 }}
               />
               <AvatarFallback className="bg-primary/10">
@@ -248,7 +280,7 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
                 {uploading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Carregando...
+                    Enviando...
                   </>
                 ) : (
                   <>
@@ -276,8 +308,17 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
                 disabled={disabled || uploading}
                 className="gap-2"
               >
-                <Camera className="h-4 w-4" />
-                Trocar
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Trocar
+                  </>
+                )}
               </Button>
               <Button
                 type="button"
