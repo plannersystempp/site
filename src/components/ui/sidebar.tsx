@@ -192,7 +192,7 @@ const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile} modal={false} {...props}>
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
@@ -203,6 +203,12 @@ const Sidebar = React.forwardRef<
               } as React.CSSProperties
             }
             side={side}
+            onInteractOutside={(e) => {
+              // Permitir interação com dropdowns
+              if (e.target instanceof Element && e.target.closest('[data-radix-dropdown-menu-content]')) {
+                e.preventDefault();
+              }
+            }}
           >
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>

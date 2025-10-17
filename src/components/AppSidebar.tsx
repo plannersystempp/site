@@ -39,6 +39,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { cn } from '@/lib/utils';
 
 const menuItems = [
   { title: 'Dashboard', url: '/app', icon: Home },
@@ -225,9 +226,15 @@ export const AppSidebar = () => {
           </a>
         </div>
         
-        <DropdownMenu open={showUserMenu} onOpenChange={setShowUserMenu}>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton size="lg" className="w-full justify-between">
+            <DropdownMenu open={showUserMenu} onOpenChange={setShowUserMenu} modal={false}>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton 
+                  size="lg" 
+                  className={cn(
+                    "w-full justify-between h-14 md:h-12 relative z-10",
+                    showUserMenu && "bg-sidebar-accent"
+                  )}
+                >
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <div className="flex flex-col min-w-0 flex-1 text-left">
@@ -238,7 +245,13 @@ export const AppSidebar = () => {
               <ChevronUp className="h-4 w-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
+          <DropdownMenuContent 
+            side="top" 
+            align="center" 
+            className="w-[--radix-popper-anchor-width] z-[9999]"
+            sideOffset={12}
+            collisionPadding={16}
+          >
             <DropdownMenuItem asChild>
               <Link to="/app/configuracoes">
                 <Settings className="mr-2 h-4 w-4" />
