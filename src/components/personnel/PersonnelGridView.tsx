@@ -1,15 +1,15 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Mail, Phone, User, DollarSign, Briefcase } from 'lucide-react';
+import { Pencil, Trash2, Mail, Phone, User, DollarSign, Briefcase, History } from 'lucide-react';
 import { formatCurrency, formatPhoneNumber } from '@/utils/formatters';
 import type { Personnel, Func } from '@/contexts/EnhancedDataContext';
 import { FreelancerAverageRating } from './FreelancerAverageRating';
 import { FreelancerRatingDialog } from './FreelancerRatingDialog';
 import { WhatsAppButton } from './WhatsAppButton';
+import { PersonnelHistoryDialog } from './PersonnelHistory/PersonnelHistoryDialog';
 
 interface PersonnelGridViewProps {
   personnel: Personnel[];
@@ -30,6 +30,8 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
 }) => {
   const { userRole } = useTeam();
   const isCoordinator = userRole === 'coordinator';
+  const [historyPersonnel, setHistoryPersonnel] = useState<Personnel | null>(null);
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
       {personnel.map((person) => {
@@ -75,26 +77,37 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
                 </div>
                 
                 {/* Mobile-optimized action buttons */}
-                {canEdit(person) && (
-                  <div className="flex gap-1 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(person)}
-                      className="h-9 w-9 sm:h-8 sm:w-8 p-0"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete(person.id)}
-                      className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setHistoryPersonnel(person)}
+                    className="h-9 w-9 sm:h-8 sm:w-8 p-0"
+                    title="Ver Histórico"
+                  >
+                    <History className="h-4 w-4" />
+                  </Button>
+                  {canEdit(person) && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(person)}
+                        className="h-9 w-9 sm:h-8 sm:w-8 p-0"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(person.id)}
+                        className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -188,6 +201,16 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
           </Card>
         );
       })}
+
+      {historyPersonnel && (
+        <PersonnelHistoryDialog
+          open={!!historyPersonnel}
+          onOpenChange={(open) => {
+            if (!open) setHistoryPersonnel(null);
+          }}
+          personnel={historyPersonnel}
+        />
+      )}
     </div>
   );
 };
