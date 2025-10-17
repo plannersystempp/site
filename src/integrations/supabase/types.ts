@@ -1130,6 +1130,7 @@ export type Database = {
           features: Json | null
           id: string
           is_active: boolean | null
+          is_popular: boolean | null
           limits: Json
           name: string
           price: number
@@ -1144,6 +1145,7 @@ export type Database = {
           features?: Json | null
           id?: string
           is_active?: boolean | null
+          is_popular?: boolean | null
           limits?: Json
           name: string
           price?: number
@@ -1158,6 +1160,7 @@ export type Database = {
           features?: Json | null
           id?: string
           is_active?: boolean | null
+          is_popular?: boolean | null
           limits?: Json
           name?: string
           price?: number

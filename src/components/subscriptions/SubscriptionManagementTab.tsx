@@ -15,8 +15,10 @@ import { SubscriptionDetailsDialog } from './SubscriptionDetailsDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useMobile } from '@/hooks/use-mobile';
 
 export function SubscriptionManagementTab() {
+  const isMobile = useMobile();
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
@@ -153,105 +155,228 @@ export function SubscriptionManagementTab() {
             </Select>
           </div>
 
-          {/* Tabela */}
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Equipe</TableHead>
-                  <TableHead>Plano</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subscriptionsLoading ? (
-                  <>
-                    {[1, 2, 3].map(i => (
-                      <TableRow key={i}>
-                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                        <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                      </TableRow>
-                    ))}
-                  </>
-                ) : subscriptionsData?.data.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                      Nenhuma assinatura encontrada
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  subscriptionsData?.data.map((sub) => (
-                    <TableRow key={sub.id}>
-                      <TableCell className="font-medium">{sub.teams.name}</TableCell>
-                      <TableCell>{sub.subscription_plans.display_name}</TableCell>
-                      <TableCell>{getStatusBadge(sub.status)}</TableCell>
-                      <TableCell>
-                        {format(
-                          new Date(sub.trial_ends_at || sub.current_period_ends_at),
-                          'dd/MM/yyyy',
-                          { locale: ptBR }
-                        )}
-                      </TableCell>
-                      <TableCell>R$ {sub.subscription_plans.price.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 relative z-10">
-                              <MoreVertical className="h-5 w-5 md:h-4 md:w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="z-[9999]">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedSubscriptionId(sub.id);
-                                setDetailsOpen(true);
-                              }}
+          {/* Tabela ou Cards baseado no tamanho da tela */}
+          {isMobile ? (
+            // Card View para Mobile
+            <div className="space-y-4">
+              {subscriptionsLoading ? (
+                <>
+                  {[1, 2, 3].map(i => (
+                    <Card key={i}>
+                      <CardHeader>
+                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-4 w-24 mt-2" />
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </>
+              ) : subscriptionsData?.data.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center text-muted-foreground py-8">
+                    Nenhuma assinatura encontrada
+                  </CardContent>
+                </Card>
+              ) : (
+                subscriptionsData?.data.map((sub) => (
+                  <Card key={sub.id}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">{sub.teams.name}</CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {sub.subscription_plans.display_name}
+                          </p>
+                        </div>
+                        <div className="relative z-50">
+                          <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">Abrir menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent 
+                              align="end" 
+                              className="w-56 z-[99999]"
+                              sideOffset={5}
                             >
-                              Ver Detalhes
-                            </DropdownMenuItem>
-                            {(sub.status === 'trial' || sub.status === 'trial_expired') && (
                               <DropdownMenuItem
                                 onClick={() => {
                                   setSelectedSubscriptionId(sub.id);
-                                  setExtendTrialOpen(true);
+                                  setDetailsOpen(true);
                                 }}
                               >
-                                Estender Trial
+                                Ver Detalhes
                               </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedSubscriptionId(sub.id);
-                                setChangePlanOpen(true);
-                              }}
-                            >
-                              Mudar Plano
-                            </DropdownMenuItem>
-                            {(sub.status === 'canceled' || sub.status === 'trial_expired' || sub.status === 'past_due') && (
+                              {(sub.status === 'trial' || sub.status === 'trial_expired') && (
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedSubscriptionId(sub.id);
+                                    setExtendTrialOpen(true);
+                                  }}
+                                >
+                                  Estender Trial
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem
                                 onClick={() => {
-                                  // Implementar reativação
+                                  setSelectedSubscriptionId(sub.id);
+                                  setChangePlanOpen(true);
                                 }}
                               >
-                                Reativar Assinatura
+                                Mudar Plano
                               </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              {(sub.status === 'canceled' || sub.status === 'trial_expired' || sub.status === 'past_due') && (
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    // Implementar reativação
+                                  }}
+                                >
+                                  Reativar Assinatura
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Status:</span>
+                        {getStatusBadge(sub.status)}
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Vencimento:</span>
+                        <span>
+                          {format(
+                            new Date(sub.trial_ends_at || sub.current_period_ends_at),
+                            'dd/MM/yyyy',
+                            { locale: ptBR }
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Valor:</span>
+                        <span className="font-semibold">R$ {sub.subscription_plans.price.toFixed(2)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          ) : (
+            // Table View para Desktop
+            <div className="border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Equipe</TableHead>
+                    <TableHead className="min-w-[100px]">Plano</TableHead>
+                    <TableHead className="min-w-[80px]">Status</TableHead>
+                    <TableHead className="min-w-[100px]">Vencimento</TableHead>
+                    <TableHead className="min-w-[80px]">Valor</TableHead>
+                    <TableHead className="w-[50px] sticky right-0 bg-background"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subscriptionsLoading ? (
+                    <>
+                      {[1, 2, 3].map(i => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  ) : subscriptionsData?.data.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        Nenhuma assinatura encontrada
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : (
+                    subscriptionsData?.data.map((sub) => (
+                      <TableRow key={sub.id}>
+                        <TableCell className="font-medium">{sub.teams.name}</TableCell>
+                        <TableCell>{sub.subscription_plans.display_name}</TableCell>
+                        <TableCell>{getStatusBadge(sub.status)}</TableCell>
+                        <TableCell>
+                          {format(
+                            new Date(sub.trial_ends_at || sub.current_period_ends_at),
+                            'dd/MM/yyyy',
+                            { locale: ptBR }
+                          )}
+                        </TableCell>
+                        <TableCell>R$ {sub.subscription_plans.price.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="relative z-10">
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                  <span className="sr-only">Abrir menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent 
+                                align="end" 
+                                className="w-56 z-[99999]"
+                                sideOffset={5}
+                              >
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedSubscriptionId(sub.id);
+                                    setDetailsOpen(true);
+                                  }}
+                                >
+                                  Ver Detalhes
+                                </DropdownMenuItem>
+                                {(sub.status === 'trial' || sub.status === 'trial_expired') && (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedSubscriptionId(sub.id);
+                                      setExtendTrialOpen(true);
+                                    }}
+                                  >
+                                    Estender Trial
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedSubscriptionId(sub.id);
+                                    setChangePlanOpen(true);
+                                  }}
+                                >
+                                  Mudar Plano
+                                </DropdownMenuItem>
+                                {(sub.status === 'canceled' || sub.status === 'trial_expired' || sub.status === 'past_due') && (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      // Implementar reativação
+                                    }}
+                                  >
+                                    Reativar Assinatura
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
           {/* Paginação */}
           {subscriptionsData && subscriptionsData.total > 10 && (
