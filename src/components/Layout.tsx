@@ -23,7 +23,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <SidebarTrigger />
             <div className="flex-1" />
           </header>
-          <main ref={mainRef} className="flex-1 overflow-auto min-h-0 px-3 sm:px-4 md:px-0">
+          <main ref={mainRef} className="flex-1 min-h-0 px-3 sm:px-4 md:px-0">
             {children}
           </main>
           <ScrollNavigationButtons 

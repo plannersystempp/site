@@ -293,9 +293,10 @@ export default function SuperAdmin() {
   const filteredUsers = getFilteredUsers();
 
   const [activeTab, setActiveTab] = useState('users');
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6 overflow-y-auto max-h-screen">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Super Administração</h1>
@@ -303,9 +304,9 @@ export default function SuperAdmin() {
         </div>
         
         {/* Menu Hambúrguer Mobile */}
-        <Sheet>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="md:hidden h-10 w-10">
+            <Button variant="outline" size="icon" className="md:hidden h-10 w-10 relative z-10">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -316,59 +317,110 @@ export default function SuperAdmin() {
             <div className="flex flex-col gap-2 mt-6">
               <Button 
                 variant={activeTab === 'users' ? 'default' : 'ghost'} 
-                className="justify-start"
-                onClick={() => setActiveTab('users')}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('users');
+                  setSheetOpen(false);
+                }}
               >
-                <Users className="mr-2 h-4 w-4" /> Usuários
+                <Users className="mr-3 h-5 w-5" /> Usuários
               </Button>
               <Button 
                 variant={activeTab === 'teams' ? 'default' : 'ghost'}
-                className="justify-start"
-                onClick={() => setActiveTab('teams')}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('teams');
+                  setSheetOpen(false);
+                }}
               >
-                <Shield className="mr-2 h-4 w-4" /> Equipes
+                <Shield className="mr-3 h-5 w-5" /> Equipes
               </Button>
               <Button 
                 variant={activeTab === 'subscriptions' ? 'default' : 'ghost'}
-                className="justify-start"
-                onClick={() => setActiveTab('subscriptions')}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('subscriptions');
+                  setSheetOpen(false);
+                }}
               >
-                <UserPlus className="mr-2 h-4 w-4" /> Assinaturas
+                <UserPlus className="mr-3 h-5 w-5" /> Assinaturas
               </Button>
               <Button 
                 variant={activeTab === 'orphans' ? 'default' : 'ghost'}
-                className="justify-start"
-                onClick={() => setActiveTab('orphans')}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('orphans');
+                  setSheetOpen(false);
+                }}
               >
-                <UserMinus className="mr-2 h-4 w-4" /> Órfãos
+                <UserMinus className="mr-3 h-5 w-5" /> Órfãos
               </Button>
               <Button 
                 variant={activeTab === 'deletion-logs' ? 'default' : 'ghost'}
-                className="justify-start"
-                onClick={() => setActiveTab('deletion-logs')}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('deletion-logs');
+                  setSheetOpen(false);
+                }}
               >
-                <Trash2 className="mr-2 h-4 w-4" /> Exclusões
+                <Trash2 className="mr-3 h-5 w-5" /> Exclusões
               </Button>
               <Button 
                 variant={activeTab === 'audit' ? 'default' : 'ghost'}
-                className="justify-start"
-                onClick={() => setActiveTab('audit')}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('audit');
+                  setSheetOpen(false);
+                }}
               >
-                <UserCog className="mr-2 h-4 w-4" /> Auditoria
+                <UserCog className="mr-3 h-5 w-5" /> Auditoria
               </Button>
             </div>
           </SheetContent>
         </Sheet>
       </div>
 
+      {/* FASE 4: Indicador de Aba Ativa no Mobile */}
+      <div className="md:hidden bg-muted rounded-lg p-3">
+        <p className="text-sm text-muted-foreground">Seção atual:</p>
+        <p className="font-semibold">
+          {activeTab === 'users' && 'Usuários'}
+          {activeTab === 'teams' && 'Equipes'}
+          {activeTab === 'subscriptions' && 'Assinaturas'}
+          {activeTab === 'orphans' && 'Órfãos'}
+          {activeTab === 'deletion-logs' && 'Exclusões'}
+          {activeTab === 'audit' && 'Auditoria'}
+        </p>
+      </div>
+
+      {/* FASE 5: Botão de Emergência para Desbloquear Scroll */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="fixed bottom-4 left-4 z-[9999] md:hidden"
+        onClick={() => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+          document.body.style.position = '';
+          setSheetOpen(false);
+          toast({
+            title: "Scroll restaurado",
+            description: "A navegação foi desbloqueada"
+          });
+        }}
+      >
+        🔓 Desbloquear
+      </Button>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 md:grid-cols-6 overflow-x-auto md:overflow-x-visible justify-start md:justify-center">
-          <TabsTrigger value="users" className="flex-shrink-0">Usuários</TabsTrigger>
-          <TabsTrigger value="teams" className="flex-shrink-0">Equipes</TabsTrigger>
-          <TabsTrigger value="subscriptions" className="flex-shrink-0">Assinaturas</TabsTrigger>
-          <TabsTrigger value="orphans" className="flex-shrink-0">Órfãos</TabsTrigger>
-          <TabsTrigger value="deletion-logs" className="flex-shrink-0">Exclusões</TabsTrigger>
-          <TabsTrigger value="audit" className="flex-shrink-0">Auditoria</TabsTrigger>
+        {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
+        <TabsList className="hidden md:grid w-full md:grid-cols-6">
+          <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="teams">Equipes</TabsTrigger>
+          <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
+          <TabsTrigger value="orphans">Órfãos</TabsTrigger>
+          <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
+          <TabsTrigger value="audit">Auditoria</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
