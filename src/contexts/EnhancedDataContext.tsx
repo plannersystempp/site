@@ -55,6 +55,7 @@ export interface Personnel {
   cpf?: string;
   cnpj?: string;
   photo_url?: string;
+  shirt_size?: 'PP' | 'P' | 'M' | 'G' | 'GG' | 'XG';
   address_zip_code?: string;
   address_street?: string;
   address_number?: string;

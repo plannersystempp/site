@@ -65,13 +65,18 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-base sm:text-sm truncate">{person.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <Badge 
                         variant={person.type === 'fixo' ? 'default' : 'secondary'}
                         className="text-xs"
                       >
                         {person.type === 'fixo' ? 'Fixo' : 'Freelancer'}
                       </Badge>
+                      {person.shirt_size && (
+                        <Badge variant="outline" className="text-xs">
+                          👕 {person.shirt_size}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>

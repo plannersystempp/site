@@ -29,6 +29,7 @@ export interface Personnel {
   event_cache: number;
   overtime_rate: number;
   photo_url?: string;
+  shirt_size?: 'PP' | 'P' | 'M' | 'G' | 'GG' | 'XG';
   address_zip_code?: string;
   address_street?: string;
   address_number?: string;

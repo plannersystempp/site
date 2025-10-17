@@ -102,7 +102,8 @@ const fetchFullPersonnelData = async (teamId: string): Promise<Personnel[]> => {
   console.log('Full personnel data fetched:', data?.length || 0);
   return (data || []).map(person => ({
     ...person,
-    type: person.type as Personnel['type'] || 'freelancer'
+    type: person.type as Personnel['type'] || 'freelancer',
+    shirt_size: person.shirt_size as Personnel['shirt_size'] || undefined
   }));
 };
 

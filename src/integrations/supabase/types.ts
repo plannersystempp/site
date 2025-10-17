@@ -889,6 +889,7 @@ export type Database = {
           phone_secondary: string | null
           photo_url: string | null
           pix_key_encrypted: string | null
+          shirt_size: string | null
           team_id: string
           type: string
         }
@@ -913,6 +914,7 @@ export type Database = {
           phone_secondary?: string | null
           photo_url?: string | null
           pix_key_encrypted?: string | null
+          shirt_size?: string | null
           team_id: string
           type: string
         }
@@ -937,6 +939,7 @@ export type Database = {
           phone_secondary?: string | null
           photo_url?: string | null
           pix_key_encrypted?: string | null
+          shirt_size?: string | null
           team_id?: string
           type?: string
         }

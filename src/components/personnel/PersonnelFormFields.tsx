@@ -22,7 +22,7 @@ interface PersonnelFormData {
   name: string;
   email: string;
   phone: string;
-  type: 'fixo' | 'freelancer';  
+  type: 'fixo' | 'freelancer';
   functionIds: string[];
   primaryFunctionId: string;
   monthly_salary: number;
@@ -32,6 +32,7 @@ interface PersonnelFormData {
   cnpj: string;
   pixKey: string;
   photo_url: string;
+  shirt_size: string;
   address_zip_code: string;
   address_street: string;
   address_number: string;
@@ -173,6 +174,31 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
         />
         <p className="text-xs text-muted-foreground mt-1">
           Formato recomendado: +55 (XX) XXXXX-XXXX para melhor integração com WhatsApp
+        </p>
+      </div>
+
+      {/* Tamanho da Camisa */}
+      <div>
+        <Label htmlFor="shirt_size">Tamanho da Camisa</Label>
+        <Select 
+          value={formData.shirt_size || ''} 
+          onValueChange={(value) => onFieldChange('shirt_size', value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o tamanho" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Não informado</SelectItem>
+            <SelectItem value="PP">PP - Extra Pequeno</SelectItem>
+            <SelectItem value="P">P - Pequeno</SelectItem>
+            <SelectItem value="M">M - Médio</SelectItem>
+            <SelectItem value="G">G - Grande</SelectItem>
+            <SelectItem value="GG">GG - Extra Grande</SelectItem>
+            <SelectItem value="XG">XG - Extra Extra Grande</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground mt-1">
+          👕 Informação útil para gestão de uniformes e materiais
         </p>
       </div>
 

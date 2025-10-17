@@ -31,6 +31,7 @@ interface PersonnelFormData {
   cnpj: string;
   pixKey: string;
   photo_url: string;
+  shirt_size: string;
   address_zip_code: string;
   address_street: string;
   address_number: string;
@@ -58,6 +59,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     cnpj: '',
     pixKey: '',
     photo_url: '',
+    shirt_size: '',
     address_zip_code: '',
     address_street: '',
     address_number: '',
@@ -84,6 +86,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         cnpj: personnel.cnpj || '',
         pixKey: prev.pixKey || '', // Preserve existing PIX key if already fetched
         photo_url: personnel.photo_url || '',
+        shirt_size: personnel.shirt_size || '',
         address_zip_code: personnel.address_zip_code || '',
         address_street: personnel.address_street || '',
         address_number: personnel.address_number || '',
@@ -214,6 +217,16 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       toast({
         title: "Função principal",
         description: "A função principal deve estar entre as selecionadas",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate shirt size
+    if (formData.shirt_size && !['PP', 'P', 'M', 'G', 'GG', 'XG'].includes(formData.shirt_size)) {
+      toast({
+        title: "Tamanho inválido",
+        description: "Selecione um tamanho válido ou deixe em branco",
         variant: "destructive"
       });
       return;
