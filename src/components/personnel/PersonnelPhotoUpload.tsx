@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,7 +23,28 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhotoUrl || null);
+  const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync previewUrl with currentPhotoUrl when it changes (e.g., when editing existing personnel)
+  useEffect(() => {
+    setImageLoading(true);
+    setPreviewUrl(currentPhotoUrl || null);
+    
+    // Handle image loading state for photos from database
+    if (currentPhotoUrl) {
+      const img = new Image();
+      img.onload = () => setImageLoading(false);
+      img.onerror = () => {
+        console.warn('Failed to load photo:', currentPhotoUrl);
+        setImageLoading(false);
+        setPreviewUrl(null);
+      };
+      img.src = currentPhotoUrl;
+    } else {
+      setImageLoading(false);
+    }
+  }, [currentPhotoUrl]);
 
   const validateFile = (file: File): { valid: boolean; error?: string } => {
     // Validar tipo de arquivo
@@ -191,10 +212,25 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
       <div className="flex items-center gap-4">
         {/* Avatar Preview */}
         <Avatar className="h-20 w-20 ring-2 ring-border">
-          <AvatarImage src={previewUrl || undefined} alt={personnelName || 'Foto'} />
-          <AvatarFallback className="bg-primary/10">
-            <User className="h-10 w-10 text-primary" />
-          </AvatarFallback>
+          {imageLoading ? (
+            <AvatarFallback className="bg-primary/10">
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            </AvatarFallback>
+          ) : (
+            <>
+              <AvatarImage 
+                src={previewUrl || undefined} 
+                alt={personnelName || 'Foto'}
+                onError={() => {
+                  console.warn('Failed to load photo:', previewUrl);
+                  setPreviewUrl(null);
+                }}
+              />
+              <AvatarFallback className="bg-primary/10">
+                <User className="h-10 w-10 text-primary" />
+              </AvatarFallback>
+            </>
+          )}
         </Avatar>
 
         {/* Upload/Remove Actions */}
