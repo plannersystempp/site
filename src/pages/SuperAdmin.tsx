@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
@@ -29,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 interface SuperAdminUser {
   user_id: string;
@@ -291,6 +292,8 @@ export default function SuperAdmin() {
   const stats = getUserStats();
   const filteredUsers = getFilteredUsers();
 
+  const [activeTab, setActiveTab] = useState('users');
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -298,9 +301,67 @@ export default function SuperAdmin() {
           <h1 className="text-3xl font-bold">Super Administração</h1>
           <p className="text-muted-foreground">Gerenciamento global da plataforma SIGE</p>
         </div>
+        
+        {/* Menu Hambúrguer Mobile */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="md:hidden h-10 w-10">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64">
+            <SheetHeader>
+              <SheetTitle>Menu de Navegação</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col gap-2 mt-6">
+              <Button 
+                variant={activeTab === 'users' ? 'default' : 'ghost'} 
+                className="justify-start"
+                onClick={() => setActiveTab('users')}
+              >
+                <Users className="mr-2 h-4 w-4" /> Usuários
+              </Button>
+              <Button 
+                variant={activeTab === 'teams' ? 'default' : 'ghost'}
+                className="justify-start"
+                onClick={() => setActiveTab('teams')}
+              >
+                <Shield className="mr-2 h-4 w-4" /> Equipes
+              </Button>
+              <Button 
+                variant={activeTab === 'subscriptions' ? 'default' : 'ghost'}
+                className="justify-start"
+                onClick={() => setActiveTab('subscriptions')}
+              >
+                <UserPlus className="mr-2 h-4 w-4" /> Assinaturas
+              </Button>
+              <Button 
+                variant={activeTab === 'orphans' ? 'default' : 'ghost'}
+                className="justify-start"
+                onClick={() => setActiveTab('orphans')}
+              >
+                <UserMinus className="mr-2 h-4 w-4" /> Órfãos
+              </Button>
+              <Button 
+                variant={activeTab === 'deletion-logs' ? 'default' : 'ghost'}
+                className="justify-start"
+                onClick={() => setActiveTab('deletion-logs')}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Exclusões
+              </Button>
+              <Button 
+                variant={activeTab === 'audit' ? 'default' : 'ghost'}
+                className="justify-start"
+                onClick={() => setActiveTab('audit')}
+              >
+                <UserCog className="mr-2 h-4 w-4" /> Auditoria
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      <Tabs defaultValue="users" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-6 md:grid-cols-6 overflow-x-auto md:overflow-x-visible justify-start md:justify-center">
           <TabsTrigger value="users" className="flex-shrink-0">Usuários</TabsTrigger>
           <TabsTrigger value="teams" className="flex-shrink-0">Equipes</TabsTrigger>
