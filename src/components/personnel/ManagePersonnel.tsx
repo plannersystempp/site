@@ -13,6 +13,10 @@ import { PersonnelList } from './PersonnelList';
 import { PersonnelViewToggle } from './PersonnelViewToggle';
 import { ExportDropdown } from '@/components/shared/ExportDropdown';
 import { FreelancerRatingDialog } from './FreelancerRatingDialog';
+import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
+import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
+import { useTeam } from '@/contexts/TeamContext';
+
 export const ManagePersonnel: React.FC = () => {
   const {
     personnel,
@@ -22,6 +26,7 @@ export const ManagePersonnel: React.FC = () => {
   const {
     user
   } = useAuth();
+  const { activeTeam } = useTeam();
   const isMobile = useIsMobile();
   const [showForm, setShowForm] = useState(false);
   const [editingPersonnel, setEditingPersonnel] = useState<Personnel | null>(null);
@@ -30,6 +35,9 @@ export const ManagePersonnel: React.FC = () => {
   const [filterFunction, setFilterFunction] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [ratingPersonnel, setRatingPersonnel] = useState<Personnel | null>(null);
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
+  const checkLimits = useCheckSubscriptionLimits();
 
   // Force grid view on mobile for better responsiveness
   const effectiveViewMode = isMobile ? 'grid' : viewMode;
@@ -66,6 +74,28 @@ export const ManagePersonnel: React.FC = () => {
 
   const isAdminOrCoordinator = user?.role === 'admin' || user?.role === 'coordinator';
 
+  const handleAddPersonnel = async () => {
+    if (!activeTeam) return;
+
+    try {
+      const result = await checkLimits.mutateAsync({
+        teamId: activeTeam.id,
+        action: 'add_personnel'
+      });
+
+      if (!result.can_proceed) {
+        setLimitCheckResult(result);
+        setUpgradePromptOpen(true);
+        return;
+      }
+
+      setShowForm(true);
+    } catch (error) {
+      console.error('Error checking limits:', error);
+      setShowForm(true); // Allow creation if check fails
+    }
+  };
+
   // Preparar dados para exportação
   const exportData = filteredPersonnel.map(person => ({
     nome: person.name,
@@ -89,7 +119,7 @@ export const ManagePersonnel: React.FC = () => {
           <div className="order-2 sm:order-1 flex-1">
             <ExportDropdown data={exportData} headers={exportHeaders} filename="pessoal_filtrado" title="Relatório de Pessoal" disabled={filteredPersonnel.length === 0} />
           </div>
-          {isAdminOrCoordinator && <Button onClick={() => setShowForm(true)} className="order-1 sm:order-2 w-full sm:w-auto" size="default">
+          {isAdminOrCoordinator && <Button onClick={handleAddPersonnel} className="order-1 sm:order-2 w-full sm:w-auto" size="default">
               <Plus className="w-4 h-4 mr-2" />
               Cadastrar Pessoa
             </Button>}
@@ -139,5 +169,14 @@ export const ManagePersonnel: React.FC = () => {
           onRatingSubmitted={() => setRatingPersonnel(null)}
         />
       )}
+
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        reason={limitCheckResult?.reason || ''}
+        currentPlan={limitCheckResult?.current_plan}
+        limit={limitCheckResult?.limit}
+        currentCount={limitCheckResult?.current_count}
+      />
     </div>;
 };

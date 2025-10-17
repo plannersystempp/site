@@ -19,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportDropdown } from '@/components/shared/ExportDropdown';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
+import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
 
 export const ManageEvents: React.FC = () => {
   const { events, assignments, personnel, deleteEvent } = useEnhancedData();
@@ -33,6 +35,9 @@ export const ManageEvents: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [creatingExamples, setCreatingExamples] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
+  const checkLimits = useCheckSubscriptionLimits();
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -110,6 +115,28 @@ export const ManageEvents: React.FC = () => {
   };
 
   const canManageEvents = userRole === 'admin';
+
+  const handleCreateEvent = async () => {
+    if (!activeTeam) return;
+
+    try {
+      const result = await checkLimits.mutateAsync({
+        teamId: activeTeam.id,
+        action: 'create_event'
+      });
+
+      if (!result.can_proceed) {
+        setLimitCheckResult(result);
+        setUpgradePromptOpen(true);
+        return;
+      }
+
+      setShowForm(true);
+    } catch (error) {
+      console.error('Error checking limits:', error);
+      setShowForm(true); // Allow creation if check fails
+    }
+  };
 
   const handleCreateSampleData = async () => {
     if (!user || !activeTeam) return;
@@ -204,7 +231,7 @@ export const ManageEvents: React.FC = () => {
             disabled={filteredEvents.length === 0}
           />
           {canManageEvents && (
-            <Button onClick={() => setShowForm(true)}>
+            <Button onClick={handleCreateEvent}>
               <Plus className="w-4 h-4 mr-2" />
               Criar Evento
             </Button>
@@ -368,6 +395,15 @@ export const ManageEvents: React.FC = () => {
           onSuccess={handleFormSuccess}
         />
       )}
+
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        reason={limitCheckResult?.reason || ''}
+        currentPlan={limitCheckResult?.current_plan}
+        limit={limitCheckResult?.limit}
+        currentCount={limitCheckResult?.current_count}
+      />
     </div>
   );
 };

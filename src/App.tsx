@@ -39,6 +39,7 @@ import { supabase } from './integrations/supabase/client';
 import './App.css';
 import { EnhancedAdminSettings } from './components/admin/EnhancedAdminSettings';
 import SuperAdmin from './pages/SuperAdmin';
+import UpgradePlan from './pages/UpgradePlan';
 
 
 
@@ -380,6 +381,7 @@ const AppContent = () => {
               <Route path="/folha/:eventId" element={<PayrollEventView />} />
               <Route path="/equipe" element={<TeamManagement />} />
               <Route path="/configuracoes" element={<SettingsPage />} />
+              <Route path="/upgrade" element={<UpgradePlan />} />
               {user.role === 'admin' && (
                 <Route path="/admin/configuracoes" element={<Settings />} />
               )}

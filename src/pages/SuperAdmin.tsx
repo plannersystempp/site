@@ -20,6 +20,7 @@ import { OrphanUsersTab } from '@/components/admin/OrphanUsersTab';
 import { UserManagementDialog } from '@/components/admin/UserManagementDialog';
 import { TeamManagementTab } from '@/components/admin/TeamManagementTab';
 import { DeletionLogsTab } from '@/components/admin/DeletionLogsTab';
+import { SubscriptionManagementTab } from '@/components/subscriptions/SubscriptionManagementTab';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -300,9 +301,10 @@ export default function SuperAdmin() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
+          <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
           <TabsTrigger value="orphans">Órfãos</TabsTrigger>
           <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
@@ -531,6 +533,10 @@ export default function SuperAdmin() {
 
         <TabsContent value="teams" className="space-y-6">
           <TeamManagementTab />
+        </TabsContent>
+
+        <TabsContent value="subscriptions" className="space-y-6">
+          <SubscriptionManagementTab />
         </TabsContent>
 
         <TabsContent value="deletion-logs" className="space-y-6">

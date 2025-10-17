@@ -11,6 +11,8 @@ import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { NoTeamSelected } from '@/components/shared/NoTeamSelected';
 import { CreateUserByAdmin } from '@/components/admin/CreateUserByAdmin';
 import { useToast } from '@/hooks/use-toast';
+import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
+import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
 
 interface TeamMemberWithProfile {
   team_id: string;
@@ -35,6 +37,9 @@ export const TeamManagement: React.FC = () => {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<{ userId: string, name: string, currentRole: string } | null>(null);
   const { toast } = useToast();
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
+  const checkLimits = useCheckSubscriptionLimits();
 
   const fetchMembers = async () => {
     if (!activeTeam) return;
@@ -230,6 +235,18 @@ export const TeamManagement: React.FC = () => {
     if (!activeTeam) return;
 
     try {
+      // Check subscription limits before approving
+      const result = await checkLimits.mutateAsync({
+        teamId: activeTeam.id,
+        action: 'add_member'
+      });
+
+      if (!result.can_proceed) {
+        setLimitCheckResult(result);
+        setUpgradePromptOpen(true);
+        return;
+      }
+
       setLoadingPending(true);
       const { error } = await supabase
         .from('team_members')
@@ -662,6 +679,15 @@ export const TeamManagement: React.FC = () => {
           // Force immediate refresh after user creation
           setTimeout(fetchMembers, 100);
         }}
+      />
+
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        reason={limitCheckResult?.reason || ''}
+        currentPlan={limitCheckResult?.current_plan}
+        limit={limitCheckResult?.limit}
+        currentCount={limitCheckResult?.current_count}
       />
     </div>
   );
