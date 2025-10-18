@@ -146,19 +146,21 @@ export default function PlansPage() {
                 </div>
 
                 {/* Features */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                    Recursos Inclusos
-                  </h4>
-                  <ul className="space-y-2">
-                    {(plan.features as string[]).map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {Array.isArray(plan.features) && plan.features.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                      Recursos Inclusos
+                    </h4>
+                    <ul className="space-y-2">
+                      {(plan.features as string[]).map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Limits */}
                 <div className="space-y-2 pt-4 border-t">
