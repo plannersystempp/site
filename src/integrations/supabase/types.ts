@@ -1135,6 +1135,8 @@ export type Database = {
           name: string
           price: number
           sort_order: number | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1150,6 +1152,8 @@ export type Database = {
           name: string
           price?: number
           sort_order?: number | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1165,6 +1169,8 @@ export type Database = {
           name?: string
           price?: number
           sort_order?: number | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
           updated_at?: string | null
         }
         Relationships: []

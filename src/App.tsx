@@ -41,6 +41,7 @@ import { EnhancedAdminSettings } from './components/admin/EnhancedAdminSettings'
 import SuperAdmin from './pages/SuperAdmin';
 import UpgradePlan from './pages/UpgradePlan';
 import PlansPage from './pages/PlansPage';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 
 
@@ -281,6 +282,7 @@ function App() {
               <Route path="/termos-de-uso" element={<TermosDeUso />} />
               <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
               <Route path="/plans" element={<PlansPage />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/app/*" element={<AppContent />} />
               {/* Rota de impressão fora do Layout */}
               <Route path="/app/folha/relatorio/:eventId" element={

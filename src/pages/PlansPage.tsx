@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Zap, Star, Crown } from 'lucide-react';
+import { Check, Zap, Star, Crown, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useStripeCheckout } from '@/hooks/useStripeCheckout';
+import { toast } from '@/hooks/use-toast';
 
 interface Plan {
   id: string;
@@ -112,13 +114,58 @@ export default function PlansPage() {
     return <Check className="h-8 w-8 text-primary" />;
   };
 
-  const handleSelectPlan = (planId: string) => {
+  const { mutate: createCheckout, isPending: isCreatingCheckout } = useStripeCheckout();
+
+  const handleSelectPlan = async (planId: string, planName: string) => {
     if (!user) {
       navigate('/auth', { state: { redirectTo: '/plans', planId } });
       return;
     }
-    
-    navigate(`/app/upgrade?plan=${planId}`);
+
+    // Buscar team_id do usuário
+    const { data: membership, error } = await supabase
+      .from('team_members')
+      .select('team_id, role, status, teams(name)')
+      .eq('user_id', user.id)
+      .eq('status', 'approved')
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (error || !membership) {
+      toast({
+        title: 'Erro',
+        description: 'Você precisa ser admin de uma equipe para assinar um plano',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Se for trial, redirecionar para a antiga lógica
+    if (planName === 'trial') {
+      navigate(`/app/upgrade?plan=${planId}`);
+      return;
+    }
+
+    // Confirmar com usuário
+    if (!window.confirm(
+      `Você será redirecionado para o checkout do plano "${planName}". Deseja continuar?`
+    )) {
+      return;
+    }
+
+    // Criar checkout session
+    createCheckout(
+      { 
+        planId, 
+        teamId: membership.team_id 
+      },
+      {
+        onSuccess: (data) => {
+          console.log('Redirecionando para Stripe Checkout...');
+          window.location.href = data.url;
+        }
+      }
+    );
   };
 
   if (isLoading) {
@@ -255,9 +302,17 @@ export default function PlansPage() {
                   size="lg"
                   className="w-full"
                   variant={plan.is_popular ? 'default' : 'outline'}
-                  onClick={() => handleSelectPlan(plan.id)}
+                  onClick={() => handleSelectPlan(plan.id, plan.name)}
+                  disabled={isCreatingCheckout}
                 >
-                  {plan.name === 'trial' ? 'Começar Trial Grátis' : 'Assinar Agora'}
+                  {isCreatingCheckout ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    plan.name === 'trial' ? 'Começar Trial Grátis' : 'Assinar Agora'
+                  )}
                 </Button>
               </CardFooter>
             </Card>
