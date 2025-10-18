@@ -39,7 +39,7 @@ export default function PlansPage() {
         .order('sort_order');
       
       if (error) throw error;
-      return data as Plan[];
+      return data as unknown as Plan[];
     }
   });
 

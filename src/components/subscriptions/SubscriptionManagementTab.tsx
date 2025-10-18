@@ -15,10 +15,10 @@ import { SubscriptionDetailsDialog } from './SubscriptionDetailsDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function SubscriptionManagementTab() {
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);

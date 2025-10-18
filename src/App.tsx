@@ -44,135 +44,8 @@ import PlansPage from './pages/PlansPage';
 
 
 
-// Hook para remover badges do Lovable
-const useLovableBadgeRemover = () => {
-  useEffect(() => {
-    const removeLovableBadge = () => {
-      try {
-        // Seletores para encontrar elementos relacionados ao Lovable
-        const selectors = [
-          '[href*="lovable.dev"]',
-          '[href*="lovable"]',
-          '[src*="lovable.dev"]', 
-          '[src*="lovable"]',
-          'iframe[src*="lovable"]',
-          '[class*="lovable" i]',
-          '[id*="lovable" i]',
-          '[data-testid*="lovable" i]',
-          '[aria-label*="lovable" i]',
-          '[title*="lovable" i]',
-          '[alt*="lovable" i]',
-          '.lovable-badge',
-          '#lovable-badge',
-          '.edit-badge',
-          '.editor-badge',
-          '[style*="Edit with Lovable"]',
-          '[style*="position: fixed"][style*="bottom:"][style*="right:"]',
-          '[style*="position:fixed"][style*="bottom:"][style*="right:"]'
-        ];
-        
-        // Remove elementos por seletor
-        selectors.forEach(selector => {
-          try {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-              if (element && element.remove) {
-                element.remove();
-              }
-            });
-          } catch (e) {
-            // Ignora erros de seletor inválido
-          }
-        });
+// Removed Lovable badge remover hook to avoid unintended DOM side effects that hid the UI
 
-        // Remove elementos por conteúdo de texto
-        document.querySelectorAll('*:not(script):not(style):not(meta)').forEach(element => {
-          try {
-            const htmlElement = element as HTMLElement;
-            const text = htmlElement.textContent || htmlElement.innerText || '';
-            if (text && (
-              text.toLowerCase().includes('lovable') ||
-              text.toLowerCase().includes('edit with') ||
-              text.toLowerCase().includes('edit in')
-            )) {
-              if (element.tagName !== 'BODY' && 
-                  element.tagName !== 'HTML' && 
-                  element.tagName !== 'HEAD' &&
-                  !element.closest('main') &&
-                  !element.closest('[role="main"]')) {
-                const style = htmlElement.style;
-                style.display = 'none';
-                style.visibility = 'hidden';
-                style.opacity = '0';
-              }
-            }
-          } catch (e) {
-            // Ignora erros
-          }
-        });
-
-        // Remove elementos fixos suspeitos no canto inferior direito
-        document.querySelectorAll('div, a, span, img').forEach(element => {
-          try {
-            const htmlElement = element as HTMLElement;
-            const style = window.getComputedStyle(element);
-            if (style.position === 'fixed' && 
-                (style.bottom !== 'auto' || style.right !== 'auto') &&
-                htmlElement.offsetWidth < 200 && 
-                htmlElement.offsetHeight < 200) {
-              
-              const rect = element.getBoundingClientRect();
-              const isBottomRight = rect.right > window.innerWidth - 200 && 
-                                   rect.bottom > window.innerHeight - 200;
-              
-              if (isBottomRight) {
-                htmlElement.style.display = 'none';
-              }
-            }
-          } catch (e) {
-            // Ignora erros
-          }
-        });
-
-      } catch (error) {
-        console.warn('Erro ao remover badge do Lovable:', error);
-      }
-    };
-
-    // Executa imediatamente
-    removeLovableBadge();
-    
-    // Executa após DOM carregar
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', removeLovableBadge);
-    }
-    
-    // Executa depois de um tempo
-    const timeouts = [100, 500, 1000, 2000, 5000];
-    const timeoutIds = timeouts.map(delay => 
-      setTimeout(removeLovableBadge, delay)
-    );
-    
-    // Executa periodicamente
-    const intervalId = setInterval(removeLovableBadge, 3000);
-    
-    // Observer para mudanças no DOM
-    const observer = new MutationObserver(removeLovableBadge);
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['style', 'class', 'id']
-    });
-    
-    return () => {
-      timeoutIds.forEach(clearTimeout);
-      clearInterval(intervalId);
-      observer.disconnect();
-      document.removeEventListener('DOMContentLoaded', removeLovableBadge);
-    };
-  }, []);
-};
 
 // Componente para salvar a rota atual
 const RouteTracker = () => {
@@ -247,8 +120,6 @@ const AppContent = () => {
     teamName: string;
   }>({ loading: true, status: null, teamName: '' });
 
-  // Usar o hook para remover badges do Lovable
-  useLovableBadgeRemover();
 
   useEffect(() => {
     const checkTeamApprovalStatus = async () => {
@@ -397,11 +268,7 @@ const AppContent = () => {
     </ErrorBoundary>
   );
 };
-
 function App() {
-  // Usar o hook também no componente principal
-  useLovableBadgeRemover();
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="sige-theme">
