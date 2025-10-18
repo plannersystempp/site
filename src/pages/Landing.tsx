@@ -10,12 +10,19 @@ export const Landing: React.FC = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-primary">SIGE</h1>
-          <Link to="/auth">
-            <Button>
-              <LogIn className="w-4 h-4 mr-2" />
-              Fazer Login
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link to="/plans">
+              <Button variant="outline">
+                Ver Planos
+              </Button>
+            </Link>
+            <Link to="/auth">
+              <Button>
+                <LogIn className="w-4 h-4 mr-2" />
+                Fazer Login
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -29,10 +36,15 @@ export const Landing: React.FC = () => {
             Controle completo de pessoal, custos e folha de pagamento para seus eventos em uma única plataforma
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
+            <Link to="/plans">
               <Button size="lg" className="text-lg px-8 py-6">
-                Começar Agora
+                Ver Planos
                 <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/auth">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+                Começar Grátis (Trial 15 Dias)
               </Button>
             </Link>
           </div>
@@ -207,12 +219,19 @@ export const Landing: React.FC = () => {
           <p className="text-lg text-muted-foreground mb-8">
             Transforme a gestão dos seus eventos hoje mesmo e tenha controle total sobre custos e equipe.
           </p>
-          <Link to="/auth">
-            <Button size="lg" className="text-lg px-8 py-6">
-              Criar Conta Gratuita
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/plans">
+              <Button size="lg" className="text-lg px-8 py-6">
+                Ver Planos
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/auth">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+                Começar Grátis (Trial 15 Dias)
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

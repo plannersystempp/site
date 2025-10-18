@@ -42,6 +42,7 @@ import SuperAdmin from './pages/SuperAdmin';
 import UpgradePlan from './pages/UpgradePlan';
 import PlansPage from './pages/PlansPage';
 import PaymentSuccess from './pages/PaymentSuccess';
+import ManageSubscription from './pages/ManageSubscription';
 
 
 
@@ -255,6 +256,8 @@ const AppContent = () => {
               <Route path="/equipe" element={<TeamManagement />} />
               <Route path="/configuracoes" element={<SettingsPage />} />
               <Route path="/upgrade" element={<UpgradePlan />} />
+              <Route path="/plans" element={<PlansPage />} />
+              <Route path="/subscription" element={<ManageSubscription />} />
               {user.role === 'admin' && (
                 <Route path="/admin/configuracoes" element={<Settings />} />
               )}

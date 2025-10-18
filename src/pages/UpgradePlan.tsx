@@ -6,6 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { useStripeCheckout } from '@/hooks/useStripeCheckout';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Plan {
   id: string;
@@ -32,6 +34,8 @@ export default function UpgradePlan() {
   const [loading, setLoading] = useState(true);
   const [teamId, setTeamId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const checkoutMutation = useStripeCheckout();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadData();
@@ -79,13 +83,48 @@ export default function UpgradePlan() {
     setLoading(false);
   };
 
-  const handleSelectPlan = (planId: string) => {
-    // Por enquanto, apenas mostrar mensagem
-    // Futuramente, integrar com gateway de pagamento
-    toast({
-      title: 'Função em desenvolvimento',
-      description: 'A integração com o gateway de pagamento será implementada em breve.',
-    });
+  const handleSelectPlan = async (planId: string, planName: string) => {
+    if (!user) {
+      toast({
+        title: "Autenticação necessária",
+        description: "Você precisa estar logado para assinar um plano.",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!teamId) {
+      toast({
+        title: "Equipe não encontrada",
+        description: "Você precisa estar vinculado a uma equipe.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Se for trial, redirecionar para auth
+    if (planName.toLowerCase() === 'trial') {
+      navigate('/auth');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Deseja assinar o plano ${planName}?\n\n` +
+      `Você será redirecionado para o pagamento seguro via Stripe.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const checkoutData = await checkoutMutation.mutateAsync({ planId, teamId });
+      
+      if (checkoutData?.url) {
+        window.location.href = checkoutData.url;
+      }
+    } catch (error) {
+      console.error('Erro ao criar checkout:', error);
+    }
   };
 
   const isCurrentPlan = (planId: string) => {
@@ -167,11 +206,12 @@ export default function UpgradePlan() {
                 <Button
                   className="w-full"
                   variant={isCurrentPlan(plan.id) ? 'secondary' : 'default'}
-                  disabled={isCurrentPlan(plan.id)}
-                  onClick={() => handleSelectPlan(plan.id)}
+                  disabled={isCurrentPlan(plan.id) || checkoutMutation.isPending}
+                  onClick={() => handleSelectPlan(plan.id, plan.display_name)}
                 >
+                  {checkoutMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   {isCurrentPlan(plan.id) ? 'Plano Atual' : 
-                   plan.price === 0 ? 'Iniciar Trial' : 'Selecionar Plano'}
+                   plan.price === 0 ? 'Iniciar Trial' : 'Assinar Agora'}
                 </Button>
               </CardFooter>
             </Card>

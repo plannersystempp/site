@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTeam } from '@/contexts/TeamContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
+import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
 import type { Event } from '@/contexts/EnhancedDataContext';
 
 interface EventFormProps {
@@ -34,7 +37,11 @@ interface EventFormData {
 export const EventForm: React.FC<EventFormProps> = ({ event, onClose, onSuccess }) => {
   const { addEvent, updateEvent } = useEnhancedData();
   const { user } = useAuth();
+  const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const checkLimits = useCheckSubscriptionLimits();
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<EventFormData>({
     defaultValues: event || {
       name: '',
@@ -89,6 +96,20 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onClose, onSuccess 
           variant: "destructive"
         });
         return;
+      }
+
+      // Verificar limites apenas ao criar novo evento
+      if (!event && activeTeam) {
+        const result = await checkLimits.mutateAsync({
+          teamId: activeTeam.id,
+          action: 'create_event'
+        });
+
+        if (!result.can_proceed) {
+          setLimitCheckResult(result);
+          setUpgradePromptOpen(true);
+          return;
+        }
       }
 
       console.log('Submitting event form with data:', data);
@@ -291,6 +312,14 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onClose, onSuccess 
           </div>
         </form>
       </DialogContent>
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        reason={limitCheckResult?.reason || ''}
+        currentPlan={limitCheckResult?.current_plan}
+        limit={limitCheckResult?.limit}
+        currentCount={limitCheckResult?.current_count}
+      />
     </Dialog>
   );
 };

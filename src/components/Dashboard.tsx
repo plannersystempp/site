@@ -7,7 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign, Package, AlertTriangle } from 'lucide-react';
 import { LoadingSpinner } from './shared/LoadingSpinner';
 import { EmptyState } from './shared/EmptyState';
 import { NoTeamSelected } from './shared/NoTeamSelected';
@@ -16,6 +17,7 @@ import { QuickActions } from './dashboard/QuickActions';
 import { formatDateShort } from '@/utils/dateUtils';
 import * as PayrollCalc from './payroll/payrollCalculations';
 import { getCachedEventStatus } from './payroll/eventStatusCache';
+import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 
 const Dashboard = () => {
   const { events, personnel, functions, eventSupplierCosts, suppliers, loading } = useEnhancedData();
@@ -23,6 +25,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isSuperAdmin = user?.role === 'superadmin';
+  const { subscription, isLoading: subscriptionLoading, isActive } = useSubscriptionGuard(activeTeam?.id);
   
   const [superAdminPersonnelCount, setSuperAdminPersonnelCount] = useState<number | null>(null);
   
@@ -80,7 +83,7 @@ const Dashboard = () => {
     return <NoTeamSelected />;
   }
 
-  if (loading) {
+  if (loading || subscriptionLoading) {
     return (
       <div className="p-4 md:p-6 space-y-6">
         <div className="space-y-2">
@@ -222,6 +225,31 @@ const Dashboard = () => {
           </p>
         </div>
       </div>
+
+      {/* Banner de Aviso de Assinatura */}
+      {!isSuperAdmin && subscription && subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0 && (
+        <Card className="border-orange-200 bg-orange-50/50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-orange-900">Assinatura Expirando em Breve</h3>
+                <p className="text-sm text-orange-800 mt-1">
+                  Sua assinatura {subscription.planName} expira em {subscription.daysUntilExpiration} dia(s). 
+                  Renove agora para continuar usando o SIGE sem interrupções.
+                </p>
+                <Button 
+                  size="sm" 
+                  className="mt-3"
+                  onClick={() => navigate('/app/upgrade')}
+                >
+                  Renovar Assinatura
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <QuickActions />
 

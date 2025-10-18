@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTeam } from '@/contexts/TeamContext';
 import { validateUniquePersonnelName } from '@/utils/validation';
+import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
+import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
 
 interface PersonnelFormProps {
   personnel?: Personnel;
@@ -43,8 +45,11 @@ interface PersonnelFormData {
 
 export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose, onSuccess }) => {
   const { functions, addPersonnel, updatePersonnel, personnel: allPersonnel } = useEnhancedData();
-  const { userRole } = useTeam();
+  const { userRole, activeTeam } = useTeam();
   const { toast } = useToast();
+  const checkLimits = useCheckSubscriptionLimits();
+  const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
+  const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
   const [formData, setFormData] = useState<PersonnelFormData>({
     name: '',
     email: '',
@@ -136,6 +141,20 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Verificar limites apenas ao criar novo pessoal
+    if (!personnel && activeTeam) {
+      const result = await checkLimits.mutateAsync({
+        teamId: activeTeam.id,
+        action: 'add_personnel'
+      });
+
+      if (!result.can_proceed) {
+        setLimitCheckResult(result);
+        setUpgradePromptOpen(true);
+        return;
+      }
+    }
     
     // Validação de nome único
     const nameValidation = validateUniquePersonnelName(
@@ -308,6 +327,14 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
           </form>
         </CardContent>
       </Card>
+      <UpgradePrompt
+        open={upgradePromptOpen}
+        onOpenChange={setUpgradePromptOpen}
+        reason={limitCheckResult?.reason || ''}
+        currentPlan={limitCheckResult?.current_plan}
+        limit={limitCheckResult?.limit}
+        currentCount={limitCheckResult?.current_count}
+      />
     </div>
   );
 };

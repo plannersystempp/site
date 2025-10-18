@@ -23,7 +23,7 @@ export function UpgradePrompt({
 
   const handleUpgrade = () => {
     onOpenChange(false);
-    navigate('/upgrade');
+    navigate('/app/upgrade');
   };
 
   return (

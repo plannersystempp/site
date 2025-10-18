@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Settings as SettingsIcon, Lock, User, ArrowLeft, Menu, X } from 'lucide-react';
+import { Settings as SettingsIcon, Lock, User, ArrowLeft, Menu, X, CreditCard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { validatePassword } from '@/utils/validation';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { APP_VERSION } from '@/constants/app';
 import { DangerZone } from '@/components/admin/DangerZone';
@@ -18,6 +18,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -153,6 +154,7 @@ export const SettingsPage: React.FC = () => {
       security: 'Segurança',
       notifications: 'Notificações',
       payroll: 'Folha',
+      subscription: 'Assinatura',
       account: 'Conta'
     };
     return labels[tab as keyof typeof labels] || 'Configurações';
@@ -180,11 +182,12 @@ export const SettingsPage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* Menu Desktop - Abas horizontais */}
-        <TabsList className="hidden md:grid w-full grid-cols-5">
+        <TabsList className="hidden md:grid w-full grid-cols-6">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="payroll">Folha</TabsTrigger>
+          <TabsTrigger value="subscription">Assinatura</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
 
@@ -250,6 +253,18 @@ export const SettingsPage: React.FC = () => {
                 >
                   <SettingsIcon className="w-4 h-4 mr-2" />
                   Folha
+                </Button>
+                <Button
+                  variant={activeTab === 'subscription' ? 'default' : 'ghost'}
+                  className="justify-start touch-manipulation"
+                  style={{ touchAction: 'manipulation' }}
+                  onClick={() => {
+                    setActiveTab('subscription');
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Assinatura
                 </Button>
                 <Button
                   variant={activeTab === 'account' ? 'default' : 'ghost'}
@@ -377,6 +392,25 @@ export const SettingsPage: React.FC = () => {
 
         <TabsContent value="payroll">
           <TeamPayrollConfig />
+        </TabsContent>
+
+        <TabsContent value="subscription">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Gerenciar Assinatura
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                Visualize detalhes da sua assinatura, limites do plano e faça upgrade quando necessário.
+              </p>
+              <Button onClick={() => navigate('/app/subscription')}>
+                Ir para Gerenciamento de Assinatura
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="account">
