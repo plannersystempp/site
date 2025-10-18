@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,67 @@ interface Plan {
 export default function PlansPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // SEO: Update document metadata
+  useEffect(() => {
+    // Update page title
+    document.title = 'Planos e Preços - SIGE | Sistema de Gestão de Eventos';
+    
+    // Update or create meta tags
+    const updateMetaTag = (name: string, content: string, isProperty = false) => {
+      const attr = isProperty ? 'property' : 'name';
+      let meta = document.querySelector(`meta[${attr}="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attr, name);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    updateMetaTag('description', 'Escolha o plano ideal para sua equipe. Trial gratuito por 15 dias, sem necessidade de cartão de crédito. Gerencie eventos, equipes e folha de pagamento com o SIGE.');
+    updateMetaTag('keywords', 'planos sige, preços gestão eventos, trial gratuito, software gestão eventos, plataforma gestão equipes');
+    updateMetaTag('og:title', 'Planos e Preços - SIGE', true);
+    updateMetaTag('og:description', 'Planos flexíveis para gestão de eventos. Trial gratuito por 15 dias. Escolha entre Básico, Profissional ou Enterprise.', true);
+    updateMetaTag('og:type', 'website', true);
+    updateMetaTag('og:url', window.location.href, true);
+    updateMetaTag('twitter:card', 'summary_large_image');
+    updateMetaTag('twitter:title', 'Planos e Preços - SIGE');
+    updateMetaTag('twitter:description', 'Planos flexíveis para gestão de eventos. Trial gratuito por 15 dias.');
+
+    // Add canonical link
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', window.location.origin + '/plans');
+
+    // Add structured data for pricing
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Planos de Assinatura SIGE",
+      "description": "Planos de assinatura para o Sistema de Gestão de Eventos SIGE",
+      "itemListElement": []
+    };
+
+    let script = document.querySelector('script[type="application/ld+json"]#plans-schema');
+    if (!script) {
+      script = document.createElement('script');
+      script.setAttribute('type', 'application/ld+json');
+      script.setAttribute('id', 'plans-schema');
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(structuredData);
+
+    // Cleanup function
+    return () => {
+      document.title = 'SIGE - Sistema de Gestão de Eventos';
+      canonical?.remove();
+    };
+  }, []);
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ['public-plans'],

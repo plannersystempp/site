@@ -590,7 +590,7 @@ export default function SuperAdmin() {
                                   <UserCog className="h-5 w-5 md:h-4 md:w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="z-[9999]">
+                              <DropdownMenuContent align="end" className="z-[9999] bg-popover border shadow-md">
                                 <DropdownMenuLabel>Ações</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem

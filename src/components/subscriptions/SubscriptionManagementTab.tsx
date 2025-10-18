@@ -202,7 +202,7 @@ export function SubscriptionManagementTab() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent 
                               align="end" 
-                              className="w-56 z-[99999]"
+                              className="w-56 z-[99999] bg-popover border shadow-md"
                               sideOffset={5}
                             >
                               <DropdownMenuItem
@@ -328,7 +328,7 @@ export function SubscriptionManagementTab() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent 
                                 align="end" 
-                                className="w-56 z-[99999]"
+                                className="w-56 z-[99999] bg-popover border shadow-md"
                                 sideOffset={5}
                               >
                                 <DropdownMenuItem
