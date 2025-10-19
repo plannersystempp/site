@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useTeam } from '@/contexts/TeamContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
-import { useTeam } from '@/contexts/TeamContext';
-import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, CreditCard, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { Loader2, ArrowLeft, CreditCard, Calendar, Users, FileText, Briefcase, Shield, AlertCircle, TrendingUp } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatDateShort } from '@/utils/dateUtils';
 
 interface SubscriptionData {
@@ -27,9 +29,25 @@ export default function ManageSubscription() {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Check if user is superadmin
+  const { data: isSuperAdmin, isLoading: checkingSuperAdmin } = useQuery({
+    queryKey: ['is-superadmin'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('is_super_admin');
+      if (error) throw error;
+      return data as boolean;
+    }
+  });
+
   useEffect(() => {
-    loadSubscription();
-  }, [activeTeam]);
+    if (activeTeam && !isSuperAdmin) {
+      loadSubscription();
+    } else if (!activeTeam && !isSuperAdmin) {
+      setLoading(false);
+    } else if (isSuperAdmin) {
+      setLoading(false);
+    }
+  }, [activeTeam, isSuperAdmin]);
 
   const loadSubscription = async () => {
     if (!activeTeam) return;
@@ -80,10 +98,33 @@ export default function ManageSubscription() {
     return value === null ? 'Ilimitado' : value.toString();
   };
 
-  if (loading) {
+  if (loading || checkingSuperAdmin) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // SuperAdmin special view
+  if (isSuperAdmin) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl">
+        <Alert className="mb-6">
+          <Shield className="h-4 w-4" />
+          <AlertTitle>Acesso de Super Administrador</AlertTitle>
+          <AlertDescription>
+            Como Super Admin, você não possui uma assinatura pessoal. Você tem acesso ilimitado a todas as funcionalidades do sistema.
+          </AlertDescription>
+        </Alert>
+
+        <Button 
+          onClick={() => navigate('/app')} 
+          variant="outline"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para Dashboard
+        </Button>
       </div>
     );
   }

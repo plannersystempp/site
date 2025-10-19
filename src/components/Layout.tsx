@@ -7,7 +7,8 @@ import { useScrollNavigation } from '@/hooks/useScrollNavigation';
 import { useTeam } from '@/contexts/TeamContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Crown } from 'lucide-react';
+import { Crown, Shield } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,29 +19,43 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { showScrollToTop, showScrollToBottom, scrollToTop, scrollToBottom } = 
     useScrollNavigation(mainRef);
   const { activeTeam } = useTeam();
-  const [planName, setPlanName] = useState<string>('');
 
-  useEffect(() => {
-    const loadPlanName = async () => {
-      if (!activeTeam) return;
+  // Check if user is superadmin
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ['is-superadmin'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('is_super_admin');
+      if (error) throw error;
+      return data as boolean;
+    }
+  });
 
-      try {
-        const { data, error } = await supabase
-          .from('team_subscriptions')
-          .select('subscription_plans(display_name)')
-          .eq('team_id', activeTeam.id)
-          .single();
+  const { data: subscription } = useQuery({
+    queryKey: ['team-subscription', activeTeam?.id],
+    queryFn: async () => {
+      if (!activeTeam?.id) return null;
 
-        if (!error && data) {
-          setPlanName((data.subscription_plans as any)?.display_name || '');
-        }
-      } catch (error) {
-        console.error('Erro ao carregar plano:', error);
+      const { data, error } = await supabase
+        .from('team_subscriptions')
+        .select(`
+          status,
+          subscription_plans(display_name)
+        `)
+        .eq('team_id', activeTeam.id)
+        .single();
+
+      if (error) {
+        console.error('Erro ao buscar assinatura:', error);
+        return null;
       }
-    };
 
-    loadPlanName();
-  }, [activeTeam]);
+      return {
+        status: data.status,
+        planName: (data.subscription_plans as any)?.display_name || 'Free'
+      };
+    },
+    enabled: !!activeTeam?.id && !isSuperAdmin
+  });
 
   return (
     <SidebarProvider>
@@ -50,10 +65,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <header className="h-14 border-b bg-background flex items-center gap-4 px-4">
             <SidebarTrigger />
             <div className="flex-1" />
-            {planName && (
+            
+            {isSuperAdmin ? (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                Super Admin
+              </Badge>
+            ) : subscription && (
               <Badge variant="outline" className="flex items-center gap-1">
                 <Crown className="w-3 h-3" />
-                {planName}
+                {subscription.planName}
               </Badge>
             )}
           </header>

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Check, ArrowLeft, Loader2, Shield } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTeam } from '@/contexts/TeamContext';
 import { toast } from '@/hooks/use-toast';
 import { useStripeCheckout } from '@/hooks/useStripeCheckout';
-import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Plan {
   id: string;
@@ -36,10 +39,21 @@ export default function UpgradePlan() {
   const navigate = useNavigate();
   const checkoutMutation = useStripeCheckout();
   const { user } = useAuth();
+  const { activeTeam } = useTeam();
+
+  // Check if user is superadmin
+  const { data: isSuperAdmin, isLoading: checkingSuperAdmin } = useQuery({
+    queryKey: ['is-superadmin'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('is_super_admin');
+      if (error) throw error;
+      return data as boolean;
+    }
+  });
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [activeTeam]);
 
   const loadData = async () => {
     setLoading(true);
@@ -135,10 +149,58 @@ export default function UpgradePlan() {
     return value === null ? 'Ilimitado' : value.toString();
   };
 
-  if (loading) {
+  if (loading || checkingSuperAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // SuperAdmin special view
+  if (isSuperAdmin) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl">
+        <Alert className="mb-6">
+          <Shield className="h-4 w-4" />
+          <AlertTitle>Acesso de Super Administrador</AlertTitle>
+          <AlertDescription>
+            Você possui acesso total ao sistema como Super Admin. Esta página é destinada apenas para equipes que precisam gerenciar suas assinaturas.
+          </AlertDescription>
+        </Alert>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Privilégios de Super Admin</CardTitle>
+            <CardDescription>
+              Como Super Admin, você tem:
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" />
+                <span>Acesso ilimitado a todas as funcionalidades</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" />
+                <span>Gerenciamento de todas as equipes e usuários</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" />
+                <span>Sem restrições de planos ou limites</span>
+              </li>
+            </ul>
+            
+            <Button 
+              onClick={() => navigate('/app')} 
+              className="mt-6"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

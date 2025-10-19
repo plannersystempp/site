@@ -418,7 +418,9 @@ export function SubscriptionManagementTab() {
           <ChangePlanDialog
             open={changePlanOpen}
             onOpenChange={setChangePlanOpen}
-            subscriptionId={selectedSubscriptionId}
+            currentSubscriptionId={selectedSubscriptionId}
+            currentPlanId={subscriptionsData?.data?.find(s => s.id === selectedSubscriptionId)?.plan_id || ''}
+            teamName={subscriptionsData?.data?.find(s => s.id === selectedSubscriptionId)?.teams?.name || 'Equipe'}
           />
           <SubscriptionDetailsDialog
             open={detailsOpen}

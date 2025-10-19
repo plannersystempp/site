@@ -15,6 +15,26 @@ interface SubscriptionStatus {
 export function useSubscriptionGuard(teamId: string | undefined) {
   const navigate = useNavigate();
 
+  // Check if user is superadmin - they bypass all subscription checks
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ['is-superadmin'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('is_super_admin');
+      if (error) throw error;
+      return data as boolean;
+    }
+  });
+
+  // SuperAdmin bypass - they have full access
+  if (isSuperAdmin) {
+    return {
+      subscription: null,
+      isLoading: false,
+      canProceed: true,
+      isActive: true
+    };
+  }
+
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['team-subscription', teamId],
     queryFn: async (): Promise<SubscriptionStatus | null> => {

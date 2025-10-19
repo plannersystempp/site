@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign, Package, AlertTriangle } from 'lucide-react';
 import { LoadingSpinner } from './shared/LoadingSpinner';
 import { EmptyState } from './shared/EmptyState';
@@ -18,6 +19,7 @@ import { formatDateShort } from '@/utils/dateUtils';
 import * as PayrollCalc from './payroll/payrollCalculations';
 import { getCachedEventStatus } from './payroll/eventStatusCache';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
+import { useQuery } from '@tanstack/react-query';
 
 const Dashboard = () => {
   const { events, personnel, functions, eventSupplierCosts, suppliers, loading } = useEnhancedData();
@@ -25,7 +27,17 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isSuperAdmin = user?.role === 'superadmin';
-  const { subscription, isLoading: subscriptionLoading, isActive } = useSubscriptionGuard(activeTeam?.id);
+  const { subscription, isLoading: subscriptionLoading } = useSubscriptionGuard(activeTeam?.id);
+
+  // Check if user is superadmin
+  const { data: isSuperAdminCheck } = useQuery({
+    queryKey: ['is-superadmin'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('is_super_admin');
+      if (error) throw error;
+      return data as boolean;
+    }
+  });
   
   const [superAdminPersonnelCount, setSuperAdminPersonnelCount] = useState<number | null>(null);
   

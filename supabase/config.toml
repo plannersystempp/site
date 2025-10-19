@@ -9,3 +9,6 @@ verify_jwt = true
 
 [functions.verify-payment]
 verify_jwt = true
+
+[functions.change-subscription-plan]
+verify_jwt = true
