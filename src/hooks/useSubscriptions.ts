@@ -14,6 +14,7 @@ export interface Subscription {
   teams: {
     name: string;
     cnpj: string | null;
+    is_system?: boolean;
   };
   subscription_plans: {
     display_name: string;
@@ -39,9 +40,10 @@ export function useSubscriptions(options: UseSubscriptionsOptions = {}) {
         .from('team_subscriptions')
         .select(`
           *,
-          teams!inner(name, cnpj),
+          teams!inner(name, cnpj, is_system),
           subscription_plans!inner(display_name, price, billing_cycle)
         `, { count: 'exact' })
+        .eq('teams.is_system', false)
         .order('created_at', { ascending: false });
 
       // Filtro de status
@@ -63,8 +65,13 @@ export function useSubscriptions(options: UseSubscriptionsOptions = {}) {
 
       if (error) throw error;
 
+      // Fallback: filtrar em memória caso o filtro nested não funcione
+      const filteredData = (data as Subscription[]).filter(
+        sub => !sub.teams?.is_system
+      );
+
       return {
-        data: data as Subscription[],
+        data: filteredData,
         total: count || 0
       };
     },

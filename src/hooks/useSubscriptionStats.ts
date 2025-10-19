@@ -14,13 +14,15 @@ export function useSubscriptionStats() {
   return useQuery({
     queryKey: ['subscription-stats'],
     queryFn: async (): Promise<SubscriptionStats> => {
-      // Buscar todas as assinaturas com seus planos
+      // Buscar todas as assinaturas com seus planos (excluindo times de sistema)
       const { data: subscriptions, error } = await supabase
         .from('team_subscriptions')
         .select(`
           status,
-          subscription_plans!inner(price)
-        `);
+          subscription_plans!inner(price),
+          teams!inner(is_system)
+        `)
+        .eq('teams.is_system', false);
 
       if (error) throw error;
 

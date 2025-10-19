@@ -182,7 +182,9 @@ export function SubscriptionManagementTab() {
                   </CardContent>
                 </Card>
               ) : (
-                subscriptionsData?.data.map((sub) => (
+                subscriptionsData?.data
+                  .filter(sub => !sub.teams.is_system) // Excluir times de sistema como SIGE
+                  .map((sub) => (
                   <Card key={sub.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
@@ -192,12 +194,61 @@ export function SubscriptionManagementTab() {
                             {sub.subscription_plans.display_name}
                           </p>
                         </div>
+                        {getStatusBadge(sub.status)}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Vencimento:</span>
+                          <span>
+                            {format(
+                              new Date(sub.trial_ends_at || sub.current_period_ends_at),
+                              'dd/MM/yyyy',
+                              { locale: ptBR }
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Valor:</span>
+                          <span className="font-semibold">R$ {sub.subscription_plans.price.toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      {/* Botões principais visíveis para mobile */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedSubscriptionId(sub.id);
+                            setDetailsOpen(true);
+                          }}
+                          className="w-full"
+                        >
+                          Ver Detalhes
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedSubscriptionId(sub.id);
+                            setChangePlanOpen(true);
+                          }}
+                          className="w-full"
+                        >
+                          Mudar Plano
+                        </Button>
+                      </div>
+
+                      {/* Menu adicional com mais opções */}
+                      {(sub.status === 'trial' || sub.status === 'trial_expired' || sub.status === 'canceled' || sub.status === 'past_due') && (
                         <div className="relative z-50">
                           <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">Abrir menu</span>
+                              <Button variant="ghost" size="sm" className="w-full">
+                                <MoreVertical className="h-4 w-4 mr-2" />
+                                Mais Opções
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent 
@@ -205,14 +256,6 @@ export function SubscriptionManagementTab() {
                               className="w-56 z-[99999] bg-popover border shadow-md"
                               sideOffset={5}
                             >
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedSubscriptionId(sub.id);
-                                  setDetailsOpen(true);
-                                }}
-                              >
-                                Ver Detalhes
-                              </DropdownMenuItem>
                               {(sub.status === 'trial' || sub.status === 'trial_expired') && (
                                 <DropdownMenuItem
                                   onClick={() => {
@@ -223,14 +266,6 @@ export function SubscriptionManagementTab() {
                                   Estender Trial
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedSubscriptionId(sub.id);
-                                  setChangePlanOpen(true);
-                                }}
-                              >
-                                Mudar Plano
-                              </DropdownMenuItem>
                               {(sub.status === 'canceled' || sub.status === 'trial_expired' || sub.status === 'past_due') && (
                                 <DropdownMenuItem
                                   onClick={() => {
@@ -243,27 +278,7 @@ export function SubscriptionManagementTab() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Status:</span>
-                        {getStatusBadge(sub.status)}
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Vencimento:</span>
-                        <span>
-                          {format(
-                            new Date(sub.trial_ends_at || sub.current_period_ends_at),
-                            'dd/MM/yyyy',
-                            { locale: ptBR }
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Valor:</span>
-                        <span className="font-semibold">R$ {sub.subscription_plans.price.toFixed(2)}</span>
-                      </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))
@@ -304,7 +319,9 @@ export function SubscriptionManagementTab() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    subscriptionsData?.data.map((sub) => (
+                    subscriptionsData?.data
+                      .filter(sub => !sub.teams.is_system) // Excluir times de sistema como SIGE
+                      .map((sub) => (
                       <TableRow key={sub.id}>
                         <TableCell className="font-medium">{sub.teams.name}</TableCell>
                         <TableCell>{sub.subscription_plans.display_name}</TableCell>

@@ -1498,6 +1498,7 @@ export type Database = {
           default_overtime_threshold_hours: number | null
           id: string
           invite_code: string
+          is_system: boolean
           name: string
           owner_id: string
           updated_at: string | null
@@ -1509,6 +1510,7 @@ export type Database = {
           default_overtime_threshold_hours?: number | null
           id?: string
           invite_code: string
+          is_system?: boolean
           name: string
           owner_id: string
           updated_at?: string | null
@@ -1520,6 +1522,7 @@ export type Database = {
           default_overtime_threshold_hours?: number | null
           id?: string
           invite_code?: string
+          is_system?: boolean
           name?: string
           owner_id?: string
           updated_at?: string | null

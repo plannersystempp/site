@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ export function ChangePlanDialog({
   teamName,
   onSuccess
 }: ChangePlanDialogProps) {
+  const queryClient = useQueryClient();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState(currentPlanId);
   const [loading, setLoading] = useState(false);
@@ -74,10 +76,19 @@ export function ChangePlanDialog({
   };
 
   const handleChangePlan = async () => {
-    if (!selectedPlanId || selectedPlanId === currentPlanId) {
+    if (!selectedPlanId) {
+      toast({
+        title: 'Atenção',
+        description: 'Por favor, selecione um plano.',
+        variant: 'default'
+      });
+      return;
+    }
+
+    if (selectedPlanId === currentPlanId) {
       toast({
         title: 'Aviso',
-        description: 'Selecione um plano diferente do atual.',
+        description: 'Você selecionou o plano atual. Escolha um plano diferente.',
         variant: 'default'
       });
       return;
@@ -95,18 +106,24 @@ export function ChangePlanDialog({
 
       if (error) throw error;
 
+      const selectedPlan = plans.find(p => p.id === selectedPlanId);
+      
       toast({
-        title: 'Sucesso',
-        description: `Plano da equipe "${teamName}" alterado com sucesso!`,
+        title: 'Sucesso!',
+        description: `Plano da equipe "${teamName}" alterado para "${selectedPlan?.display_name}" com sucesso!`,
       });
+
+      // Refetch das queries de assinaturas para refletir a mudança imediatamente
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-stats'] });
 
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
       console.error('Erro ao mudar plano:', error);
       toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível alterar o plano.',
+        title: 'Erro ao alterar plano',
+        description: error.message || 'Não foi possível alterar o plano. Tente novamente.',
         variant: 'destructive'
       });
     } finally {
@@ -137,30 +154,35 @@ export function ChangePlanDialog({
                 {plans.map((plan) => (
                   <div
                     key={plan.id}
-                    className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-colors ${
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    className={`flex items-center space-x-3 border rounded-lg p-4 cursor-pointer transition-all ${
                       selectedPlanId === plan.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
+                        ? 'border-primary bg-primary/10 shadow-sm'
+                        : 'border-border hover:border-primary/50 hover:bg-accent/50'
                     } ${plan.id === currentPlanId ? 'opacity-60' : ''}`}
                   >
-                    <RadioGroupItem value={plan.id} id={plan.id} />
+                    <RadioGroupItem 
+                      value={plan.id} 
+                      id={plan.id}
+                      className="pointer-events-none"
+                    />
                     <Label
                       htmlFor={plan.id}
                       className="flex-1 cursor-pointer"
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
                           <p className="font-semibold">
                             {plan.display_name}
                             {plan.id === currentPlanId && (
-                              <span className="ml-2 text-xs text-muted-foreground">(Atual)</span>
+                              <span className="ml-2 text-xs text-muted-foreground">(Plano Atual)</span>
                             )}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {plan.description}
                           </p>
                         </div>
-                        <p className="text-lg font-bold">
+                        <p className="text-lg font-bold whitespace-nowrap">
                           {plan.price === 0 ? 'Grátis' : `R$ ${plan.price.toFixed(2)}`}
                         </p>
                       </div>
@@ -182,7 +204,7 @@ export function ChangePlanDialog({
           </Button>
           <Button
             onClick={handleChangePlan}
-            disabled={loading || selectedPlanId === currentPlanId}
+            disabled={loading || !selectedPlanId || selectedPlanId === currentPlanId}
           >
             {loading ? (
               <>
