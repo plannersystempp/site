@@ -181,14 +181,18 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
       <div>
         <Label htmlFor="shirt_size">Tamanho da Camisa</Label>
         <Select 
-          value={formData.shirt_size || ''} 
-          onValueChange={(value) => onFieldChange('shirt_size', value || '')}
+          value={formData.shirt_size || 'NOT_SELECTED'} 
+          onValueChange={(value) => {
+            // Se selecionou "NOT_SELECTED", converter para string vazia
+            // O backend já tem lógica para converter '' → null
+            onFieldChange('shirt_size', value === 'NOT_SELECTED' ? '' : value);
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder="Não informado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Não informado</SelectItem>
+            <SelectItem value="NOT_SELECTED">Não informado</SelectItem>
             <SelectItem value="PP">PP - Extra Pequeno</SelectItem>
             <SelectItem value="P">P - Pequeno</SelectItem>
             <SelectItem value="M">M - Médio</SelectItem>
