@@ -295,7 +295,7 @@ export const AppSidebar = () => {
                 <DropdownMenuContent 
                   side="top" 
                   align="center" 
-                  className="w-[--radix-popper-anchor-width] z-[9999]"
+                  className="w-[--radix-popper-anchor-width] z-[1000]"
                   sideOffset={12}
                   collisionPadding={16}
                 >
@@ -306,10 +306,12 @@ export const AppSidebar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <div className="p-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Tema</span>
-                      <ThemeToggle />
+                  <div className="px-2 py-1.5 text-sm">
+                    <div className="font-medium mb-2">Tema</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setTheme('light')}>Claro</Button>
+                      <Button variant="outline" size="sm" onClick={() => setTheme('dark')}>Escuro</Button>
+                      <Button variant="outline" size="sm" onClick={() => setTheme('system')}>Sistema</Button>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
