@@ -1,15 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Mail, Phone, User, DollarSign, Briefcase } from 'lucide-react';
+import { Pencil, Trash2, Mail, Phone, User, DollarSign, Briefcase, History } from 'lucide-react';
 import { formatCurrency, formatPhoneNumber } from '@/utils/formatters';
 import type { Personnel, Func } from '@/contexts/EnhancedDataContext';
 import { FreelancerAverageRating } from './FreelancerAverageRating';
 import { FreelancerRatingDialog } from './FreelancerRatingDialog';
 import { WhatsAppButton } from './WhatsAppButton';
+import { PersonnelHistoryDialog } from './PersonnelHistory/PersonnelHistoryDialog';
 
 interface PersonnelListViewProps {
   personnel: Personnel[];
@@ -30,6 +31,8 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
 }) => {
   const { userRole } = useTeam();
   const isCoordinator = userRole === 'coordinator';
+  const [historyPersonnel, setHistoryPersonnel] = useState<Personnel | null>(null);
+  
   return (
     <div className="space-y-3 overflow-x-auto">
       {personnel.map((person) => (
@@ -139,8 +142,17 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                   )}
                 </div>
 
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setHistoryPersonnel(person)}
+                  title="Ver Histórico"
+                >
+                  <History className="w-4 h-4" />
+                </Button>
                 {canEdit(person) && (
-                  <div className="flex gap-1">
+                  <>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -155,8 +167,9 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                  </div>
+                  </>
                 )}
+              </div>
               </div>
             </div>
 
@@ -211,24 +224,34 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                   </div>
                 </div>
                 
-                {canEdit(person) && (
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(person)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete(person.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setHistoryPersonnel(person)}
+                    title="Ver Histórico"
+                  >
+                    <History className="w-4 h-4" />
+                  </Button>
+                  {canEdit(person) && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(person)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(person.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Functions display for mobile */}
@@ -301,6 +324,16 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
           </CardContent>
         </Card>
       ))}
+
+      {historyPersonnel && (
+        <PersonnelHistoryDialog
+          open={!!historyPersonnel}
+          onOpenChange={(open) => {
+            if (!open) setHistoryPersonnel(null);
+          }}
+          personnel={historyPersonnel}
+        />
+      )}
     </div>
   );
 };
