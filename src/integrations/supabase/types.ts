@@ -1959,7 +1959,7 @@ export type Database = {
       }
       sync_personnel_photos: {
         Args: Record<PropertyKey, never>
-        Returns: Json
+        Returns: number
       }
       update_event_statuses: {
         Args: Record<PropertyKey, never>

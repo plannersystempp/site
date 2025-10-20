@@ -493,26 +493,22 @@ export default function SuperAdmin() {
                   onClick={async () => {
                     try {
                       const { data, error } = await supabase.rpc('sync_personnel_photos');
-                      
                       if (error) throw error;
-                      
-                      const result = data as { success: boolean; message: string; updated_count: number };
-                      
+
+                      const updated = (data ?? 0) as number;
                       toast({
                         title: "✅ Sincronização concluída",
-                        description: result.message,
+                        description: `${updated} registro(s) atualizado(s).`,
                       });
                     } catch (error: any) {
                       toast({
-                        title: "Erro",
-                        description: error.message || "Falha ao sincronizar fotos",
-                        variant: "destructive"
+                        title: "Erro na sincronização",
+                        description: error?.message || 'Falha ao sincronizar fotos',
+                        variant: "destructive",
                       });
                     }
                   }}
-                  className="flex items-center gap-2"
                 >
-                  <Users className="h-4 w-4" />
                   Sincronizar Fotos de Pessoal
                 </Button>
               </div>
