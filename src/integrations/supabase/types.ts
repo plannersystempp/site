@@ -1957,6 +1957,10 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: Json
       }
+      sync_personnel_photos: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       update_event_statuses: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -167,7 +167,7 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
     setUploadStatus('uploading');
     setLastUploadTime(now);
     
-    // FASE 1: Toast com progresso
+    // FASE 1: Toast com progresso melhorado
     const uploadToast = toast({
       title: '📤 Enviando foto...',
       description: 'Aguarde enquanto processamos sua imagem.',
@@ -223,10 +223,10 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
       onPhotoChange(publicUrl);
       setUploadStatus('success');
 
-      // FASE 1: Feedback de sucesso com instruções
+      // FASE 1: Feedback de sucesso com instruções claras
       toast({
-        title: '✅ Foto carregada com sucesso!',
-        description: '⚠️ Importante: Clique em "Salvar" abaixo para confirmar a alteração.',
+        title: '✅ Foto carregada!',
+        description: 'A foto só aparecerá nos cards após clicar em "Salvar" abaixo.',
         duration: 6000
       });
     } catch (error: any) {

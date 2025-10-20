@@ -48,10 +48,20 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                     alt={person.name}
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                     onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = 'none';
-                      const fallback = target.nextElementSibling as HTMLElement;
-                      if (fallback) fallback.style.display = 'flex';
+                      const img = e.currentTarget;
+                      // Primeira tentativa: cache-busting
+                      if (!img.dataset.retry) {
+                        img.dataset.retry = '1';
+                        const cacheBustUrl = person.photo_url!.includes('?') 
+                          ? person.photo_url! + '&v=' + Date.now() 
+                          : person.photo_url! + '?v=' + Date.now();
+                        img.src = cacheBustUrl;
+                      } else {
+                        // Segunda tentativa falhou: mostrar fallback
+                        img.style.display = 'none';
+                        const fallback = img.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }
                     }}
                   />
                 ) : null}
@@ -184,10 +194,20 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                       alt={person.name}
                       className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                       onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        const fallback = target.nextElementSibling as HTMLElement;
-                        if (fallback) fallback.style.display = 'flex';
+                        const img = e.currentTarget;
+                        // Primeira tentativa: cache-busting
+                        if (!img.dataset.retry) {
+                          img.dataset.retry = '1';
+                          const cacheBustUrl = person.photo_url!.includes('?') 
+                            ? person.photo_url! + '&v=' + Date.now() 
+                            : person.photo_url! + '?v=' + Date.now();
+                          img.src = cacheBustUrl;
+                        } else {
+                          // Segunda tentativa falhou: mostrar fallback
+                          img.style.display = 'none';
+                          const fallback = img.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }
                       }}
                     />
                   ) : null}

@@ -478,6 +478,47 @@ export default function SuperAdmin() {
             </CardContent>
           </Card>
 
+          {/* Sync Photos Tool */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ferramentas de Manutenção</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Sincronizar fotos órfãs no storage com os registros de pessoal
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={async () => {
+                    try {
+                      const { data, error } = await supabase.rpc('sync_personnel_photos');
+                      
+                      if (error) throw error;
+                      
+                      const result = data as { success: boolean; message: string; updated_count: number };
+                      
+                      toast({
+                        title: "✅ Sincronização concluída",
+                        description: result.message,
+                      });
+                    } catch (error: any) {
+                      toast({
+                        title: "Erro",
+                        description: error.message || "Falha ao sincronizar fotos",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Sincronizar Fotos de Pessoal
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Actions */}
           {selectedUsers.length > 0 && (
             <Card>
