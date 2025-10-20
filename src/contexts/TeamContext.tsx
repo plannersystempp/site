@@ -29,6 +29,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Super admins não precisam de equipe ativa
     if (user.role === 'superadmin') {
+      console.log('[TeamContext] User is superadmin, no active team needed');
       setActiveTeam(null);
       setUserRole('superadmin');
       setLoading(false);
@@ -37,32 +38,57 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setLoading(true);
     try {
-      // Use new approach - get teams that the user can access (via RLS)
-      const { data: teams, error } = await supabase
-        .from('teams')
-        .select('*');
+      console.log('[TeamContext] Refreshing teams for user:', user.id, user.email);
+      
+      // First, try to get approved memberships with team data
+      const { data: memberships, error: membershipError } = await supabase
+        .from('team_members')
+        .select('joined_at, role, status, teams!inner(*)')
+        .eq('user_id', user.id)
+        .eq('status', 'approved')
+        .order('joined_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching teams:', error);
+      if (membershipError) {
+        console.error('[TeamContext] Error fetching memberships:', membershipError);
+      }
+
+      // If we have approved memberships, use the most recent one
+      if (memberships && memberships.length > 0) {
+        const team = memberships[0].teams as unknown as Team;
+        const role = memberships[0].role;
+        
+        console.log('[TeamContext] Found approved membership - Team:', team.name, 'Role:', role);
+        setActiveTeam(team);
+        setUserRole(role);
+        setLoading(false);
+        return;
+      }
+
+      console.log('[TeamContext] No approved memberships found, checking if user is team owner');
+
+      // Fallback: Check if user owns any teams
+      const { data: ownedTeams, error: ownedError } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (ownedError) {
+        console.error('[TeamContext] Error fetching owned teams:', ownedError);
         setActiveTeam(null);
         setUserRole(null);
-      } else if (teams && teams.length > 0) {
-        // In single-team mode, take the first (and should be only) team
-        const team = teams[0];
+      } else if (ownedTeams && ownedTeams.length > 0) {
+        const team = ownedTeams[0];
+        console.log('[TeamContext] User is owner of team:', team.name);
         setActiveTeam(team);
-        
-        // Get user role in this team using the RPC function
-        const { data: roleData } = await supabase
-          .rpc('get_user_role_in_team', { check_team_id: team.id });
-        
-        setUserRole(roleData || 'user');
+        setUserRole('admin'); // Owners are always admin
       } else {
-        // No teams found - user might not be approved yet or no team access
+        console.log('[TeamContext] No teams found for user - no membership or ownership');
         setActiveTeam(null);
         setUserRole(null);
       }
     } catch (error) {
-      console.error('Error fetching user team:', error);
+      console.error('[TeamContext] Error in refreshTeams:', error);
       setActiveTeam(null);
       setUserRole(null);
     } finally {

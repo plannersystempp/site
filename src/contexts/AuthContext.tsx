@@ -1,9 +1,10 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 import type { AppUser, AuthContextType } from '@/types/auth';
 import { loginUser, signupUser, logoutUser } from '@/services/authService';
+import { queryClient } from '@/providers/QueryProvider';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -19,6 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const previousUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -27,6 +29,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Auth state change:', event, session?.user?.email);
       
       if (!mounted) return;
+
+      const currentUserId = session?.user?.id || null;
+      const previousUserId = previousUserIdRef.current;
+
+      // Detect user change or signout
+      if (previousUserId !== currentUserId) {
+        console.log('[AuthContext] User changed from', previousUserId, 'to', currentUserId);
+        console.log('[AuthContext] Clearing React Query cache');
+        queryClient.clear();
+        
+        // Clear any session storage items related to the app
+        try {
+          Object.keys(sessionStorage)
+            .filter(k => k.startsWith('sige-'))
+            .forEach(k => sessionStorage.removeItem(k));
+        } catch (e) {
+          console.error('[AuthContext] Error clearing sessionStorage:', e);
+        }
+      }
+
+      // Update the ref for next comparison
+      previousUserIdRef.current = currentUserId;
 
       // Only sync state updates here to avoid deadlocks
       setSession(session);
