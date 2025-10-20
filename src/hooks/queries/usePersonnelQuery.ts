@@ -29,6 +29,16 @@ interface PersonnelFormData {
   functionIds: string[];
   primaryFunctionId?: string;
   pixKey?: string;
+  photo_url?: string;
+  shirt_size?: string;
+  address_zip_code?: string;
+  address_street?: string;
+  address_number?: string;
+  address_complement?: string;
+  address_neighborhood?: string;
+  address_city?: string;
+  address_state?: string;
+  phone_secondary?: string;
 }
 
 // Fetch personnel for a team with functions (OTIMIZADO - FASE 3)
@@ -111,10 +121,17 @@ export const useCreatePersonnelMutation = () => {
 
       const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
       
+      // Sanitize shirt_size: convert empty string to null
+      const dataToInsert = {
+        ...sanitizedData,
+        shirt_size: sanitizedData.shirt_size?.trim() || null,
+        team_id: activeTeam.id
+      };
+      
       // Create personnel record
       const { data: personnelResult, error: personnelError } = await supabase
         .from('personnel')
-        .insert([{ ...sanitizedData, team_id: activeTeam.id }])
+        .insert([dataToInsert])
         .select()
         .single();
 
@@ -186,10 +203,18 @@ export const useUpdatePersonnelMutation = () => {
     mutationFn: async ({ id, ...personnelData }: { id: string } & Partial<PersonnelFormData>) => {
       const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
 
+      // Sanitize shirt_size: convert empty string to null
+      const dataToUpdate = {
+        ...sanitizedData,
+        ...(sanitizedData.shirt_size !== undefined && {
+          shirt_size: sanitizedData.shirt_size?.trim() || null
+        })
+      };
+
       // Update personnel record
       const { data, error } = await supabase
         .from('personnel')
-        .update(sanitizedData)
+        .update(dataToUpdate)
         .eq('id', id)
         .eq('team_id', activeTeam!.id)
         .select()

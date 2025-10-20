@@ -6,6 +6,7 @@ import { Edit, Package } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { EventSupplierCost } from '@/contexts/data/types';
 import { formatDateBR } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/formatters';
 
 interface SupplierCostCardProps {
   cost: EventSupplierCost;
@@ -63,21 +64,21 @@ export const SupplierCostCard: React.FC<SupplierCostCardProps> = ({ cost, onEdit
           </div>
           <div>
             <p className="text-muted-foreground">Preço Unit.</p>
-            <p className="font-medium">R$ {cost.unit_price.toFixed(2)}</p>
+            <p className="font-medium">{formatCurrency(cost.unit_price)}</p>
           </div>
         </div>
 
         <div className="pt-2 border-t">
           <div className="flex justify-between items-center">
             <span className="text-xs text-muted-foreground">Total</span>
-            <span className="text-lg font-bold">R$ {cost.total_amount.toFixed(2)}</span>
+            <span className="text-lg font-bold">{formatCurrency(cost.total_amount)}</span>
           </div>
         </div>
 
         <div className="flex justify-between items-center pt-2 border-t">
           {getStatusBadge()}
           <span className="text-xs text-muted-foreground">
-            Pago: R$ {cost.paid_amount.toFixed(2)}
+            Pago: {formatCurrency(cost.paid_amount)}
           </span>
         </div>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import type { EventSupplierCost } from '@/contexts/data/types';
+import { formatCurrency } from '@/utils/formatters';
 
 interface SupplierCostSummaryProps {
   costs: EventSupplierCost[];
@@ -19,21 +20,21 @@ export const SupplierCostSummary: React.FC<SupplierCostSummaryProps> = ({ costs 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
         <CardContent className="pt-6">
-          <div className="text-2xl font-bold">R$ {totalCost.toFixed(2)}</div>
+          <div className="text-2xl font-bold">{formatCurrency(totalCost)}</div>
           <p className="text-xs text-muted-foreground">Custo Total</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="pt-6">
-          <div className="text-2xl font-bold text-green-600">R$ {totalPaid.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-green-600">{formatCurrency(totalPaid)}</div>
           <p className="text-xs text-muted-foreground">Total Pago</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="pt-6">
-          <div className="text-2xl font-bold text-orange-600">R$ {totalPending.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalPending)}</div>
           <p className="text-xs text-muted-foreground">Pendente</p>
         </CardContent>
       </Card>
