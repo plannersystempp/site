@@ -1850,7 +1850,9 @@ export type Database = {
           id: string
           name: string
           phone_masked: string
+          photo_url: string
           salary_range: string
+          shirt_size: string
           team_id: string
           type: string
         }[]

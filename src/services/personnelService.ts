@@ -8,6 +8,8 @@ export interface PersonnelRedacted {
   name: string;
   type: 'fixo' | 'freelancer';
   created_at: string;
+  photo_url?: string;
+  shirt_size?: string;
   email_masked?: string;
   phone_masked?: string;
   cpf_masked?: string;
