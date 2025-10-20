@@ -55,25 +55,23 @@ export const usePayrollData = (selectedEventId: string) => {
       try {
         setLoading(true);
 
+        // OTIMIZADO - SELECT específico ao invés de *
         const [allocationsData, workLogsData, closingsData, absencesData] = await Promise.all([
           supabase
             .from('personnel_allocations')
-            .select('*')
+            .select('id, event_id, personnel_id, division_id, team_id, work_days, event_specific_cache, function_name, created_at')
             .eq('event_id', selectedEventId),
           supabase
             .from('work_records')
-            .select('*')
+            .select('id, event_id, employee_id, work_date, hours_worked, overtime_hours, total_pay, team_id, created_at')
             .eq('event_id', selectedEventId),
           supabase
             .from('payroll_closings')
-            .select('*')
+            .select('id, event_id, personnel_id, team_id, total_amount_paid, paid_at, paid_by_id, notes, created_at')
             .eq('event_id', selectedEventId),
           supabase
             .from('absences')
-            .select(`
-              *,
-              personnel_allocations!inner(event_id)
-            `)
+            .select('id, assignment_id, team_id, work_date, notes, logged_by_id, created_at, personnel_allocations!inner(event_id)')
             .eq('personnel_allocations.event_id', selectedEventId)
         ]);
 

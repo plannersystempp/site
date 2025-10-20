@@ -1,4 +1,8 @@
-const CACHE_NAME = 'sige-v2.4.0';
+// FASE 6: PWA com Cache Otimizado
+const CACHE_NAME = 'sige-v2.5.0-optimized';
+const API_CACHE_NAME = 'sige-api-cache-v1';
+const API_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
 const urlsToCache = [
   '/manifest.json',
   '/icons/icon-192x192.png',
@@ -21,44 +25,84 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Fetch event - network first for HTML, cache first for assets
+// Fetch event - estratégia otimizada por tipo de recurso
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // HTML - Network first
   if (event.request.destination === 'document' || event.request.url.includes('index.html')) {
-    // Network first for HTML documents
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // Cache the response
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
           });
           return response;
         })
-        .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(event.request);
-        })
+        .catch(() => caches.match(event.request))
     );
-  } else {
-    // Cache first for other resources
+  }
+  // API Supabase - Cache com TTL
+  else if (url.hostname.includes('supabase.co') && event.request.method === 'GET') {
     event.respondWith(
-      caches.match(event.request)
-        .then((response) => {
-          return response || fetch(event.request);
-        })
+      caches.open(API_CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        
+        if (cached) {
+          const cachedTime = new Date(cached.headers.get('sw-cached-time') || 0).getTime();
+          const now = Date.now();
+          
+          // Se cache ainda válido, retornar
+          if (now - cachedTime < API_CACHE_TTL) {
+            return cached;
+          }
+        }
+        
+        // Buscar da rede
+        try {
+          const response = await fetch(event.request);
+          const clonedResponse = response.clone();
+          
+          // Adicionar timestamp ao header antes de cachear
+          const headers = new Headers(clonedResponse.headers);
+          headers.append('sw-cached-time', new Date().toISOString());
+          
+          const cachedResponse = new Response(clonedResponse.body, {
+            status: clonedResponse.status,
+            statusText: clonedResponse.statusText,
+            headers: headers
+          });
+          
+          cache.put(event.request, cachedResponse);
+          return response;
+        } catch (error) {
+          // Fallback para cache em caso de erro
+          return cached || new Response('Offline', { status: 503 });
+        }
+      })
+    );
+  }
+  // Assets estáticos - Cache first
+  else {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request);
+      })
     );
   }
 });
 
-// Activate event - claim clients immediately
+// Activate event - limpar caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
+            // Manter apenas os caches atuais
+            if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
+              console.log('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })

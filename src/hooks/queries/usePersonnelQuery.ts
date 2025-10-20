@@ -31,7 +31,7 @@ interface PersonnelFormData {
   pixKey?: string;
 }
 
-// Fetch personnel for a team with functions
+// Fetch personnel for a team with functions (OTIMIZADO - FASE 3)
 const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]> => {
   console.log('Fetching personnel with functions for team:', teamId);
   
@@ -40,19 +40,10 @@ const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]>
     const personnelData = await fetchPersonnelByRole(teamId);
     console.log('Personnel data fetched:', personnelData.length, 'records');
     
-    // Fetch personnel functions associations
+    // Fetch personnel functions associations - SELECT específico
     const { data: personnelFunctionsData, error: personnelFunctionsError } = await supabase
       .from('personnel_functions')
-      .select(`
-        personnel_id,
-        function_id,
-        is_primary,
-        functions:function_id (
-          id,
-          name,
-          description
-        )
-      `)
+      .select('personnel_id, function_id, is_primary, functions:function_id(id, name, description)')
       .eq('team_id', teamId);
 
     if (personnelFunctionsError) {
@@ -94,7 +85,7 @@ const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]>
   }
 };
 
-// Hook to get personnel for the active team
+// Hook to get personnel for the active team (OTIMIZADO - cache 5 min)
 export const usePersonnelQuery = () => {
   const { user } = useAuth();
   const { activeTeam } = useTeam();
@@ -103,6 +94,8 @@ export const usePersonnelQuery = () => {
     queryKey: personnelKeys.list(activeTeam?.id),
     queryFn: () => fetchPersonnelWithFunctions(activeTeam!.id),
     enabled: !!user && !!activeTeam?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    gcTime: 10 * 60 * 1000, // 10 minutos no cache
   });
 };
 

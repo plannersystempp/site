@@ -14,12 +14,16 @@ export const eventKeys = {
   detail: (id: string) => [...eventKeys.details(), id] as const,
 };
 
-// Fetch events for a team
+// OTIMIZADO - Fetch eventos dos últimos 12 meses
 const fetchEvents = async (teamId: string): Promise<Event[]> => {
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
   const { data, error } = await supabase
     .from('events')
-    .select('*')
+    .select('id, team_id, name, description, start_date, end_date, status, created_at, location, client_contact_phone, payment_due_date, setup_start_date, setup_end_date, event_revenue')
     .eq('team_id', teamId)
+    .gte('created_at', twelveMonthsAgo.toISOString())
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -37,7 +41,7 @@ const fetchEvents = async (teamId: string): Promise<Event[]> => {
   }));
 };
 
-// Hook to get events for the active team
+// Hook to get events for the active team (OTIMIZADO - cache 3 min)
 export const useEventsQuery = () => {
   const { user } = useAuth();
   const { activeTeam } = useTeam();
@@ -46,6 +50,8 @@ export const useEventsQuery = () => {
     queryKey: eventKeys.list(activeTeam?.id),
     queryFn: () => fetchEvents(activeTeam!.id),
     enabled: !!user && !!activeTeam?.id,
+    staleTime: 3 * 60 * 1000, // 3 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
   });
 };
 
