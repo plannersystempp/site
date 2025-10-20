@@ -323,6 +323,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
               loading={loading}
               onCancel={onClose}
               onSubmit={() => handleSubmit(new Event('submit') as any)}
+              hasUnsavedPhoto={formData.photo_url !== (personnel?.photo_url || '')}
             />
           </form>
         </CardContent>

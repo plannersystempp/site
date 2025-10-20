@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Camera, Upload, X, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -22,9 +23,12 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
   disabled = false
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle');
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhotoUrl || null);
+  const [localBlobUrl, setLocalBlobUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
   const [isInternalUpload, setIsInternalUpload] = useState(false);
+  const [lastUploadTime, setLastUploadTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync previewUrl with currentPhotoUrl when it changes (e.g., when editing existing personnel)
@@ -132,6 +136,17 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // FASE 4: Throttle - prevenir uploads múltiplos rápidos
+    const now = Date.now();
+    if (now - lastUploadTime < 3000) {
+      toast({
+        title: 'Aguarde',
+        description: 'Processando upload anterior. Aguarde alguns segundos.',
+        variant: 'default'
+      });
+      return;
+    }
+
     // Validar arquivo
     const validation = validateFile(file);
     if (!validation.valid) {
@@ -143,9 +158,31 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
       return;
     }
 
+    // FASE 2: Preview otimista - mostrar preview local imediato
+    const localUrl = URL.createObjectURL(file);
+    setLocalBlobUrl(localUrl);
+    setPreviewUrl(localUrl);
+    
     setUploading(true);
+    setUploadStatus('uploading');
+    setLastUploadTime(now);
+    
+    // FASE 1: Toast com progresso
+    const uploadToast = toast({
+      title: '📤 Enviando foto...',
+      description: 'Aguarde enquanto processamos sua imagem.',
+      duration: 10000
+    });
 
     try {
+      // FASE 1: Status de processamento
+      setUploadStatus('processing');
+      uploadToast.update?.({
+        id: uploadToast.id,
+        title: '⚙️ Processando imagem...',
+        description: 'Otimizando e enviando para o servidor.'
+      });
+
       // Comprimir imagem
       const compressedBlob = await compressImage(file);
 
@@ -174,24 +211,42 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
         .from('personnel-photos')
         .getPublicUrl(fileName);
 
+      // FASE 2: Limpar blob local e usar URL real
+      if (localBlobUrl) {
+        URL.revokeObjectURL(localBlobUrl);
+        setLocalBlobUrl(null);
+      }
+
       // Success: set preview and notify parent
-      setIsInternalUpload(true); // Mark as internal upload to skip validation
+      setIsInternalUpload(true);
       setPreviewUrl(publicUrl);
       onPhotoChange(publicUrl);
+      setUploadStatus('success');
 
+      // FASE 1: Feedback de sucesso com instruções
       toast({
-        title: 'Foto carregada',
-        description: 'Foto de perfil atualizada com sucesso!'
+        title: '✅ Foto carregada com sucesso!',
+        description: '⚠️ Importante: Clique em "Salvar" abaixo para confirmar a alteração.',
+        duration: 6000
       });
     } catch (error: any) {
       console.error('Error uploading photo:', error);
+      
+      // FASE 2: Limpar blob local em caso de erro
+      if (localBlobUrl) {
+        URL.revokeObjectURL(localBlobUrl);
+        setLocalBlobUrl(null);
+      }
+      setPreviewUrl(currentPhotoUrl || null);
+      
+      setUploadStatus('error');
       
       // Diferenciar tipos de erro
       const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
       const isStorageError = error.message?.includes('storage') || error.message?.includes('bucket');
       
       toast({
-        title: 'Erro no upload',
+        title: '❌ Erro no upload',
         description: isNetworkError 
           ? 'Problema de conexão. Verifique sua internet e tente novamente.'
           : isStorageError
@@ -201,6 +256,10 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
       });
     } finally {
       setUploading(false);
+      
+      // Reset status após 3 segundos
+      setTimeout(() => setUploadStatus('idle'), 3000);
+      
       // Limpar input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -236,8 +295,18 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
     }
   };
 
+  // FASE 3: Detectar se há mudanças não salvas
+  const hasUnsavedPhoto = previewUrl !== currentPhotoUrl;
+
   return (
     <div className="space-y-4">
+      {/* FASE 3: Badge de foto não salva */}
+      {hasUnsavedPhoto && (
+        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20">
+          ⚠️ Foto alterada - clique em "Salvar" abaixo para confirmar
+        </Badge>
+      )}
+      
       <div className="flex items-center gap-4">
         {/* Avatar Preview */}
         <Avatar className="h-20 w-20 ring-2 ring-border">
@@ -274,13 +343,18 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={disabled || uploading}
+                disabled={disabled || uploading || uploadStatus === 'processing'}
                 className="gap-2"
               >
-                {uploading ? (
+                {uploadStatus === 'uploading' ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Enviando...
+                    📤 Enviando...
+                  </>
+                ) : uploadStatus === 'processing' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    ⚙️ Processando...
                   </>
                 ) : (
                   <>
@@ -305,13 +379,18 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={disabled || uploading}
+                disabled={disabled || uploading || uploadStatus === 'processing'}
                 className="gap-2"
               >
-                {uploading ? (
+                {uploadStatus === 'uploading' ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Enviando...
+                    📤 Enviando...
+                  </>
+                ) : uploadStatus === 'processing' ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    ⚙️ Processando...
                   </>
                 ) : (
                   <>
