@@ -181,7 +181,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     if (!formData.name.trim()) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha os campos obrigatórios",
+        description: "Preencha o nome",
         variant: "destructive"
       });
       return;
@@ -190,41 +190,42 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     if (!formData.type) {
       toast({
         title: "Campos obrigatórios", 
-        description: "Preencha os campos obrigatórios",
+        description: "Selecione o tipo (fixo ou freelancer)",
         variant: "destructive"
       });
       return;
     }
     
-    if (formData.event_cache <= 0) {
+    // Permitir zero; apenas bloquear valores negativos
+    if (formData.event_cache < 0) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha os campos obrigatórios",
+        title: "Valor inválido",
+        description: "Cache do evento não pode ser negativo",
         variant: "destructive" 
       });
       return;
     }
     
-    if (formData.overtime_rate <= 0) {
+    if (formData.overtime_rate < 0) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha os campos obrigatórios",
+        title: "Valor inválido",
+        description: "Valor de hora extra não pode ser negativo",
         variant: "destructive"
       });
       return;
     }
     
-    // Validation: at least one function must be selected
-    if (formData.functionIds.length === 0) {
+    // Em criação exigimos ao menos uma função; em edição, não bloqueamos
+    if (!personnel && formData.functionIds.length === 0) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha os campos obrigatórios",
+        description: "Selecione ao menos uma função",
         variant: "destructive"
       });
       return;
     }
 
-    // Validation: when multiple functions selected, require a primary
+    // Quando houver múltiplas funções selecionadas, exigir principal
     if (formData.functionIds.length > 1 && !formData.primaryFunctionId) {
       toast({
         title: "Função principal",
@@ -234,7 +235,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       return;
     }
 
-    // Ensure primary is among selected if provided
+    // A função principal deve estar entre as selecionadas (se informada)
     if (formData.primaryFunctionId && !formData.functionIds.includes(formData.primaryFunctionId)) {
       toast({
         title: "Função principal",
@@ -244,7 +245,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       return;
     }
 
-    // Validate shirt size
+    // Validar tamanho de camisa se informado
     if (formData.shirt_size && !['PP', 'P', 'M', 'G', 'GG', 'XG'].includes(formData.shirt_size)) {
       toast({
         title: "Tamanho inválido",
@@ -261,9 +262,15 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       
       if (personnel) {
         // Update existing personnel
+        const updatePayload: any = { ...formData };
+        // Evitar remoção involuntária de funções: se o usuário não tocou nas funções
+        if (formData.functionIds.length === 0 && (personnel.functions?.length || 0) > 0) {
+          delete updatePayload.functionIds;
+          delete updatePayload.primaryFunctionId;
+        }
         await updatePersonnel.mutateAsync({
           id: personnel.id,
-          ...formData
+          ...updatePayload
         });
         personnelId = personnel.id;
       } else {
