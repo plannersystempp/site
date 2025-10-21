@@ -121,12 +121,44 @@ export const useCreatePersonnelMutation = () => {
 
       const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
       
-      // Sanitize shirt_size: convert empty string to null
-      const dataToInsert = {
+      // Helper para sanitizar strings (converter vazias em null)
+      const sanitizeString = (value: any): string | null => {
+        if (value === null || value === undefined) return null;
+        const trimmed = String(value).trim();
+        return trimmed === '' ? null : trimmed;
+      };
+      
+      // Helper para arredondar números
+      const sanitizeNumber = (value: any): number => {
+        const num = Number(value) || 0;
+        return Math.round(num * 100) / 100;
+      };
+
+      const dataToInsert: any = {
         ...sanitizedData,
-        shirt_size: sanitizedData.shirt_size?.trim() || null,
         team_id: activeTeam.id
       };
+      
+      // Sanitizar todos os campos opcionais
+      if ('cpf' in sanitizedData) dataToInsert.cpf = sanitizeString(sanitizedData.cpf);
+      if ('cnpj' in sanitizedData) dataToInsert.cnpj = sanitizeString(sanitizedData.cnpj);
+      if ('email' in sanitizedData) dataToInsert.email = sanitizeString(sanitizedData.email);
+      if ('phone' in sanitizedData) dataToInsert.phone = sanitizeString(sanitizedData.phone);
+      if ('phone_secondary' in sanitizedData) dataToInsert.phone_secondary = sanitizeString((sanitizedData as any).phone_secondary);
+      if ('photo_url' in sanitizedData) dataToInsert.photo_url = sanitizeString((sanitizedData as any).photo_url);
+      if ('shirt_size' in sanitizedData) dataToInsert.shirt_size = sanitizeString(sanitizedData.shirt_size);
+      if ('address_zip_code' in sanitizedData) dataToInsert.address_zip_code = sanitizeString((sanitizedData as any).address_zip_code);
+      if ('address_street' in sanitizedData) dataToInsert.address_street = sanitizeString((sanitizedData as any).address_street);
+      if ('address_number' in sanitizedData) dataToInsert.address_number = sanitizeString((sanitizedData as any).address_number);
+      if ('address_complement' in sanitizedData) dataToInsert.address_complement = sanitizeString((sanitizedData as any).address_complement);
+      if ('address_neighborhood' in sanitizedData) dataToInsert.address_neighborhood = sanitizeString((sanitizedData as any).address_neighborhood);
+      if ('address_city' in sanitizedData) dataToInsert.address_city = sanitizeString((sanitizedData as any).address_city);
+      if ('address_state' in sanitizedData) dataToInsert.address_state = sanitizeString((sanitizedData as any).address_state);
+      
+      // Arredondar valores financeiros
+      if ('monthly_salary' in sanitizedData) dataToInsert.monthly_salary = sanitizeNumber(sanitizedData.monthly_salary);
+      if ('event_cache' in sanitizedData) dataToInsert.event_cache = sanitizeNumber(sanitizedData.event_cache);
+      if ('overtime_rate' in sanitizedData) dataToInsert.overtime_rate = sanitizeNumber(sanitizedData.overtime_rate);
       
       // Create personnel record
       const { data: personnelResult, error: personnelError } = await supabase
@@ -203,13 +235,41 @@ export const useUpdatePersonnelMutation = () => {
     mutationFn: async ({ id, ...personnelData }: { id: string } & Partial<PersonnelFormData>) => {
       const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
 
-      // Sanitize shirt_size: convert empty string to null
-      const dataToUpdate = {
-        ...sanitizedData,
-        ...(sanitizedData.shirt_size !== undefined && {
-          shirt_size: sanitizedData.shirt_size?.trim() || null
-        })
+      // Helper para sanitizar strings (converter vazias em null)
+      const sanitizeString = (value: any): string | null => {
+        if (value === null || value === undefined) return null;
+        const trimmed = String(value).trim();
+        return trimmed === '' ? null : trimmed;
       };
+      
+      // Helper para arredondar números
+      const sanitizeNumber = (value: any): number => {
+        const num = Number(value) || 0;
+        return Math.round(num * 100) / 100;
+      };
+
+      const dataToUpdate: any = { ...sanitizedData };
+      
+      // Sanitizar apenas os campos presentes
+      if ('cpf' in sanitizedData) dataToUpdate.cpf = sanitizeString(sanitizedData.cpf);
+      if ('cnpj' in sanitizedData) dataToUpdate.cnpj = sanitizeString(sanitizedData.cnpj);
+      if ('email' in sanitizedData) dataToUpdate.email = sanitizeString(sanitizedData.email);
+      if ('phone' in sanitizedData) dataToUpdate.phone = sanitizeString(sanitizedData.phone);
+      if ('phone_secondary' in sanitizedData) dataToUpdate.phone_secondary = sanitizeString((sanitizedData as any).phone_secondary);
+      if ('photo_url' in sanitizedData) dataToUpdate.photo_url = sanitizeString((sanitizedData as any).photo_url);
+      if ('shirt_size' in sanitizedData) dataToUpdate.shirt_size = sanitizeString(sanitizedData.shirt_size);
+      if ('address_zip_code' in sanitizedData) dataToUpdate.address_zip_code = sanitizeString((sanitizedData as any).address_zip_code);
+      if ('address_street' in sanitizedData) dataToUpdate.address_street = sanitizeString((sanitizedData as any).address_street);
+      if ('address_number' in sanitizedData) dataToUpdate.address_number = sanitizeString((sanitizedData as any).address_number);
+      if ('address_complement' in sanitizedData) dataToUpdate.address_complement = sanitizeString((sanitizedData as any).address_complement);
+      if ('address_neighborhood' in sanitizedData) dataToUpdate.address_neighborhood = sanitizeString((sanitizedData as any).address_neighborhood);
+      if ('address_city' in sanitizedData) dataToUpdate.address_city = sanitizeString((sanitizedData as any).address_city);
+      if ('address_state' in sanitizedData) dataToUpdate.address_state = sanitizeString((sanitizedData as any).address_state);
+      
+      // Arredondar valores financeiros
+      if ('monthly_salary' in sanitizedData) dataToUpdate.monthly_salary = sanitizeNumber(sanitizedData.monthly_salary);
+      if ('event_cache' in sanitizedData) dataToUpdate.event_cache = sanitizeNumber(sanitizedData.event_cache);
+      if ('overtime_rate' in sanitizedData) dataToUpdate.overtime_rate = sanitizeNumber(sanitizedData.overtime_rate);
 
       // Update personnel record
       const { data, error } = await supabase
