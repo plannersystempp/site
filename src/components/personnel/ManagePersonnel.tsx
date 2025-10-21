@@ -3,6 +3,7 @@ import { useEnhancedData, type Personnel, type Func } from '@/contexts/EnhancedD
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePersonnelQuery, useDeletePersonnelMutation } from '@/hooks/queries/usePersonnelQuery';
+import { usePersonnelRealtime } from '@/hooks/queries/usePersonnelRealtime';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, Users } from 'lucide-react';
@@ -22,6 +23,9 @@ export const ManagePersonnel: React.FC = () => {
   const { functions } = useEnhancedData();
   const { data: personnel = [] } = usePersonnelQuery();
   const deletePersonnelMutation = useDeletePersonnelMutation();
+  
+  // Hook de sincronização em tempo real
+  usePersonnelRealtime();
   const { user } = useAuth();
   const { activeTeam } = useTeam();
   const isMobile = useIsMobile();

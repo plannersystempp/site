@@ -61,9 +61,23 @@ export const isSuperAdmin = async (): Promise<boolean> => {
  * Fetch personnel data based on user role
  * - Admins and super admins get full data
  * - Coordinators get redacted data
+ * @param teamId - ID da equipe
+ * @param userRole - Role do usuário (opcional, evita RPCs se já conhecido)
  */
-export const fetchPersonnelByRole = async (teamId: string): Promise<Personnel[] | PersonnelRedacted[]> => {
+export const fetchPersonnelByRole = async (
+  teamId: string, 
+  userRole?: string | null
+): Promise<Personnel[] | PersonnelRedacted[]> => {
   try {
+    // Se userRole foi passado e é admin/superadmin, pular RPCs
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      console.log('[personnelService] Using provided role:', userRole, '- skipping RPCs');
+      return fetchFullPersonnelData(teamId);
+    }
+
+    // Se não foi passado ou é outro role, fazer as verificações
+    console.log('[personnelService] No role provided or non-admin, checking via RPC');
+    
     // Check if user is super admin first
     const isSuper = await isSuperAdmin();
     if (isSuper) {
@@ -71,9 +85,9 @@ export const fetchPersonnelByRole = async (teamId: string): Promise<Personnel[] 
     }
 
     // Check user role in team
-    const userRole = await getUserRoleInTeam(teamId);
+    const detectedRole = await getUserRoleInTeam(teamId);
     
-    if (userRole === 'admin') {
+    if (detectedRole === 'admin') {
       return fetchFullPersonnelData(teamId);
     } else {
       // Coordinators and other roles get redacted data

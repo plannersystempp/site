@@ -42,13 +42,13 @@ interface PersonnelFormData {
   phone_secondary?: string;
 }
 
-// Fetch personnel for a team with functions (OTIMIZADO - FASE 3)
-const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]> => {
-  console.log('Fetching personnel with functions for team:', teamId);
+// Fetch personnel for a team with functions (OTIMIZADO - com userRole para evitar RPCs)
+const fetchPersonnelWithFunctions = async (teamId: string, userRole?: string | null): Promise<Personnel[]> => {
+  console.log('Fetching personnel with functions for team:', teamId, 'userRole:', userRole);
   
   try {
-    // Use the personnel service that handles role-based access
-    const personnelData = await fetchPersonnelByRole(teamId);
+    // Use the personnel service that handles role-based access, passando userRole
+    const personnelData = await fetchPersonnelByRole(teamId, userRole);
     console.log('Personnel data fetched:', personnelData.length, 'records');
     
     // Fetch personnel functions associations - SELECT específico
@@ -96,26 +96,29 @@ const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]>
   }
 };
 
-// Hook to get personnel for the active team (OTIMIZADO com cache-busting nas fotos)
+// Hook to get personnel for the active team (OTIMIZADO - sem cache-busting desnecessário)
 export const usePersonnelQuery = () => {
   const { user } = useAuth();
-  const { activeTeam } = useTeam();
+  const { activeTeam, userRole } = useTeam();
 
   return useQuery({
     queryKey: personnelKeys.list(activeTeam?.id),
     queryFn: async () => {
-      const personnel = await fetchPersonnelWithFunctions(activeTeam!.id);
-      // Add cache-busting timestamp to photo URLs
+      // Passar userRole para evitar RPCs redundantes
+      const personnel = await fetchPersonnelWithFunctions(activeTeam!.id, userRole);
+      // Usar created_at como cache-bust estável (não muda em cada refetch)
       return personnel.map(p => ({
         ...p,
-        photo_url: p.photo_url ? `${p.photo_url.split('?')[0]}?v=${Date.now()}` : p.photo_url
+        photo_url: p.photo_url && p.created_at 
+          ? `${p.photo_url.split('?')[0]}?v=${new Date(p.created_at).getTime()}`
+          : p.photo_url
       }));
     },
     enabled: !!user && !!activeTeam?.id,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 5 * 60 * 1000, // 5 minutes in cache
+    staleTime: 0,
+    gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -259,8 +262,36 @@ export const useCreatePersonnelMutation = () => {
       return { previousPersonnel };
     },
     onSuccess: (data) => {
-      // Invalidate and refetch personnel data
-      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
+      // Atualização imediata no cache via setQueryData
+      const queryKey = personnelKeys.list(activeTeam!.id);
+      const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
+      
+      if (currentData && data) {
+        // Substituir o registro temporário pelo real retornado do servidor
+        const newPersonnel: Personnel = {
+          ...data,
+          functions: [],
+          primaryFunctionId: undefined,
+          type: (data.type as 'fixo' | 'freelancer') || 'freelancer',
+          shirt_size: data.shirt_size as Personnel['shirt_size'],
+        };
+        
+        queryClient.setQueryData<Personnel[]>(
+          queryKey,
+          currentData.map(p => 
+            p.id.startsWith('temp-') ? newPersonnel : p
+          ).filter(p => !p.id.startsWith('temp-') || p.id === newPersonnel.id)
+          .concat(currentData.every(p => p.id !== newPersonnel.id) ? [newPersonnel] : [])
+        );
+      }
+      
+      // Refetch em background para consolidar functions
+      setTimeout(() => {
+        queryClient.refetchQueries({ 
+          queryKey,
+          type: 'active'
+        });
+      }, 0);
       
       toast({
         title: "Sucesso",
@@ -407,9 +438,37 @@ export const useUpdatePersonnelMutation = () => {
 
       return { previousPersonnel };
     },
-    onSuccess: () => {
-      // Invalidate and refetch personnel data
-      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
+    onSuccess: (data, variables) => {
+      // Atualização imediata no cache via setQueryData
+      const queryKey = personnelKeys.list(activeTeam!.id);
+      const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
+      
+      if (currentData && data) {
+        queryClient.setQueryData<Personnel[]>(
+          queryKey,
+          currentData.map(p => 
+            p.id === variables.id
+              ? {
+                  ...data,
+                  functions: p.functions || [],
+                  primaryFunctionId: p.primaryFunctionId,
+                  type: (data.type as 'fixo' | 'freelancer') || 'freelancer',
+                  shirt_size: data.shirt_size as Personnel['shirt_size'],
+                } as Personnel
+              : p
+          )
+        );
+      }
+      
+      // Refetch em background para consolidar functions se foram alteradas
+      if (variables.functionIds !== undefined) {
+        setTimeout(() => {
+          queryClient.refetchQueries({ 
+            queryKey,
+            type: 'active'
+          });
+        }, 0);
+      }
       
       toast({
         title: "Sucesso",
