@@ -95,17 +95,26 @@ const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]>
   }
 };
 
-// Hook to get personnel for the active team (OTIMIZADO - cache 5 min)
+// Hook to get personnel for the active team (OTIMIZADO com cache-busting nas fotos)
 export const usePersonnelQuery = () => {
   const { user } = useAuth();
   const { activeTeam } = useTeam();
 
   return useQuery({
     queryKey: personnelKeys.list(activeTeam?.id),
-    queryFn: () => fetchPersonnelWithFunctions(activeTeam!.id),
+    queryFn: async () => {
+      const personnel = await fetchPersonnelWithFunctions(activeTeam!.id);
+      // Add cache-busting timestamp to photo URLs
+      return personnel.map(p => ({
+        ...p,
+        photo_url: p.photo_url ? `${p.photo_url.split('?')[0]}?v=${Date.now()}` : p.photo_url
+      }));
+    },
     enabled: !!user && !!activeTeam?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
-    gcTime: 10 * 60 * 1000, // 10 minutos no cache
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 5 * 60 * 1000, // 5 minutes in cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 };
 

@@ -44,24 +44,16 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                 {/* Photo or avatar */}
                 {person.photo_url ? (
                   <img 
-                    src={person.photo_url} 
+                    src={`${person.photo_url}?v=${Date.now()}`}
                     alt={person.name}
+                    crossOrigin="anonymous"
+                    loading="lazy"
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                     onError={(e) => {
                       const img = e.currentTarget;
-                      // Primeira tentativa: cache-busting
-                      if (!img.dataset.retry) {
-                        img.dataset.retry = '1';
-                        const cacheBustUrl = person.photo_url!.includes('?') 
-                          ? person.photo_url! + '&v=' + Date.now() 
-                          : person.photo_url! + '?v=' + Date.now();
-                        img.src = cacheBustUrl;
-                      } else {
-                        // Segunda tentativa falhou: mostrar fallback
-                        img.style.display = 'none';
-                        const fallback = img.nextElementSibling as HTMLElement;
-                        if (fallback) fallback.style.display = 'flex';
-                      }
+                      img.style.display = 'none';
+                      const fallback = img.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
                     }}
                   />
                 ) : null}
@@ -190,24 +182,16 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                   {/* Photo or avatar */}
                   {person.photo_url ? (
                     <img 
-                      src={person.photo_url} 
+                      src={`${person.photo_url}?v=${Date.now()}`}
                       alt={person.name}
+                      crossOrigin="anonymous"
+                      loading="lazy"
                       className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                       onError={(e) => {
                         const img = e.currentTarget;
-                        // Primeira tentativa: cache-busting
-                        if (!img.dataset.retry) {
-                          img.dataset.retry = '1';
-                          const cacheBustUrl = person.photo_url!.includes('?') 
-                            ? person.photo_url! + '&v=' + Date.now() 
-                            : person.photo_url! + '?v=' + Date.now();
-                          img.src = cacheBustUrl;
-                        } else {
-                          // Segunda tentativa falhou: mostrar fallback
-                          img.style.display = 'none';
-                          const fallback = img.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'flex';
-                        }
+                        img.style.display = 'none';
+                        const fallback = img.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
                       }}
                     />
                   ) : null}

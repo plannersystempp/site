@@ -39,31 +39,28 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
       return;
     }
 
-    setImageLoading(true);
-    setPreviewUrl(currentPhotoUrl || null);
-    
-    // Only validate external URLs (from database)
-    if (currentPhotoUrl && currentPhotoUrl !== previewUrl) {
+    if (currentPhotoUrl) {
+      // Add cache-busting to force fresh load
+      const urlWithTimestamp = `${currentPhotoUrl.split('?')[0]}?v=${Date.now()}`;
+      setPreviewUrl(urlWithTimestamp);
+      setImageLoading(true);
+      
+      // Validate URL
       const img = new Image();
-      const timeout = setTimeout(() => {
-        console.warn('Photo load timeout, may be CDN propagation delay');
-        setImageLoading(false);
-      }, 5000); // 5 segundos de timeout para CDN
-
+      img.crossOrigin = 'anonymous';
+      
       img.onload = () => {
-        clearTimeout(timeout);
         setImageLoading(false);
       };
       
       img.onerror = () => {
-        clearTimeout(timeout);
         console.warn('Failed to load photo from database:', currentPhotoUrl);
         setImageLoading(false);
-        setPreviewUrl(null);
       };
       
-      img.src = currentPhotoUrl;
+      img.src = urlWithTimestamp;
     } else {
+      setPreviewUrl(null);
       setImageLoading(false);
     }
   }, [currentPhotoUrl, isInternalUpload]);
@@ -319,12 +316,12 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
               <AvatarImage 
                 src={previewUrl || undefined} 
                 alt={personnelName || 'Foto'}
+                crossOrigin="anonymous"
+                loading="lazy"
+                onLoad={() => setImageLoading(false)}
                 onError={(e) => {
-                  // Only handle errors for photos from database, not fresh uploads
-                  if (!uploading && !isInternalUpload) {
-                    console.warn('Failed to display photo:', previewUrl);
-                    setPreviewUrl(null);
-                  }
+                  console.error(`Failed to load photo for ${personnelName}`);
+                  setImageLoading(false);
                 }}
               />
               <AvatarFallback className="bg-primary/10">

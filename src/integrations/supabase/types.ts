@@ -1984,6 +1984,10 @@ export type Database = {
           | { check_team_id: string; check_user_id: string }
         Returns: boolean
       }
+      is_valid_photo_url: {
+        Args: { url: string }
+        Returns: boolean
+      }
       join_team_by_invite_code: {
         Args: { p_invite_code: string }
         Returns: Json
