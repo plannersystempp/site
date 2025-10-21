@@ -158,20 +158,23 @@ export const FunctionMultiSelect: React.FC<FunctionMultiSelectProps> = ({
         <PopoverContent className="w-full p-0" align="start">
           <Command>
             <CommandInput placeholder="Pesquisar funções..." />
-            <CommandList>
-              <CommandEmpty>Nenhuma função encontrada.</CommandEmpty>
-              
-              {/* Botão para criar nova função */}
+            
+            {/* Botão para criar nova função - sempre visível */}
+            <div className="sticky top-0 z-10 bg-background border-b">
               <CommandItem
                 onSelect={() => {
                   setShowCreateDialog(true);
                   setOpen(false);
                 }}
-                className="flex items-center gap-2 cursor-pointer bg-primary/5 hover:bg-primary/10 border-b aria-selected:bg-primary/10"
+                className="flex items-center gap-2 cursor-pointer bg-primary/5 hover:bg-primary/10 aria-selected:bg-primary/10"
               >
                 <Plus className="h-4 w-4 text-primary" />
                 <span className="font-medium text-primary">Nova Função</span>
               </CommandItem>
+            </div>
+            
+            <CommandList className="max-h-[300px] overflow-y-auto">
+              <CommandEmpty>Nenhuma função encontrada.</CommandEmpty>
               
               <CommandGroup>
                 {functions.map((func) => (
