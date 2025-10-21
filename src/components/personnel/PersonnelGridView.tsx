@@ -36,9 +36,11 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
       {personnel.map((person) => {
         const personFunctions = person.functions || [];
+        // Dynamic key to force re-render on data changes
+        const cardKey = `${person.id}-${person.created_at}-${Date.now()}`;
         
         return (
-          <Card key={person.id} className="flex flex-col hover:shadow-md transition-shadow">
+          <Card key={cardKey} className="flex flex-col hover:shadow-md transition-shadow">
             <div className="p-3 sm:p-4">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">

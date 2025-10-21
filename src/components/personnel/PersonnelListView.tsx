@@ -35,8 +35,12 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
   
   return (
     <div className="space-y-3 overflow-x-auto">
-      {personnel.map((person) => (
-        <Card key={person.id} className="hover:shadow-md transition-shadow">
+      {personnel.map((person) => {
+        // Dynamic key to force re-render on data changes
+        const cardKey = `${person.id}-${person.created_at}-${Date.now()}`;
+        
+        return (
+        <Card key={cardKey} className="hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             {/* Desktop Layout */}
             <div className="hidden md:flex items-center justify-between gap-4">
@@ -327,7 +331,8 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
             </div>
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
 
       {historyPersonnel && (
         <PersonnelHistoryDialog

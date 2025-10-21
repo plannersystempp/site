@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useEnhancedData, type Personnel, type Func } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { usePersonnelQuery, useDeletePersonnelMutation } from '@/hooks/queries/usePersonnelQuery';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Search, Users } from 'lucide-react';
@@ -18,14 +19,10 @@ import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
 import { useTeam } from '@/contexts/TeamContext';
 
 export const ManagePersonnel: React.FC = () => {
-  const {
-    personnel,
-    functions,
-    deletePersonnel
-  } = useEnhancedData();
-  const {
-    user
-  } = useAuth();
+  const { functions } = useEnhancedData();
+  const { data: personnel = [] } = usePersonnelQuery();
+  const deletePersonnelMutation = useDeletePersonnelMutation();
+  const { user } = useAuth();
   const { activeTeam } = useTeam();
   const isMobile = useIsMobile();
   const [showForm, setShowForm] = useState(false);
@@ -55,11 +52,7 @@ export const ManagePersonnel: React.FC = () => {
   };
   const handleDelete = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta pessoa?')) {
-      try {
-        await deletePersonnel(id);
-      } catch (error) {
-        console.error('Error deleting personnel:', error);
-      }
+      await deletePersonnelMutation.mutateAsync(id);
     }
   };
   const handleCloseForm = () => {

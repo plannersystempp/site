@@ -12,6 +12,7 @@ import { useTeam } from '@/contexts/TeamContext';
 import { validateUniquePersonnelName } from '@/utils/validation';
 import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
 import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
+import { useCreatePersonnelMutation, useUpdatePersonnelMutation } from '@/hooks/queries/usePersonnelQuery';
 
 interface PersonnelFormProps {
   personnel?: Personnel;
@@ -44,10 +45,12 @@ interface PersonnelFormData {
 }
 
 export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose, onSuccess }) => {
-  const { functions, addPersonnel, updatePersonnel, personnel: allPersonnel } = useEnhancedData();
+  const { functions, personnel: allPersonnel } = useEnhancedData();
   const { userRole, activeTeam } = useTeam();
   const { toast } = useToast();
   const checkLimits = useCheckSubscriptionLimits();
+  const createPersonnel = useCreatePersonnelMutation();
+  const updatePersonnel = useUpdatePersonnelMutation();
   const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
   const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
   const [formData, setFormData] = useState<PersonnelFormData>({
@@ -257,14 +260,16 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       let personnelId: string;
       
       if (personnel) {
-        await updatePersonnel(personnel.id, formData);
+        // Update existing personnel
+        await updatePersonnel.mutateAsync({
+          id: personnel.id,
+          ...formData
+        });
         personnelId = personnel.id;
       } else {
-        const newPersonnelId = await addPersonnel(formData);
-        if (!newPersonnelId) {
-          throw new Error('Failed to create personnel');
-        }
-        personnelId = newPersonnelId;
+        // Create new personnel
+        const newPersonnel = await createPersonnel.mutateAsync(formData);
+        personnelId = newPersonnel.id;
       }
 
       // Handle PIX key if provided
@@ -272,10 +277,20 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         await handlePixKeyUpdate(personnelId, formData.pixKey.trim());
       }
 
+      toast({
+        title: personnel ? "Pessoa atualizada" : "Pessoa cadastrada",
+        description: personnel ? "Os dados foram atualizados com sucesso" : "Nova pessoa foi cadastrada com sucesso",
+      });
+
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Error saving personnel:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar os dados",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

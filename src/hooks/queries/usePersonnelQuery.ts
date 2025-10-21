@@ -11,6 +11,7 @@ export const personnelKeys = {
   all: ['personnel'] as const,
   lists: () => [...personnelKeys.all, 'list'] as const,
   list: (teamId?: string) => [...personnelKeys.lists(), { teamId }] as const,
+  byTeam: (teamId: string) => [...personnelKeys.lists(), { teamId }] as const,
   details: () => [...personnelKeys.all, 'detail'] as const,
   detail: (id: string) => [...personnelKeys.details(), id] as const,
 };
@@ -214,6 +215,49 @@ export const useCreatePersonnelMutation = () => {
 
       return personnelResult;
     },
+    onMutate: async (data: PersonnelFormData) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
+
+      // Snapshot the previous value
+      const previousPersonnel = queryClient.getQueryData<Personnel[]>(personnelKeys.list(activeTeam!.id));
+
+      // Optimistically update to the new value
+      if (previousPersonnel) {
+        const optimisticPersonnel: Personnel = {
+          id: `temp-${Date.now()}`,
+          team_id: activeTeam!.id,
+          name: data.name,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
+          type: data.type,
+          monthly_salary: data.monthly_salary || 0,
+          event_cache: data.event_cache || 0,
+          overtime_rate: data.overtime_rate || 0,
+          cpf: data.cpf || undefined,
+          cnpj: data.cnpj || undefined,
+          photo_url: data.photo_url || undefined,
+          shirt_size: (data.shirt_size as 'PP' | 'P' | 'M' | 'G' | 'GG' | 'XG') || undefined,
+          address_zip_code: data.address_zip_code || undefined,
+          address_street: data.address_street || undefined,
+          address_number: data.address_number || undefined,
+          address_complement: data.address_complement || undefined,
+          address_neighborhood: data.address_neighborhood || undefined,
+          address_city: data.address_city || undefined,
+          address_state: data.address_state || undefined,
+          primaryFunctionId: data.primaryFunctionId || undefined,
+          functions: [],
+          created_at: new Date().toISOString(),
+        };
+
+        queryClient.setQueryData<Personnel[]>(
+          personnelKeys.list(activeTeam!.id),
+          [...previousPersonnel, optimisticPersonnel]
+        );
+      }
+
+      return { previousPersonnel };
+    },
     onSuccess: (data) => {
       // Invalidate and refetch personnel data
       queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
@@ -223,7 +267,15 @@ export const useCreatePersonnelMutation = () => {
         description: "Pessoal adicionado com sucesso!",
       });
     },
-    onError: (error) => {
+    onError: (error, data, context) => {
+      // Rollback to previous state on error
+      if (context?.previousPersonnel) {
+        queryClient.setQueryData(
+          personnelKeys.list(activeTeam!.id),
+          context.previousPersonnel
+        );
+      }
+      
       console.error('Error creating personnel:', error);
       toast({
         title: "Erro",
@@ -331,6 +383,30 @@ export const useUpdatePersonnelMutation = () => {
 
       return data;
     },
+    onMutate: async ({ id, ...data }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
+
+      // Snapshot the previous value
+      const previousPersonnel = queryClient.getQueryData<Personnel[]>(personnelKeys.list(activeTeam!.id));
+
+      // Optimistically update to the new value
+      if (previousPersonnel) {
+        queryClient.setQueryData<Personnel[]>(
+          personnelKeys.list(activeTeam!.id),
+          previousPersonnel.map(p => 
+            p.id === id 
+              ? { 
+                  ...p, 
+                  ...data
+                } as Personnel
+              : p
+          )
+        );
+      }
+
+      return { previousPersonnel };
+    },
     onSuccess: () => {
       // Invalidate and refetch personnel data
       queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
@@ -340,7 +416,15 @@ export const useUpdatePersonnelMutation = () => {
         description: "Pessoal atualizado com sucesso!",
       });
     },
-    onError: (error) => {
+    onError: (error, { id }, context) => {
+      // Rollback to previous state on error
+      if (context?.previousPersonnel) {
+        queryClient.setQueryData(
+          personnelKeys.list(activeTeam!.id),
+          context.previousPersonnel
+        );
+      }
+      
       console.error('Error updating personnel:', error);
       toast({
         title: "Erro",
