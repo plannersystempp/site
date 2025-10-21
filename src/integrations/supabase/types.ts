@@ -178,6 +178,77 @@ export type Database = {
         }
         Relationships: []
       }
+      error_reports: {
+        Row: {
+          admin_notes: string | null
+          assigned_to: string | null
+          created_at: string | null
+          id: string
+          report_number: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          screenshot_annotations: Json | null
+          screenshot_url: string | null
+          status: string | null
+          steps_to_reproduce: string | null
+          team_id: string | null
+          technical_data: Json
+          updated_at: string | null
+          urgency: string | null
+          user_id: string | null
+          what_happened: string
+          what_trying_to_do: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          id?: string
+          report_number: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          screenshot_annotations?: Json | null
+          screenshot_url?: string | null
+          status?: string | null
+          steps_to_reproduce?: string | null
+          team_id?: string | null
+          technical_data?: Json
+          updated_at?: string | null
+          urgency?: string | null
+          user_id?: string | null
+          what_happened: string
+          what_trying_to_do: string
+        }
+        Update: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          id?: string
+          report_number?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          screenshot_annotations?: Json | null
+          screenshot_url?: string | null
+          status?: string | null
+          steps_to_reproduce?: string | null
+          team_id?: string | null
+          technical_data?: Json
+          updated_at?: string | null
+          urgency?: string | null
+          user_id?: string | null
+          what_happened?: string
+          what_trying_to_do?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_reports_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_divisions: {
         Row: {
           created_at: string | null
@@ -1733,6 +1804,10 @@ export type Database = {
       finalize_payroll_sheet: {
         Args: { p_sheet_id: string }
         Returns: boolean
+      }
+      generate_error_report_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_event_payroll_sheets: {
         Args: { p_event_id: string }

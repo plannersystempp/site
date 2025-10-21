@@ -12,7 +12,7 @@ import {
   User,
   ChevronUp,
   Briefcase,
-  Mail,
+  Bug,
   ShieldCheck,
   Package
 } from 'lucide-react';
@@ -42,6 +42,7 @@ import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/providers/ThemeProvider';
+import { ErrorReportDialog } from '@/components/shared/ErrorReportDialog';
 
 const menuItems = [
   { title: 'Dashboard', url: '/app', icon: Home },
@@ -69,6 +70,7 @@ export const AppSidebar = () => {
   const { user, logout } = useAuth();
   const { userRole, activeTeam } = useTeam();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showErrorReportDialog, setShowErrorReportDialog] = useState(false);
   const isMobile = useIsMobile();
   const { setTheme } = useTheme();
 
@@ -198,16 +200,11 @@ export const AppSidebar = () => {
       <SidebarFooter className="p-4 space-y-2">
         <Button
           variant="secondary"
-          size="sm" aria-label="Reportar Erro"
-          onClick={() => {
-            const recipient = "suporte@sige.com.br";
-            const subject = "Report de Erro - SIGE";
-            const body = `Por favor, descreva o erro que encontrou e os passos para reproduzi-lo:\n[...]\n\n------------------\nInformações de Debug (Não apague):\nUsuário: ${user?.email || 'Não logado'}\nEquipe Ativa: ${activeTeam?.name || 'Nenhuma'}\nPágina Atual: ${window.location.href}\nData: ${new Date().toISOString()}`;
-            window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          }}
+          size="sm"
+          onClick={() => setShowErrorReportDialog(true)}
           className="w-full justify-start text-xs"
         >
-          <Mail className="mr-2 h-3 w-3" />
+          <Bug className="mr-2 h-3 w-3" />
           Reportar Erro
         </Button>
         
@@ -322,6 +319,11 @@ export const AppSidebar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+        
+        <ErrorReportDialog 
+          isOpen={showErrorReportDialog} 
+          onClose={() => setShowErrorReportDialog(false)} 
+        />
       </SidebarFooter>
     </Sidebar>
   );

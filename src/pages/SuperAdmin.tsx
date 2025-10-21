@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
@@ -21,6 +21,7 @@ import { UserManagementDialog } from '@/components/admin/UserManagementDialog';
 import { TeamManagementTab } from '@/components/admin/TeamManagementTab';
 import { DeletionLogsTab } from '@/components/admin/DeletionLogsTab';
 import { SubscriptionManagementTab } from '@/components/subscriptions/SubscriptionManagementTab';
+import { ErrorReportsManagement } from '@/components/admin/ErrorReportsManagement';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -375,6 +376,16 @@ export default function SuperAdmin() {
               >
                 <UserCog className="mr-3 h-5 w-5" /> Auditoria
               </Button>
+              <Button 
+                variant={activeTab === 'error-reports' ? 'default' : 'ghost'}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('error-reports');
+                  setSheetOpen(false);
+                }}
+              >
+                <Bug className="mr-3 h-5 w-5" /> Reportes de Erro
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
@@ -390,6 +401,7 @@ export default function SuperAdmin() {
           {activeTab === 'orphans' && 'Órfãos'}
           {activeTab === 'deletion-logs' && 'Exclusões'}
           {activeTab === 'audit' && 'Auditoria'}
+          {activeTab === 'error-reports' && 'Reportes de Erro'}
         </p>
       </div>
 
@@ -414,13 +426,14 @@ export default function SuperAdmin() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
-        <TabsList className="hidden md:grid w-full md:grid-cols-6">
+        <TabsList className="hidden md:grid w-full md:grid-cols-7">
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
           <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
           <TabsTrigger value="orphans">Órfãos</TabsTrigger>
           <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
+          <TabsTrigger value="error-reports">Reportes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
@@ -754,6 +767,10 @@ export default function SuperAdmin() {
             loading={loading}
             onRefresh={fetchAuditLogs}
           />
+        </TabsContent>
+
+        <TabsContent value="error-reports" className="space-y-6">
+          <ErrorReportsManagement />
         </TabsContent>
       </Tabs>
 

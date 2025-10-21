@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Shield } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { ErrorReportFAB } from '@/components/shared/ErrorReportFAB';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -87,6 +88,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             scrollToTop={scrollToTop}
             scrollToBottom={scrollToBottom}
           />
+          <ErrorReportFAB />
         </div>
       </div>
     </SidebarProvider>
