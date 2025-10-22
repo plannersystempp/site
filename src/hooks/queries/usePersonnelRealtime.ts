@@ -19,7 +19,7 @@ export const usePersonnelRealtime = () => {
     console.log('[Realtime] Subscribing to personnel changes for team:', activeTeam.id);
 
     const channel = supabase
-      .channel('personnel-changes')
+      .channel('schema-db-changes')
       .on(
         'postgres_changes',
         {

@@ -1773,16 +1773,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      auto_fix_simple_orphans: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      check_and_report_orphan_users: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      auto_fix_simple_orphans: { Args: never; Returns: Json }
+      check_and_report_orphan_users: { Args: never; Returns: Json }
       check_event_status_consistency: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           current_status: string
           end_date: string
@@ -1801,14 +1795,8 @@ export type Database = {
         Args: { p_email: string; p_name: string; p_user_id: string }
         Returns: string
       }
-      finalize_payroll_sheet: {
-        Args: { p_sheet_id: string }
-        Returns: boolean
-      }
-      generate_error_report_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      finalize_payroll_sheet: { Args: { p_sheet_id: string }; Returns: boolean }
+      generate_error_report_number: { Args: never; Returns: string }
       generate_event_payroll_sheets: {
         Args: { p_event_id: string }
         Returns: number
@@ -1818,7 +1806,7 @@ export type Database = {
         Returns: string
       }
       get_all_functions_with_teams: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           description: string
@@ -1829,7 +1817,7 @@ export type Database = {
         }[]
       }
       get_all_users_for_superadmin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -1887,10 +1875,7 @@ export type Database = {
           user_name: string
         }[]
       }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_role: { Args: never; Returns: string }
       get_events_with_payment_status: {
         Args: { p_team_id: string }
         Returns: {
@@ -1905,7 +1890,7 @@ export type Database = {
         }[]
       }
       get_orphan_users: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -1916,7 +1901,7 @@ export type Database = {
         }[]
       }
       get_personnel_redacted: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           cnpj_masked: string
           cpf_masked: string
@@ -1933,7 +1918,7 @@ export type Database = {
         }[]
       }
       get_public_teams: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           cnpj: string
           id: string
@@ -1947,12 +1932,9 @@ export type Database = {
           name: string
         }[]
       }
-      get_team_statistics: {
-        Args: { team_id_param: string }
-        Returns: Json
-      }
+      get_team_statistics: { Args: { team_id_param: string }; Returns: Json }
       get_team_stats_for_superadmin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           events_count: number
@@ -1970,32 +1952,20 @@ export type Database = {
         Args: { check_team_id: string }
         Returns: string
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_team_member: {
-        Args:
-          | { check_team_id: string }
-          | { check_team_id: string; check_user_id: string }
-        Returns: boolean
-      }
-      is_valid_photo_url: {
-        Args: { url: string }
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
+      is_team_member:
+        | {
+            Args: { check_team_id: string; check_user_id: string }
+            Returns: boolean
+          }
+        | { Args: { check_team_id: string }; Returns: boolean }
+      is_valid_photo_url: { Args: { url: string }; Returns: boolean }
       join_team_by_invite_code: {
         Args: { p_invite_code: string }
         Returns: Json
       }
-      preview_team_deletion: {
-        Args: { p_team_id: string }
-        Returns: Json
-      }
+      preview_team_deletion: { Args: { p_team_id: string }; Returns: Json }
       request_team_access: {
         Args: {
           invite_code_input: string
@@ -2008,10 +1978,7 @@ export type Database = {
           team_name: string
         }[]
       }
-      retry_pending_user_setup: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
+      retry_pending_user_setup: { Args: { p_user_id: string }; Returns: Json }
       setup_company_for_current_user: {
         Args: { p_company_cnpj?: string; p_company_name: string }
         Returns: Json
@@ -2036,18 +2003,9 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: Json
       }
-      sync_personnel_photos: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      update_event_statuses: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      validate_password: {
-        Args: { password: string }
-        Returns: boolean
-      }
+      sync_personnel_photos: { Args: never; Returns: number }
+      update_event_statuses: { Args: never; Returns: undefined }
+      validate_password: { Args: { password: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

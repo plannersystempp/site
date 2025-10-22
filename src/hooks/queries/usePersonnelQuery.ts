@@ -6,14 +6,11 @@ import { fetchPersonnelByRole } from '@/services/personnelService';
 import { supabase } from '@/integrations/supabase/client';
 import type { Personnel } from '@/contexts/EnhancedDataContext';
 
-// Query keys for consistent caching
+// Query keys for consistent caching (SIMPLIFIED)
 export const personnelKeys = {
   all: ['personnel'] as const,
-  lists: () => [...personnelKeys.all, 'list'] as const,
-  list: (teamId?: string) => [...personnelKeys.lists(), { teamId }] as const,
-  byTeam: (teamId: string) => [...personnelKeys.lists(), { teamId }] as const,
-  details: () => [...personnelKeys.all, 'detail'] as const,
-  detail: (id: string) => [...personnelKeys.details(), id] as const,
+  list: (teamId?: string) => ['personnel', 'list', teamId] as const,
+  detail: (id: string) => ['personnel', 'detail', id] as const,
 };
 
 // Personnel form data interface
@@ -130,6 +127,7 @@ export const useCreatePersonnelMutation = () => {
 
   return useMutation({
     mutationFn: async (personnelData: PersonnelFormData) => {
+      console.log('[CREATE MUTATION] Starting creation:', personnelData);
       if (!activeTeam) throw new Error('No active team');
 
       const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
@@ -219,6 +217,7 @@ export const useCreatePersonnelMutation = () => {
       return personnelResult;
     },
     onMutate: async (data: PersonnelFormData) => {
+      console.log('[CREATE MUTATION] onMutate - Optimistic creation:', data.name);
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
 
@@ -262,6 +261,8 @@ export const useCreatePersonnelMutation = () => {
       return { previousPersonnel };
     },
     onSuccess: (data) => {
+      console.log('[CREATE MUTATION] onSuccess - Server returned:', data ? data.id : 'null');
+      
       // Atualização imediata no cache via setQueryData
       const queryKey = personnelKeys.list(activeTeam!.id);
       const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
@@ -283,10 +284,12 @@ export const useCreatePersonnelMutation = () => {
           ).filter(p => !p.id.startsWith('temp-') || p.id === newPersonnel.id)
           .concat(currentData.every(p => p.id !== newPersonnel.id) ? [newPersonnel] : [])
         );
+        console.log('[CREATE MUTATION] onSuccess - Cache updated with new ID:', data.id);
       }
       
       // Refetch em background para consolidar functions
       setTimeout(() => {
+        console.log('[CREATE MUTATION] Background refetch triggered');
         queryClient.refetchQueries({ 
           queryKey,
           type: 'active'
@@ -325,6 +328,7 @@ export const useUpdatePersonnelMutation = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...personnelData }: { id: string } & Partial<PersonnelFormData>) => {
+      console.log('[UPDATE MUTATION] Starting update for:', id, personnelData);
       const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
 
       // Helper para sanitizar strings (converter vazias em null)
@@ -415,6 +419,7 @@ export const useUpdatePersonnelMutation = () => {
       return data;
     },
     onMutate: async ({ id, ...data }) => {
+      console.log('[UPDATE MUTATION] onMutate - Optimistic update for:', id, data);
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
 
@@ -434,41 +439,58 @@ export const useUpdatePersonnelMutation = () => {
               : p
           )
         );
+        console.log('[UPDATE MUTATION] onMutate - Cache updated optimistically');
       }
 
       return { previousPersonnel };
     },
     onSuccess: (data, variables) => {
-      // Atualização imediata no cache via setQueryData
+      console.log('[UPDATE MUTATION] onSuccess - Server returned:', data ? 'data exists' : 'data is null', 'variables:', variables);
+      
+      // Atualização imediata no cache via setQueryData - SEMPRE, usando variables como fallback
       const queryKey = personnelKeys.list(activeTeam!.id);
       const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
       
-      if (currentData && data) {
+      if (currentData) {
         queryClient.setQueryData<Personnel[]>(
           queryKey,
-          currentData.map(p => 
-            p.id === variables.id
-              ? {
+          currentData.map(p => {
+            if (p.id === variables.id) {
+              // Se data existe (Supabase retornou), usar data + preservar functions/primaryFunctionId
+              // Se data não existe (RLS bloqueou SELECT), usar variables + preservar tudo do cache
+              if (data) {
+                return {
                   ...data,
                   functions: p.functions || [],
                   primaryFunctionId: p.primaryFunctionId,
                   type: (data.type as 'fixo' | 'freelancer') || 'freelancer',
                   shirt_size: data.shirt_size as Personnel['shirt_size'],
-                } as Personnel
-              : p
-          )
+                } as Personnel;
+              } else {
+                // Fallback: usar variables para atualizar cache
+                const { id, functionIds, pixKey, primaryFunctionId, ...rest } = variables;
+                return {
+                  ...p,
+                  ...rest,
+                  functions: p.functions || [],
+                  primaryFunctionId: p.primaryFunctionId,
+                } as Personnel;
+              }
+            }
+            return p;
+          })
         );
+        console.log('[UPDATE MUTATION] onSuccess - Cache patched for:', variables.id);
       }
       
-      // Refetch em background para consolidar functions se foram alteradas
-      if (variables.functionIds !== undefined) {
-        setTimeout(() => {
-          queryClient.refetchQueries({ 
-            queryKey,
-            type: 'active'
-          });
-        }, 0);
-      }
+      // SEMPRE fazer refetch em background para consolidar
+      setTimeout(() => {
+        console.log('[UPDATE MUTATION] Background refetch triggered');
+        queryClient.refetchQueries({ 
+          queryKey,
+          type: 'active'
+        });
+      }, 0);
       
       toast({
         title: "Sucesso",

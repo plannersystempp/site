@@ -1,8 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from './providers/QueryProvider';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { SessionTimeout } from './components/shared/SessionTimeout';
@@ -274,36 +272,34 @@ const AppContent = () => {
 };
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="sige-theme">
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<LoginScreen />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/termos-de-uso" element={<TermosDeUso />} />
-              <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
-              <Route path="/plans" element={<PlansPage />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/app/*" element={<AppContent />} />
-              {/* Rota de impressão fora do Layout */}
-              <Route path="/app/folha/relatorio/:eventId" element={
-                <TeamProvider>
-                  <EnhancedDataProvider>
-                    <PayrollReportPage />
-                  </EnhancedDataProvider>
-                </TeamProvider>
-              } />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <SessionTimeout />
-            <PWAManager />
-          </Router>
-          <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="system" storageKey="sige-theme">
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<LoginScreen />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/termos-de-uso" element={<TermosDeUso />} />
+            <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/plans" element={<PlansPage />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/app/*" element={<AppContent />} />
+            {/* Rota de impressão fora do Layout */}
+            <Route path="/app/folha/relatorio/:eventId" element={
+              <TeamProvider>
+                <EnhancedDataProvider>
+                  <PayrollReportPage />
+                </EnhancedDataProvider>
+              </TeamProvider>
+            } />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+          <SessionTimeout />
+          <PWAManager />
+        </Router>
+        <Toaster />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
