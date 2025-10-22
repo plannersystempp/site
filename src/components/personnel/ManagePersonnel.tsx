@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useEnhancedData, type Personnel, type Func } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -44,12 +44,15 @@ export const ManagePersonnel: React.FC = () => {
   const effectiveViewMode = isMobile ? 'grid' : viewMode;
 
   // Filter personnel based on search term, type, and function
-  const filteredPersonnel = personnel.filter(person => {
-    const matchesSearch = person.name.toLowerCase().includes(searchTerm.toLowerCase()) || person.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || person.type === filterType;
-    const matchesFunction = filterFunction === 'all' || person.functions && person.functions.some(f => f.id === filterFunction);
-    return matchesSearch && matchesType && matchesFunction;
-  });
+  const filteredPersonnel = useMemo(() => {
+    const term = searchTerm.toLowerCase().trim();
+    return personnel.filter(person => {
+      const matchesSearch = person.name.toLowerCase().includes(term) || person.email?.toLowerCase().includes(term);
+      const matchesType = filterType === 'all' || person.type === filterType;
+      const matchesFunction = filterFunction === 'all' || (person.functions && person.functions.some(f => f.id === filterFunction));
+      return matchesSearch && matchesType && matchesFunction;
+    });
+  }, [personnel, searchTerm, filterType, filterFunction]);
   const handleEdit = (person: Personnel) => {
     setEditingPersonnel(person);
     setShowForm(true);

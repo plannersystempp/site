@@ -86,13 +86,7 @@ export const usePersonnelRealtime = () => {
             }
           }
 
-          // Disparar refetch em background para consolidar (sem afetar UI)
-          setTimeout(() => {
-            queryClient.invalidateQueries({ 
-              queryKey,
-              refetchType: 'none' // Não refetch imediato, apenas invalida
-            });
-          }, 100);
+          // Realtime: update cache only; no background invalidation
         }
       )
       .subscribe((status) => {

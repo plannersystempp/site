@@ -115,10 +115,10 @@ export const usePersonnelQuery = () => {
       }));
     },
     enabled: !!user && !!activeTeam?.id,
-    staleTime: 0,
+    staleTime: 30000,
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 };
 
