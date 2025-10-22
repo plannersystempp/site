@@ -447,7 +447,6 @@ export const useUpdatePersonnelMutation = () => {
     onSuccess: (data, variables) => {
       console.log('[UPDATE MUTATION] onSuccess - Server returned:', data ? 'data exists' : 'data is null', 'variables:', variables);
       
-      // Atualização imediata no cache via setQueryData - SEMPRE, usando variables como fallback
       const queryKey = personnelKeys.list(activeTeam!.id);
       const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
       
@@ -456,34 +455,68 @@ export const useUpdatePersonnelMutation = () => {
           queryKey,
           currentData.map(p => {
             if (p.id === variables.id) {
-              // Se data existe (Supabase retornou), usar data + preservar functions/primaryFunctionId
-              // Se data não existe (RLS bloqueou SELECT), usar variables + preservar tudo do cache
+              // Usar o novo primaryFunctionId de variables se fornecido
+              const newPrimaryFunctionId = variables.primaryFunctionId !== undefined 
+                ? variables.primaryFunctionId 
+                : p.primaryFunctionId;
+              
+              // Criar representação temporária de functions se functionIds for fornecido
+              let updatedFunctions = p.functions || [];
+              if (variables.functionIds !== undefined && variables.functionIds.length > 0) {
+                // Tentar mapear functionIds para objetos de função existentes no cache
+                const allPersonnel = currentData;
+                const allFunctionsInCache = new Map<string, any>();
+                
+                allPersonnel.forEach(person => {
+                  person.functions?.forEach(fn => {
+                    if (fn && fn.id) {
+                      allFunctionsInCache.set(fn.id, fn);
+                    }
+                  });
+                });
+                
+                updatedFunctions = variables.functionIds.map(fId => {
+                  const existingFn = allFunctionsInCache.get(fId);
+                  if (existingFn) return existingFn;
+                  // Placeholder básico se não encontrar no cache
+                  return { id: fId, name: 'Carregando...', description: null };
+                });
+                
+                // Ordenar: função primária primeiro
+                if (newPrimaryFunctionId) {
+                  updatedFunctions.sort((a, b) => 
+                    (a.id === newPrimaryFunctionId ? -1 : b.id === newPrimaryFunctionId ? 1 : 0)
+                  );
+                }
+              }
+              
               if (data) {
+                // Usar data do servidor + aplicar primaryFunctionId e functions atualizados
                 return {
                   ...data,
-                  functions: p.functions || [],
-                  primaryFunctionId: p.primaryFunctionId,
+                  functions: updatedFunctions,
+                  primaryFunctionId: newPrimaryFunctionId,
                   type: (data.type as 'fixo' | 'freelancer') || 'freelancer',
                   shirt_size: data.shirt_size as Personnel['shirt_size'],
                 } as Personnel;
               } else {
-                // Fallback: usar variables para atualizar cache
+                // Fallback: usar variables
                 const { id, functionIds, pixKey, primaryFunctionId, ...rest } = variables;
                 return {
                   ...p,
                   ...rest,
-                  functions: p.functions || [],
-                  primaryFunctionId: p.primaryFunctionId,
+                  functions: updatedFunctions,
+                  primaryFunctionId: newPrimaryFunctionId,
                 } as Personnel;
               }
             }
             return p;
           })
         );
-        console.log('[UPDATE MUTATION] onSuccess - Cache patched for:', variables.id);
+        console.log('[UPDATE MUTATION] onSuccess - Cache patched for:', variables.id, 'with primaryFunctionId:', variables.primaryFunctionId);
       }
       
-      // SEMPRE fazer refetch em background para consolidar
+      // SEMPRE fazer refetch em background
       setTimeout(() => {
         console.log('[UPDATE MUTATION] Background refetch triggered');
         queryClient.refetchQueries({ 
