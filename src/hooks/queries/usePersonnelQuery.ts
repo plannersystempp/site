@@ -277,12 +277,13 @@ export const useCreatePersonnelMutation = () => {
           shirt_size: data.shirt_size as Personnel['shirt_size'],
         };
         
+        // Solução: Filtrar TODOS temp- e adicionar apenas o novo registro real
         queryClient.setQueryData<Personnel[]>(
           queryKey,
-          currentData.map(p => 
-            p.id.startsWith('temp-') ? newPersonnel : p
-          ).filter(p => !p.id.startsWith('temp-') || p.id === newPersonnel.id)
-          .concat(currentData.every(p => p.id !== newPersonnel.id) ? [newPersonnel] : [])
+          [
+            ...currentData.filter(p => !p.id.startsWith('temp-')),
+            newPersonnel
+          ]
         );
         console.log('[CREATE MUTATION] onSuccess - Cache updated with new ID:', data.id);
       }
