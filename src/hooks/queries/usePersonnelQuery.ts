@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { fetchPersonnelByRole } from '@/services/personnelService';
 import { supabase } from '@/integrations/supabase/client';
 import type { Personnel } from '@/contexts/EnhancedDataContext';
+import { sanitizePersonnelData } from '@/utils/dataTransform';
 
 // Query keys for consistent caching (SIMPLIFIED)
 export const personnelKeys = {
@@ -130,46 +131,15 @@ export const useCreatePersonnelMutation = () => {
       console.log('[CREATE MUTATION] Starting creation:', personnelData);
       if (!activeTeam) throw new Error('No active team');
 
-      const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
+      const { functionIds, pixKey, primaryFunctionId, ...restData } = personnelData;
       
-      // Helper para sanitizar strings (converter vazias em null)
-      const sanitizeString = (value: any): string | null => {
-        if (value === null || value === undefined) return null;
-        const trimmed = String(value).trim();
-        return trimmed === '' ? null : trimmed;
-      };
-      
-      // Helper para arredondar números
-      const sanitizeNumber = (value: any): number => {
-        const num = Number(value) || 0;
-        return Math.round(num * 100) / 100;
-      };
+      // Usar utilitário centralizado de sanitização
+      const sanitizedData = sanitizePersonnelData(restData);
 
       const dataToInsert: any = {
         ...sanitizedData,
         team_id: activeTeam.id
       };
-      
-      // Sanitizar todos os campos opcionais
-      if ('cpf' in sanitizedData) dataToInsert.cpf = sanitizeString(sanitizedData.cpf);
-      if ('cnpj' in sanitizedData) dataToInsert.cnpj = sanitizeString(sanitizedData.cnpj);
-      if ('email' in sanitizedData) dataToInsert.email = sanitizeString(sanitizedData.email);
-      if ('phone' in sanitizedData) dataToInsert.phone = sanitizeString(sanitizedData.phone);
-      if ('phone_secondary' in sanitizedData) dataToInsert.phone_secondary = sanitizeString((sanitizedData as any).phone_secondary);
-      if ('photo_url' in sanitizedData) dataToInsert.photo_url = sanitizeString((sanitizedData as any).photo_url);
-      if ('shirt_size' in sanitizedData) dataToInsert.shirt_size = sanitizeString(sanitizedData.shirt_size);
-      if ('address_zip_code' in sanitizedData) dataToInsert.address_zip_code = sanitizeString((sanitizedData as any).address_zip_code);
-      if ('address_street' in sanitizedData) dataToInsert.address_street = sanitizeString((sanitizedData as any).address_street);
-      if ('address_number' in sanitizedData) dataToInsert.address_number = sanitizeString((sanitizedData as any).address_number);
-      if ('address_complement' in sanitizedData) dataToInsert.address_complement = sanitizeString((sanitizedData as any).address_complement);
-      if ('address_neighborhood' in sanitizedData) dataToInsert.address_neighborhood = sanitizeString((sanitizedData as any).address_neighborhood);
-      if ('address_city' in sanitizedData) dataToInsert.address_city = sanitizeString((sanitizedData as any).address_city);
-      if ('address_state' in sanitizedData) dataToInsert.address_state = sanitizeString((sanitizedData as any).address_state);
-      
-      // Arredondar valores financeiros
-      if ('monthly_salary' in sanitizedData) dataToInsert.monthly_salary = sanitizeNumber(sanitizedData.monthly_salary);
-      if ('event_cache' in sanitizedData) dataToInsert.event_cache = sanitizeNumber(sanitizedData.event_cache);
-      if ('overtime_rate' in sanitizedData) dataToInsert.overtime_rate = sanitizeNumber(sanitizedData.overtime_rate);
       
       // Create personnel record
       const { data: personnelResult, error: personnelError } = await supabase
@@ -261,43 +231,9 @@ export const useCreatePersonnelMutation = () => {
       return { previousPersonnel };
     },
     onSuccess: (data) => {
-      console.log('[CREATE MUTATION] onSuccess - Server returned:', data ? data.id : 'null');
-      
-      // Atualização imediata no cache via setQueryData
-      const queryKey = personnelKeys.list(activeTeam!.id);
-      const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
-      
-      if (currentData && data) {
-        // Substituir o registro temporário pelo real retornado do servidor
-        const newPersonnel: Personnel = {
-          ...data,
-          functions: [],
-          primaryFunctionId: undefined,
-          type: (data.type as 'fixo' | 'freelancer') || 'freelancer',
-          shirt_size: data.shirt_size as Personnel['shirt_size'],
-        };
-        
-        // Solução: Filtrar TODOS temp- e adicionar apenas o novo registro real
-        const withoutTemps = currentData.filter(p => !p.id.startsWith('temp-'));
-        
-        // Deduplicar por ID (caso Realtime tenha inserido antes)
-        const dedupedData = [
-          ...withoutTemps.filter(p => p.id !== newPersonnel.id),
-          newPersonnel
-        ];
-        
-        queryClient.setQueryData<Personnel[]>(queryKey, dedupedData);
-        console.log('[CREATE MUTATION] onSuccess - Cache updated with new ID:', data.id);
-      }
-      
-      // Refetch em background para consolidar functions
-      queueMicrotask(() => {
-        console.log('[CREATE MUTATION] Background refetch triggered');
-        queryClient.refetchQueries({ 
-          queryKey,
-          type: 'active'
-        });
-      });
+      console.log('[CREATE] Success:', data.id);
+      // Invalidar query para refetch automático (confiando no Realtime para sync entre abas)
+      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
       
       toast({
         title: "Sucesso",
@@ -332,43 +268,10 @@ export const useUpdatePersonnelMutation = () => {
   return useMutation({
     mutationFn: async ({ id, ...personnelData }: { id: string } & Partial<PersonnelFormData>) => {
       console.log('[UPDATE MUTATION] Starting update for:', id, personnelData);
-      const { functionIds, pixKey, primaryFunctionId, ...sanitizedData } = personnelData;
+      const { functionIds, pixKey, primaryFunctionId, ...restData } = personnelData;
 
-      // Helper para sanitizar strings (converter vazias em null)
-      const sanitizeString = (value: any): string | null => {
-        if (value === null || value === undefined) return null;
-        const trimmed = String(value).trim();
-        return trimmed === '' ? null : trimmed;
-      };
-      
-      // Helper para arredondar números
-      const sanitizeNumber = (value: any): number => {
-        const num = Number(value) || 0;
-        return Math.round(num * 100) / 100;
-      };
-
-      const dataToUpdate: any = { ...sanitizedData };
-      
-      // Sanitizar apenas os campos presentes
-      if ('cpf' in sanitizedData) dataToUpdate.cpf = sanitizeString(sanitizedData.cpf);
-      if ('cnpj' in sanitizedData) dataToUpdate.cnpj = sanitizeString(sanitizedData.cnpj);
-      if ('email' in sanitizedData) dataToUpdate.email = sanitizeString(sanitizedData.email);
-      if ('phone' in sanitizedData) dataToUpdate.phone = sanitizeString(sanitizedData.phone);
-      if ('phone_secondary' in sanitizedData) dataToUpdate.phone_secondary = sanitizeString((sanitizedData as any).phone_secondary);
-      if ('photo_url' in sanitizedData) dataToUpdate.photo_url = sanitizeString((sanitizedData as any).photo_url);
-      if ('shirt_size' in sanitizedData) dataToUpdate.shirt_size = sanitizeString(sanitizedData.shirt_size);
-      if ('address_zip_code' in sanitizedData) dataToUpdate.address_zip_code = sanitizeString((sanitizedData as any).address_zip_code);
-      if ('address_street' in sanitizedData) dataToUpdate.address_street = sanitizeString((sanitizedData as any).address_street);
-      if ('address_number' in sanitizedData) dataToUpdate.address_number = sanitizeString((sanitizedData as any).address_number);
-      if ('address_complement' in sanitizedData) dataToUpdate.address_complement = sanitizeString((sanitizedData as any).address_complement);
-      if ('address_neighborhood' in sanitizedData) dataToUpdate.address_neighborhood = sanitizeString((sanitizedData as any).address_neighborhood);
-      if ('address_city' in sanitizedData) dataToUpdate.address_city = sanitizeString((sanitizedData as any).address_city);
-      if ('address_state' in sanitizedData) dataToUpdate.address_state = sanitizeString((sanitizedData as any).address_state);
-      
-      // Arredondar valores financeiros
-      if ('monthly_salary' in sanitizedData) dataToUpdate.monthly_salary = sanitizeNumber(sanitizedData.monthly_salary);
-      if ('event_cache' in sanitizedData) dataToUpdate.event_cache = sanitizeNumber(sanitizedData.event_cache);
-      if ('overtime_rate' in sanitizedData) dataToUpdate.overtime_rate = sanitizeNumber(sanitizedData.overtime_rate);
+      // Usar utilitário centralizado de sanitização
+      const dataToUpdate = sanitizePersonnelData(restData);
 
       // Update personnel record
       const { data, error } = await supabase
@@ -447,86 +350,10 @@ export const useUpdatePersonnelMutation = () => {
 
       return { previousPersonnel };
     },
-    onSuccess: (data, variables) => {
-      console.log('[UPDATE MUTATION] onSuccess - Server returned:', data ? 'data exists' : 'data is null', 'variables:', variables);
-      
-      const queryKey = personnelKeys.list(activeTeam!.id);
-      const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
-      
-      if (currentData) {
-        queryClient.setQueryData<Personnel[]>(
-          queryKey,
-          currentData.map(p => {
-            if (p.id === variables.id) {
-              // Usar o novo primaryFunctionId de variables se fornecido
-              const newPrimaryFunctionId = variables.primaryFunctionId !== undefined 
-                ? variables.primaryFunctionId 
-                : p.primaryFunctionId;
-              
-              // Criar representação temporária de functions se functionIds for fornecido
-              let updatedFunctions = p.functions || [];
-              if (variables.functionIds !== undefined && variables.functionIds.length > 0) {
-                // Tentar mapear functionIds para objetos de função existentes no cache
-                const allPersonnel = currentData;
-                const allFunctionsInCache = new Map<string, any>();
-                
-                allPersonnel.forEach(person => {
-                  person.functions?.forEach(fn => {
-                    if (fn && fn.id) {
-                      allFunctionsInCache.set(fn.id, fn);
-                    }
-                  });
-                });
-                
-                updatedFunctions = variables.functionIds.map(fId => {
-                  const existingFn = allFunctionsInCache.get(fId);
-                  if (existingFn) return existingFn;
-                  // Placeholder básico se não encontrar no cache
-                  return { id: fId, name: 'Carregando...', description: null };
-                });
-                
-                // Ordenar: função primária primeiro
-                if (newPrimaryFunctionId) {
-                  updatedFunctions.sort((a, b) => 
-                    (a.id === newPrimaryFunctionId ? -1 : b.id === newPrimaryFunctionId ? 1 : 0)
-                  );
-                }
-              }
-              
-              if (data) {
-                // Usar data do servidor + aplicar primaryFunctionId e functions atualizados
-                return {
-                  ...data,
-                  functions: updatedFunctions,
-                  primaryFunctionId: newPrimaryFunctionId,
-                  type: (data.type as 'fixo' | 'freelancer') || 'freelancer',
-                  shirt_size: data.shirt_size as Personnel['shirt_size'],
-                } as Personnel;
-              } else {
-                // Fallback: usar variables
-                const { id, functionIds, pixKey, primaryFunctionId, ...rest } = variables;
-                return {
-                  ...p,
-                  ...rest,
-                  functions: updatedFunctions,
-                  primaryFunctionId: newPrimaryFunctionId,
-                } as Personnel;
-              }
-            }
-            return p;
-          })
-        );
-        console.log('[UPDATE MUTATION] onSuccess - Cache patched for:', variables.id, 'with primaryFunctionId:', variables.primaryFunctionId);
-      }
-      
-      // SEMPRE fazer refetch em background
-      queueMicrotask(() => {
-        console.log('[UPDATE MUTATION] Background refetch triggered');
-        queryClient.refetchQueries({ 
-          queryKey,
-          type: 'active'
-        });
-      });
+    onSuccess: (data) => {
+      console.log('[UPDATE] Success:', data?.id);
+      // Invalidar query para refetch automático (confiando no Realtime)
+      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
       
       toast({
         title: "Sucesso",

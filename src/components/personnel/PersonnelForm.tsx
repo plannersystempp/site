@@ -78,7 +78,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     address_state: ''
   });
   const [loading, setLoading] = useState(false);
-  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (personnel) {
@@ -147,13 +146,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Guard contra duplo submit
-    if (submittingRef.current) {
-      console.log('[FORM] Submit already in progress, ignoring');
-      return;
-    }
-    submittingRef.current = true;
-    
     // Verificar limites apenas ao criar novo pessoal
     if (!personnel && activeTeam) {
       const result = await checkLimits.mutateAsync({
@@ -216,9 +208,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     }
 
     // Validar CPF único
-    console.log('DEBUG: Validando CPF contra', allPersonnel.length, 'registros');
-    console.log('DEBUG: CPFs existentes:', allPersonnel.map(p => ({ name: p.name, cpf: p.cpf })));
-    
     const cpfValidation = validateUniqueCPF(
       formData.cpf,
       allPersonnel,
@@ -226,7 +215,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     );
 
     if (!cpfValidation.isValid) {
-      console.log('DEBUG: Validação falhou, mostrando toast');
       toast({
         title: "CPF inválido",
         description: cpfValidation.message,
@@ -372,7 +360,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       });
     } finally {
       setLoading(false);
-      submittingRef.current = false;
     }
   };
 
@@ -401,7 +388,15 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      onClick={(e) => {
+        // Fechar apenas se clicar no backdrop e não está salvando
+        if (e.target === e.currentTarget && !loading) {
+          onClose();
+        }
+      }}
+    >
       <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
         <PersonnelFormHeader personnel={personnel} onClose={onClose} />
         <CardContent>
