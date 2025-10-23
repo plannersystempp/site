@@ -17,6 +17,8 @@ import { formatCurrency } from '@/utils/formatters';
 import { useAllocationFormPersistence } from './allocation/useAllocationFormPersistence';
 import { useToast } from '@/hooks/use-toast';
 import { type SelectedPerson } from '@/hooks/useMultipleSelection';
+import { usePersonnelQuery } from '@/hooks/queries/usePersonnelQuery';
+import { usePersonnelRealtime } from '@/hooks/queries/usePersonnelRealtime';
 
 interface AllocationFormProps {
   eventId: string;
@@ -31,7 +33,9 @@ export const AllocationForm: React.FC<AllocationFormProps> = ({
   open,
   onOpenChange
 }) => {
-  const { functions, personnel, events, assignments, addAssignment, addDivision } = useEnhancedData();
+  const { functions, events, assignments, addAssignment, addDivision } = useEnhancedData();
+  const { data: personnel = [] } = usePersonnelQuery();
+  usePersonnelRealtime();
   const { userRole } = useTeam();
   const { toast } = useToast();
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
