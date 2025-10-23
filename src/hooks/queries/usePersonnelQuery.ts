@@ -114,7 +114,7 @@ export const usePersonnelQuery = () => {
     enabled: !!user && !!activeTeam?.id,
     staleTime: 30000,
     gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnMount: true,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
 };
@@ -289,13 +289,13 @@ export const useCreatePersonnelMutation = () => {
       }
       
       // Refetch em background para consolidar functions
-      setTimeout(() => {
+      queueMicrotask(() => {
         console.log('[CREATE MUTATION] Background refetch triggered');
         queryClient.refetchQueries({ 
           queryKey,
           type: 'active'
         });
-      }, 0);
+      });
       
       toast({
         title: "Sucesso",
@@ -518,13 +518,13 @@ export const useUpdatePersonnelMutation = () => {
       }
       
       // SEMPRE fazer refetch em background
-      setTimeout(() => {
+      queueMicrotask(() => {
         console.log('[UPDATE MUTATION] Background refetch triggered');
         queryClient.refetchQueries({ 
           queryKey,
           type: 'active'
         });
-      }, 0);
+      });
       
       toast({
         title: "Sucesso",

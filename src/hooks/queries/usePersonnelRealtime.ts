@@ -56,15 +56,15 @@ export const usePersonnelRealtime = () => {
 
             case 'UPDATE': {
               const updatedPersonnel = payload.new as any;
-              // Atualizar registro existente, preservando functions do cache
+              // Atualizar registro existente, preservando apenas functions do cache
+              // primaryFunctionId vem do payload, não preservar do cache
               queryClient.setQueryData<Personnel[]>(
                 queryKey,
                 currentData.map(p => 
                   p.id === updatedPersonnel.id
                     ? {
                         ...updatedPersonnel,
-                        functions: p.functions || [],
-                        primaryFunctionId: p.primaryFunctionId,
+                        functions: p.functions || [], // Preservar apenas functions (não vem no payload)
                         type: updatedPersonnel.type || 'freelancer',
                       }
                     : p
