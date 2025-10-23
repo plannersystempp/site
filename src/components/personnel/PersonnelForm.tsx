@@ -12,7 +12,7 @@ import { useTeam } from '@/contexts/TeamContext';
 import { validateUniquePersonnelName, validateUniqueCPF, validateUniqueCNPJ } from '@/utils/validation';
 import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
 import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
-import { useCreatePersonnelMutation, useUpdatePersonnelMutation } from '@/hooks/queries/usePersonnelQuery';
+import { useCreatePersonnelMutation, useUpdatePersonnelMutation, usePersonnelQuery } from '@/hooks/queries/usePersonnelQuery';
 
 interface PersonnelFormProps {
   personnel?: Personnel;
@@ -45,7 +45,8 @@ interface PersonnelFormData {
 }
 
 export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose, onSuccess }) => {
-  const { functions, personnel: allPersonnel } = useEnhancedData();
+  const { functions } = useEnhancedData();
+  const { data: allPersonnel = [] } = usePersonnelQuery();
   const { userRole, activeTeam } = useTeam();
   const { toast } = useToast();
   const checkLimits = useCheckSubscriptionLimits();
@@ -215,6 +216,9 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     }
 
     // Validar CPF único
+    console.log('DEBUG: Validando CPF contra', allPersonnel.length, 'registros');
+    console.log('DEBUG: CPFs existentes:', allPersonnel.map(p => ({ name: p.name, cpf: p.cpf })));
+    
     const cpfValidation = validateUniqueCPF(
       formData.cpf,
       allPersonnel,
@@ -222,6 +226,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     );
 
     if (!cpfValidation.isValid) {
+      console.log('DEBUG: Validação falhou, mostrando toast');
       toast({
         title: "CPF inválido",
         description: cpfValidation.message,
