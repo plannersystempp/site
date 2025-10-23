@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { Personnel } from '@/contexts/EnhancedDataContext';
@@ -77,6 +77,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     address_state: ''
   });
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (personnel) {
@@ -144,6 +145,13 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Guard contra duplo submit
+    if (submittingRef.current) {
+      console.log('[FORM] Submit already in progress, ignoring');
+      return;
+    }
+    submittingRef.current = true;
     
     // Verificar limites apenas ao criar novo pessoal
     if (!personnel && activeTeam) {
@@ -359,6 +367,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       });
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -403,7 +412,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
             <PersonnelFormActions
               loading={loading}
               onCancel={onClose}
-              onSubmit={() => handleSubmit(new Event('submit') as any)}
               hasUnsavedPhoto={formData.photo_url !== (personnel?.photo_url || '')}
             />
           </form>

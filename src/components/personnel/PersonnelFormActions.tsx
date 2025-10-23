@@ -5,14 +5,12 @@ import { cn } from '@/lib/utils';
 interface PersonnelFormActionsProps {
   loading: boolean;
   onCancel: () => void;
-  onSubmit: () => void;
   hasUnsavedPhoto?: boolean;
 }
 
 export const PersonnelFormActions: React.FC<PersonnelFormActionsProps> = ({
   loading,
   onCancel,
-  onSubmit,
   hasUnsavedPhoto = false
 }) => {
   return (
@@ -27,7 +25,6 @@ export const PersonnelFormActions: React.FC<PersonnelFormActionsProps> = ({
           "flex-1",
           hasUnsavedPhoto && "animate-pulse ring-2 ring-primary ring-offset-2"
         )}
-        onClick={onSubmit}
       >
         {loading ? 'Salvando...' : 'Salvar'}
       </Button>

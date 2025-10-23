@@ -278,13 +278,15 @@ export const useCreatePersonnelMutation = () => {
         };
         
         // Solução: Filtrar TODOS temp- e adicionar apenas o novo registro real
-        queryClient.setQueryData<Personnel[]>(
-          queryKey,
-          [
-            ...currentData.filter(p => !p.id.startsWith('temp-')),
-            newPersonnel
-          ]
-        );
+        const withoutTemps = currentData.filter(p => !p.id.startsWith('temp-'));
+        
+        // Deduplicar por ID (caso Realtime tenha inserido antes)
+        const dedupedData = [
+          ...withoutTemps.filter(p => p.id !== newPersonnel.id),
+          newPersonnel
+        ];
+        
+        queryClient.setQueryData<Personnel[]>(queryKey, dedupedData);
         console.log('[CREATE MUTATION] onSuccess - Cache updated with new ID:', data.id);
       }
       

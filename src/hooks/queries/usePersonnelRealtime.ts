@@ -6,6 +6,14 @@ import { personnelKeys } from './usePersonnelQuery';
 import type { Personnel } from '@/contexts/EnhancedDataContext';
 
 /**
+ * Remove caracteres não numéricos para comparar CPF/CNPJ
+ */
+const removeNonNumeric = (value: string | null | undefined): string => {
+  if (!value) return '';
+  return value.replace(/\D/g, '');
+};
+
+/**
  * Hook para sincronização em tempo real de dados de pessoal
  * Atualiza o cache do React Query quando houver mudanças no banco
  */
@@ -39,7 +47,35 @@ export const usePersonnelRealtime = () => {
           switch (payload.eventType) {
             case 'INSERT': {
               const newPersonnel = payload.new as any;
-              // Adicionar novo registro, preservando o shape esperado
+              
+              // Verificar se já existe no cache (evitar duplicação)
+              if (currentData.some(p => p.id === newPersonnel.id)) {
+                console.log('[Realtime] Personnel already in cache, skipping:', newPersonnel.id);
+                break;
+              }
+              
+              // Remover placeholders temporários relacionados ao mesmo registro
+              const cpfCleaned = removeNonNumeric(newPersonnel.cpf);
+              const filteredData = currentData.filter(p => {
+                // Manter registros reais
+                if (!p.id.startsWith('temp-')) return true;
+                
+                // Remover temp- com mesmo CPF (se CPF existir)
+                if (cpfCleaned && removeNonNumeric(p.cpf) === cpfCleaned) {
+                  console.log('[Realtime] Removing temp placeholder by CPF:', p.id);
+                  return false;
+                }
+                
+                // Remover temp- com mesmo nome exato (fallback)
+                if (p.name === newPersonnel.name) {
+                  console.log('[Realtime] Removing temp placeholder by name:', p.id);
+                  return false;
+                }
+                
+                return true;
+              });
+              
+              // Adicionar novo registro real
               const personnelToAdd: Personnel = {
                 ...newPersonnel,
                 functions: [],
@@ -48,7 +84,7 @@ export const usePersonnelRealtime = () => {
               
               queryClient.setQueryData<Personnel[]>(
                 queryKey,
-                [...currentData, personnelToAdd]
+                [...filteredData, personnelToAdd]
               );
               console.log('[Realtime] Personnel added to cache:', newPersonnel.id);
               break;

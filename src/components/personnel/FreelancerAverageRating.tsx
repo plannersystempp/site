@@ -20,6 +20,17 @@ export const FreelancerAverageRating: React.FC<FreelancerAverageRatingProps> = (
   useEffect(() => {
     const fetchRatings = async () => {
       if (!activeTeam) return;
+      
+      // Validar se é UUID válido (evitar 400/22P02 com IDs temporários)
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(freelancerId);
+      
+      if (!isValidUUID) {
+        console.log('[Rating] Invalid UUID, skipping fetch:', freelancerId);
+        setAverageRating(0);
+        setRatingCount(0);
+        setLoading(false);
+        return;
+      }
 
       try {
         const { data, error } = await supabase
