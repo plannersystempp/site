@@ -110,3 +110,143 @@ export const validateUniquePersonnelName = (
   
   return { isValid: true };
 };
+
+/**
+ * Remove caracteres não numéricos
+ */
+export const removeNonNumeric = (value: string): string => {
+  return value.replace(/\D/g, '');
+};
+
+/**
+ * Valida CPF brasileiro
+ */
+export const validateCPF = (cpf: string): boolean => {
+  const cleaned = removeNonNumeric(cpf);
+  
+  if (cleaned.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cleaned)) return false;
+  
+  let sum = 0;
+  let remainder;
+  
+  for (let i = 1; i <= 9; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(9, 10))) return false;
+  
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (12 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(10, 11))) return false;
+  
+  return true;
+};
+
+/**
+ * Valida CNPJ brasileiro
+ */
+export const validateCNPJ = (cnpj: string): boolean => {
+  const cleaned = removeNonNumeric(cnpj);
+  
+  if (cleaned.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(cleaned)) return false;
+  
+  let length = cleaned.length - 2;
+  let numbers = cleaned.substring(0, length);
+  const digits = cleaned.substring(length);
+  let sum = 0;
+  let pos = length - 7;
+  
+  for (let i = length; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(length - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(0))) return false;
+  
+  length = length + 1;
+  numbers = cleaned.substring(0, length);
+  sum = 0;
+  pos = length - 7;
+  for (let i = length; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(length - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(1))) return false;
+  
+  return true;
+};
+
+export interface DocumentValidationResult {
+  isValid: boolean;
+  message?: string;
+}
+
+export const validateUniqueCPF = (
+  cpf: string,
+  existingPersonnel: Array<{ cpf?: string | null; name: string; id?: string }>,
+  currentPersonnelId?: string
+): DocumentValidationResult => {
+  const cleaned = removeNonNumeric(cpf);
+  
+  if (!cleaned) {
+    return { isValid: false, message: 'CPF é obrigatório' };
+  }
+  
+  if (!validateCPF(cleaned)) {
+    return { isValid: false, message: 'CPF inválido. Verifique os dígitos.' };
+  }
+  
+  const duplicate = existingPersonnel.find(p => {
+    if (!p.cpf) return false;
+    const existingCPF = removeNonNumeric(p.cpf);
+    return existingCPF === cleaned && p.id !== currentPersonnelId;
+  });
+  
+  if (duplicate) {
+    return {
+      isValid: false,
+      message: `CPF já cadastrado para "${duplicate.name}"`
+    };
+  }
+  
+  return { isValid: true };
+};
+
+export const validateUniqueCNPJ = (
+  cnpj: string,
+  existingPersonnel: Array<{ cnpj?: string | null; name: string; id?: string }>,
+  currentPersonnelId?: string
+): DocumentValidationResult => {
+  const cleaned = removeNonNumeric(cnpj);
+  
+  if (!cleaned) {
+    return { isValid: true };
+  }
+  
+  if (!validateCNPJ(cleaned)) {
+    return { isValid: false, message: 'CNPJ inválido. Verifique os dígitos.' };
+  }
+  
+  const duplicate = existingPersonnel.find(p => {
+    if (!p.cnpj) return false;
+    const existingCNPJ = removeNonNumeric(p.cnpj);
+    return existingCNPJ === cleaned && p.id !== currentPersonnelId;
+  });
+  
+  if (duplicate) {
+    return {
+      isValid: false,
+      message: `CNPJ já cadastrado para "${duplicate.name}"`
+    };
+  }
+  
+  return { isValid: true };
+};

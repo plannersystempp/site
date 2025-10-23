@@ -9,7 +9,7 @@ import { PersonnelFormActions } from './PersonnelFormActions';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTeam } from '@/contexts/TeamContext';
-import { validateUniquePersonnelName } from '@/utils/validation';
+import { validateUniquePersonnelName, validateUniqueCPF, validateUniqueCNPJ } from '@/utils/validation';
 import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
 import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
 import { useCreatePersonnelMutation, useUpdatePersonnelMutation } from '@/hooks/queries/usePersonnelQuery';
@@ -196,11 +196,55 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       return;
     }
     
+    // Validação de CPF obrigatório
+    if (!formData.cpf.trim()) {
+      toast({
+        title: "CPF obrigatório",
+        description: "Informe o CPF para cadastrar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validar CPF único
+    const cpfValidation = validateUniqueCPF(
+      formData.cpf,
+      allPersonnel,
+      personnel?.id
+    );
+
+    if (!cpfValidation.isValid) {
+      toast({
+        title: "CPF inválido",
+        description: cpfValidation.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validar CNPJ se fornecido
+    if (formData.cnpj.trim()) {
+      const cnpjValidation = validateUniqueCNPJ(
+        formData.cnpj,
+        allPersonnel,
+        personnel?.id
+      );
+      
+      if (!cnpjValidation.isValid) {
+        toast({
+          title: "CNPJ inválido",
+          description: cnpjValidation.message,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
     // Permitir zero; apenas bloquear valores negativos
     if (formData.event_cache < 0) {
       toast({
         title: "Valor inválido",
-        description: "Cache do evento não pode ser negativo",
+        description: "Cachê do evento não pode ser negativo",
         variant: "destructive" 
       });
       return;
@@ -293,9 +337,24 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       onClose();
     } catch (error) {
       console.error('Error saving personnel:', error);
+      
+      let errorMessage = "Ocorreu um erro ao salvar os dados";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('idx_personnel_cpf_unique')) {
+          errorMessage = "CPF já cadastrado nesta equipe";
+        } else if (error.message.includes('idx_personnel_cnpj_unique')) {
+          errorMessage = "CNPJ já cadastrado nesta equipe";
+        } else if (error.message.includes('duplicate key')) {
+          errorMessage = "Dados duplicados. Verifique CPF/CNPJ.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Erro ao salvar",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar os dados",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

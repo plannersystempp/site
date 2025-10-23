@@ -165,3 +165,34 @@ export const pushLeftBackspace = (currentMasked: string): string => {
   const newDigits = digits.slice(0, -1);
   return applyMinutesFirstMaskFromDigits(newDigits);
 };
+
+/**
+ * Formata CPF: 00000000000 -> 000.000.000-00
+ */
+export const formatCPF = (cpf: string): string => {
+  const cleaned = cpf.replace(/\D/g, '');
+  
+  if (cleaned.length <= 3) return cleaned;
+  if (cleaned.length <= 6) return cleaned.replace(/(\d{3})(\d+)/, '$1.$2');
+  if (cleaned.length <= 9) return cleaned.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+  
+  return cleaned
+    .slice(0, 11)
+    .replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+};
+
+/**
+ * Formata CNPJ: 00000000000000 -> 00.000.000/0000-00
+ */
+export const formatCNPJ = (cnpj: string): string => {
+  const cleaned = cnpj.replace(/\D/g, '');
+  
+  if (cleaned.length <= 2) return cleaned;
+  if (cleaned.length <= 5) return cleaned.replace(/(\d{2})(\d+)/, '$1.$2');
+  if (cleaned.length <= 8) return cleaned.replace(/(\d{2})(\d{3})(\d+)/, '$1.$2.$3');
+  if (cleaned.length <= 12) return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d+)/, '$1.$2.$3/$4');
+  
+  return cleaned
+    .slice(0, 14)
+    .replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+};

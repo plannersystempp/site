@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Func } from '@/contexts/EnhancedDataContext';
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency, formatCPF, formatCNPJ } from '@/utils/formatters';
 import { FunctionMultiSelect } from './FunctionMultiSelect';
 import { PersonnelPhotoUpload } from './PersonnelPhotoUpload';
 import { useTeam } from '@/contexts/TeamContext';
@@ -208,23 +208,40 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="cpf">CPF</Label>
+          <Label htmlFor="cpf">
+            CPF <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="cpf"
             value={formData.cpf}
-            onChange={(e) => onFieldChange('cpf', e.target.value)}
+            onChange={(e) => {
+              const formatted = formatCPF(e.target.value);
+              onFieldChange('cpf', formatted);
+            }}
             placeholder="000.000.000-00"
+            maxLength={14}
+            required
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            📄 CPF é obrigatório e deve ser único
+          </p>
         </div>
 
         <div>
-          <Label htmlFor="cnpj">CNPJ</Label>
+          <Label htmlFor="cnpj">CNPJ (Opcional)</Label>
           <Input
             id="cnpj"
             value={formData.cnpj}
-            onChange={(e) => onFieldChange('cnpj', e.target.value)}
+            onChange={(e) => {
+              const formatted = formatCNPJ(e.target.value);
+              onFieldChange('cnpj', formatted);
+            }}
             placeholder="00.000.000/0000-00"
+            maxLength={18}
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            🏢 Informe se pessoa jurídica
+          </p>
         </div>
       </div>
 
