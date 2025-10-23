@@ -387,16 +387,33 @@ export const useDeletePersonnelMutation = () => {
 
   return useMutation({
     mutationFn: async (personnelId: string) => {
-      const { error } = await supabase
+      console.log('[DELETE PERSONNEL] Starting deletion for ID:', personnelId);
+      console.log('[DELETE PERSONNEL] Active team:', activeTeam?.id);
+      
+      const { data, error } = await supabase
         .from('personnel')
         .delete()
         .eq('id', personnelId)
-        .eq('team_id', activeTeam!.id);
+        .eq('team_id', activeTeam!.id)
+        .select(); // Add select to get deleted data
 
-      if (error) throw error;
+      console.log('[DELETE PERSONNEL] Supabase response:', { data, error });
+      
+      if (error) {
+        console.error('[DELETE PERSONNEL] Error occurred:', error);
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        console.warn('[DELETE PERSONNEL] No rows were deleted. Personnel may not exist or user lacks permissions.');
+        throw new Error('Nenhum registro foi excluído. Verifique se o pessoal existe e se você tem permissões.');
+      }
+      
+      console.log('[DELETE PERSONNEL] Successfully deleted:', data);
       return personnelId;
     },
     onMutate: async (personnelId) => {
+      console.log('[DELETE PERSONNEL] onMutate - Starting optimistic update for:', personnelId);
       await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
 
       const previousPersonnel = queryClient.getQueryData<Personnel[]>(personnelKeys.list(activeTeam?.id));
@@ -407,28 +424,33 @@ export const useDeletePersonnelMutation = () => {
           personnelKeys.list(activeTeam.id),
           old => old?.filter(person => person.id !== personnelId) || []
         );
+        console.log('[DELETE PERSONNEL] Optimistic update applied');
       }
 
       return { previousPersonnel };
     },
     onError: (err, personnelId, context) => {
+      console.error('[DELETE PERSONNEL] onError - Mutation failed:', err);
       if (context?.previousPersonnel && activeTeam) {
         queryClient.setQueryData(personnelKeys.list(activeTeam.id), context.previousPersonnel);
+        console.log('[DELETE PERSONNEL] Reverted optimistic update');
       }
       
       toast({
         title: "Erro",
-        description: "Falha ao excluir pessoal",
+        description: err instanceof Error ? err.message : "Falha ao excluir pessoal",
         variant: "destructive"
       });
     },
-    onSuccess: () => {
+    onSuccess: (personnelId) => {
+      console.log('[DELETE PERSONNEL] onSuccess - Personnel deleted successfully:', personnelId);
       toast({
         title: "Sucesso",
         description: "Pessoal excluído com sucesso!",
       });
     },
     onSettled: () => {
+      console.log('[DELETE PERSONNEL] onSettled - Invalidating queries');
       queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
     },
   });

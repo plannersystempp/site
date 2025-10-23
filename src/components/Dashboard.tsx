@@ -20,6 +20,7 @@ import * as PayrollCalc from './payroll/payrollCalculations';
 import { getCachedEventStatus } from './payroll/eventStatusCache';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 import { useQuery } from '@tanstack/react-query';
+import { formatCurrency } from '@/utils/formatters';
 
 const Dashboard = () => {
   const { events, personnel, functions, eventSupplierCosts, suppliers, loading } = useEnhancedData();
@@ -316,39 +317,37 @@ const Dashboard = () => {
       {/* Estatísticas de Fornecedores (Fase 5) */}
       {!isSuperAdmin && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Package className="h-4 w-4" />
               Fornecedores
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-2xl font-bold">{suppliers.length}</div>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-4 gap-3">
+              <div className="text-center">
+                <div className="text-lg font-bold">{suppliers.length}</div>
                 <p className="text-xs text-muted-foreground">Total Cadastrados</p>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">
+              <div className="text-center">
+                <div className="text-lg font-bold text-orange-600">
                   {eventSupplierCosts.filter(c => c.payment_status === 'pending').length}
                 </div>
                 <p className="text-xs text-muted-foreground">Custos Pendentes</p>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  R$ {eventSupplierCosts
+              <div className="text-center">
+                <div className="text-lg font-bold text-green-600">
+                  {formatCurrency(eventSupplierCosts
                     .filter(c => c.payment_status === 'paid')
-                    .reduce((sum, c) => sum + (c.paid_amount || 0), 0)
-                    .toFixed(2)}
+                    .reduce((sum, c) => sum + (c.paid_amount || 0), 0))}
                 </div>
                 <p className="text-xs text-muted-foreground">Total Pago</p>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-red-600">
-                  R$ {eventSupplierCosts
+              <div className="text-center">
+                <div className="text-lg font-bold text-red-600">
+                  {formatCurrency(eventSupplierCosts
                     .filter(c => c.payment_status !== 'paid')
-                    .reduce((sum, c) => sum + ((c.total_amount || 0) - (c.paid_amount || 0)), 0)
-                    .toFixed(2)}
+                    .reduce((sum, c) => sum + ((c.total_amount || 0) - (c.paid_amount || 0)), 0))}
                 </div>
                 <p className="text-xs text-muted-foreground">Total Pendente</p>
               </div>
