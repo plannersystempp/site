@@ -11,7 +11,8 @@ import { FunctionMultiSelect } from './FunctionMultiSelect';
 import { PersonnelPhotoUpload } from './PersonnelPhotoUpload';
 import { useTeam } from '@/contexts/TeamContext';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, CheckCircle2, XCircle } from 'lucide-react';
+import { useCPFValidation } from '@/hooks/useCPFValidation';
 import {
   applyCEPMask,
   fetchAddressByCEP,
@@ -60,6 +61,9 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
   const { userRole } = useTeam();
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
   const [loadingCEP, setLoadingCEP] = useState(false);
+  
+  // FASE 4: Validação real-time de CPF
+  const cpfValidation = useCPFValidation(formData.cpf, personnelId);
 
   const handlePhoneChange = (value: string) => {
     // Allow international format with +55
@@ -211,20 +215,47 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
           <Label htmlFor="cpf">
             CPF <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="cpf"
-            value={formData.cpf}
-            onChange={(e) => {
-              const formatted = formatCPF(e.target.value);
-              onFieldChange('cpf', formatted);
-            }}
-            placeholder="000.000.000-00"
-            maxLength={14}
-            required
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            📄 CPF é obrigatório e deve ser único
-          </p>
+          <div className="relative">
+            <Input
+              id="cpf"
+              value={formData.cpf}
+              onChange={(e) => {
+                const formatted = formatCPF(e.target.value);
+                onFieldChange('cpf', formatted);
+              }}
+              placeholder="000.000.000-00"
+              maxLength={14}
+              required
+              className={
+                formData.cpf && !cpfValidation.isChecking
+                  ? cpfValidation.isValid
+                    ? 'border-green-500'
+                    : 'border-red-500'
+                  : ''
+              }
+            />
+            {formData.cpf && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                {cpfValidation.isChecking ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                ) : cpfValidation.isValid ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                )}
+              </div>
+            )}
+          </div>
+          {formData.cpf && !cpfValidation.isValid && !cpfValidation.isChecking && (
+            <p className="text-xs text-red-500 mt-1">
+              {cpfValidation.message}
+            </p>
+          )}
+          {(!formData.cpf || cpfValidation.isValid) && (
+            <p className="text-xs text-muted-foreground mt-1">
+              📄 CPF é obrigatório e deve ser único
+            </p>
+          )}
         </div>
 
         <div>

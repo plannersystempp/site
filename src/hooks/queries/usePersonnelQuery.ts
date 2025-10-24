@@ -40,24 +40,69 @@ interface PersonnelFormData {
   phone_secondary?: string;
 }
 
-// Fetch personnel for a team with functions (OTIMIZADO - com userRole para evitar RPCs)
+// FASE 2: Fetch personnel usando RPC otimizada (1 query em vez de 2)
 const fetchPersonnelWithFunctions = async (teamId: string, userRole?: string | null): Promise<Personnel[]> => {
-  console.log('Fetching personnel with functions for team:', teamId, 'userRole:', userRole);
+  console.log('[fetchPersonnelWithFunctions] Using optimized RPC for team:', teamId, 'userRole:', userRole);
   
   try {
-    // Use the personnel service that handles role-based access, passando userRole
+    // Para admins e superadmins, usar RPC otimizada que faz JOIN no banco
+    if (userRole === 'admin' || userRole === 'superadmin') {
+      console.log('[fetchPersonnelWithFunctions] Admin/superadmin - using RPC get_personnel_with_functions');
+      
+      const { data, error } = await supabase.rpc('get_personnel_with_functions', {
+        p_team_id: teamId
+      });
+
+      if (error) {
+        console.error('[fetchPersonnelWithFunctions] RPC error:', error);
+        throw error;
+      }
+
+      console.log('[fetchPersonnelWithFunctions] RPC returned:', data?.length || 0, 'records');
+      
+      // Transform RPC result to Personnel format
+      const personnelWithFunctions: Personnel[] = (data || []).map(person => {
+        // Parse functions JSONB to array
+        let parsedFunctions: any[] = [];
+        if (person.functions) {
+          try {
+            parsedFunctions = typeof person.functions === 'string' 
+              ? JSON.parse(person.functions)
+              : person.functions as any[];
+          } catch (e) {
+            console.error('[fetchPersonnelWithFunctions] Error parsing functions:', e);
+            parsedFunctions = [];
+          }
+        }
+
+        return {
+          ...person,
+          functions: parsedFunctions,
+          primaryFunctionId: person.primary_function_id,
+          type: (person.type === 'fixo' || person.type === 'freelancer') ? person.type : 'freelancer',
+          shirt_size: person.shirt_size as Personnel['shirt_size'] || undefined,
+          monthly_salary: person.monthly_salary || 0,
+          event_cache: person.event_cache || 0,
+          overtime_rate: person.overtime_rate || 0,
+        };
+      });
+
+      return personnelWithFunctions;
+    }
+
+    // Para coordinators (dados redacted), manter lógica antiga de 2 queries
+    console.log('[fetchPersonnelWithFunctions] Non-admin - using legacy 2-query approach');
     const personnelData = await fetchPersonnelByRole(teamId, userRole);
-    console.log('Personnel data fetched:', personnelData.length, 'records');
+    console.log('[fetchPersonnelWithFunctions] Personnel data fetched:', personnelData.length, 'records');
     
-    // Fetch personnel functions associations - SELECT específico
+    // Fetch personnel functions associations
     const { data: personnelFunctionsData, error: personnelFunctionsError } = await supabase
       .from('personnel_functions')
       .select('personnel_id, function_id, is_primary, functions:function_id(id, name, description)')
       .eq('team_id', teamId);
 
     if (personnelFunctionsError) {
-      console.error('Error fetching personnel functions:', personnelFunctionsError);
-      // Continue without functions rather than failing completely
+      console.error('[fetchPersonnelWithFunctions] Error fetching personnel functions:', personnelFunctionsError);
     }
 
     // Map personnel with their functions
@@ -86,10 +131,10 @@ const fetchPersonnelWithFunctions = async (teamId: string, userRole?: string | n
       };
     });
 
-    console.log('Personnel with functions processed:', personnelWithFunctions.length, 'records');
+    console.log('[fetchPersonnelWithFunctions] Personnel with functions processed:', personnelWithFunctions.length, 'records');
     return personnelWithFunctions;
   } catch (error) {
-    console.error('Error in fetchPersonnelWithFunctions:', error);
+    console.error('[fetchPersonnelWithFunctions] Error:', error);
     throw error;
   }
 };

@@ -33,6 +33,7 @@ export const personnelSchema = z.object({
   }),
   
   cpf: z.string()
+    .min(1, "CPF é obrigatório")
     .transform(removeNonNumeric)
     .refine(validateCPF, "CPF inválido"),
   
