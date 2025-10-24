@@ -39,8 +39,6 @@ import { TermsAcceptanceModal } from './components/shared/TermsAcceptanceModal';
 import { supabase } from './integrations/supabase/client';
 import './App.css';
 import { EnhancedAdminSettings } from './components/admin/EnhancedAdminSettings';
-import { ErrorDashboard } from './components/admin/ErrorDashboard';
-import { ErrorTester } from './components/shared/ErrorTester';
 import SuperAdmin from './pages/SuperAdmin';
 import UpgradePlan from './pages/UpgradePlan';
 import PlansPage from './pages/PlansPage';
@@ -329,20 +327,6 @@ const AppContent = () => {
                     <FormErrorBoundary formName="AdminConfiguracoes">
                       <Settings />
                     </FormErrorBoundary>
-                  </RouteErrorBoundary>
-                } />
-              )}
-              {user.role === 'admin' && (
-                <Route path="/admin/erros" element={
-                  <RouteErrorBoundary routeName="Admin - Dashboard de Erros">
-                    <ErrorDashboard />
-                  </RouteErrorBoundary>
-                } />
-              )}
-              {user.role === 'admin' && (
-                <Route path="/admin/test-errors" element={
-                  <RouteErrorBoundary routeName="Admin - Testador de Erros">
-                    <ErrorTester />
                   </RouteErrorBoundary>
                 } />
               )}
