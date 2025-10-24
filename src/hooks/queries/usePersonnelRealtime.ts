@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTeam } from '@/contexts/TeamContext';
 import { personnelKeys } from './usePersonnelQuery';
 import type { Personnel } from '@/contexts/EnhancedDataContext';
+import { logger } from '@/utils/logger';
 
 /**
  * Remove caracteres não numéricos para comparar CPF/CNPJ
@@ -24,7 +25,7 @@ export const usePersonnelRealtime = () => {
   useEffect(() => {
     if (!activeTeam?.id) return;
 
-    console.log('[Realtime] Subscribing to personnel changes for team:', activeTeam.id);
+    logger.realtime.connected();
 
     const channel = supabase
       .channel('schema-db-changes')
@@ -37,7 +38,7 @@ export const usePersonnelRealtime = () => {
           filter: `team_id=eq.${activeTeam.id}`
         },
         (payload) => {
-          console.log('[Realtime] Personnel change detected:', payload.eventType, payload);
+          logger.realtime.change(payload.eventType, { id: (payload.new as any)?.id || (payload.old as any)?.id });
 
           const queryKey = personnelKeys.list(activeTeam.id);
           const currentData = queryClient.getQueryData<Personnel[]>(queryKey);

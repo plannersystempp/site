@@ -6,6 +6,7 @@ import { fetchPersonnelByRole } from '@/services/personnelService';
 import { supabase } from '@/integrations/supabase/client';
 import type { Personnel } from '@/contexts/EnhancedDataContext';
 import { sanitizePersonnelData } from '@/utils/dataTransform';
+import { logger } from '@/utils/logger';
 
 // Query keys for consistent caching (SIMPLIFIED)
 export const personnelKeys = {
@@ -42,23 +43,23 @@ interface PersonnelFormData {
 
 // FASE 2: Fetch personnel usando RPC otimizada (1 query em vez de 2)
 const fetchPersonnelWithFunctions = async (teamId: string, userRole?: string | null): Promise<Personnel[]> => {
-  console.log('[fetchPersonnelWithFunctions] Using optimized RPC for team:', teamId, 'userRole:', userRole);
+  logger.personnel.fetch({ teamId, userRole });
   
   try {
     // Para admins e superadmins, usar RPC otimizada que faz JOIN no banco
     if (userRole === 'admin' || userRole === 'superadmin') {
-      console.log('[fetchPersonnelWithFunctions] Admin/superadmin - using RPC get_personnel_with_functions');
+      logger.query.start('get_personnel_with_functions');
       
       const { data, error } = await supabase.rpc('get_personnel_with_functions', {
         p_team_id: teamId
       });
 
       if (error) {
-        console.error('[fetchPersonnelWithFunctions] RPC error:', error);
+        logger.query.error('get_personnel_with_functions', error);
         throw error;
       }
 
-      console.log('[fetchPersonnelWithFunctions] RPC returned:', data?.length || 0, 'records');
+      logger.query.success('get_personnel_with_functions', data?.length || 0);
       
       // Transform RPC result to Personnel format
       const personnelWithFunctions: Personnel[] = (data || []).map(person => {
@@ -91,9 +92,9 @@ const fetchPersonnelWithFunctions = async (teamId: string, userRole?: string | n
     }
 
     // Para coordinators (dados redacted), manter lógica antiga de 2 queries
-    console.log('[fetchPersonnelWithFunctions] Non-admin - using legacy 2-query approach');
+    logger.personnel.info('FETCH_REDACTED', { teamId });
     const personnelData = await fetchPersonnelByRole(teamId, userRole);
-    console.log('[fetchPersonnelWithFunctions] Personnel data fetched:', personnelData.length, 'records');
+    logger.query.success('personnel_redacted', personnelData.length);
     
     // Fetch personnel functions associations
     const { data: personnelFunctionsData, error: personnelFunctionsError } = await supabase
@@ -102,7 +103,7 @@ const fetchPersonnelWithFunctions = async (teamId: string, userRole?: string | n
       .eq('team_id', teamId);
 
     if (personnelFunctionsError) {
-      console.error('[fetchPersonnelWithFunctions] Error fetching personnel functions:', personnelFunctionsError);
+      logger.query.error('personnel_functions', personnelFunctionsError);
     }
 
     // Map personnel with their functions
@@ -131,10 +132,10 @@ const fetchPersonnelWithFunctions = async (teamId: string, userRole?: string | n
       };
     });
 
-    console.log('[fetchPersonnelWithFunctions] Personnel with functions processed:', personnelWithFunctions.length, 'records');
+    logger.personnel.info('FETCH_SUCCESS', { count: personnelWithFunctions.length });
     return personnelWithFunctions;
   } catch (error) {
-    console.error('[fetchPersonnelWithFunctions] Error:', error);
+    logger.personnel.error('FETCH_ERROR', error);
     throw error;
   }
 };
@@ -173,7 +174,7 @@ export const useCreatePersonnelMutation = () => {
 
   return useMutation({
     mutationFn: async (personnelData: PersonnelFormData) => {
-      console.log('[CREATE MUTATION] Starting creation:', personnelData);
+      logger.personnel.create({ name: personnelData.name, type: personnelData.type });
       if (!activeTeam) throw new Error('No active team');
 
       const { functionIds, pixKey, primaryFunctionId, ...restData } = personnelData;
@@ -232,7 +233,7 @@ export const useCreatePersonnelMutation = () => {
       return personnelResult;
     },
     onMutate: async (data: PersonnelFormData) => {
-      console.log('[CREATE MUTATION] onMutate - Optimistic creation:', data.name);
+      logger.personnel.optimistic({ action: 'CREATE', name: data.name });
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
 
@@ -274,13 +275,13 @@ export const useCreatePersonnelMutation = () => {
           updatedData
         );
         
-        console.log('[CREATE MUTATION] onMutate - Optimistic personnel added to cache:', optimisticPersonnel.id);
+        logger.cache.hit(`personnel_list_${activeTeam!.id}`);
       }
 
       return { previousPersonnel };
     },
     onSuccess: (data) => {
-      console.log('[CREATE] Success:', data.id);
+      logger.personnel.info('CREATE_SUCCESS', { id: data.id, name: data.name });
       // Realtime handles cache synchronization automatically
       
       toast({
@@ -315,7 +316,7 @@ export const useUpdatePersonnelMutation = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...personnelData }: { id: string } & Partial<PersonnelFormData>) => {
-      console.log('[UPDATE MUTATION] Starting update for:', id, personnelData);
+      logger.personnel.update({ id, changes: Object.keys(personnelData) });
       const { functionIds, pixKey, primaryFunctionId, ...restData } = personnelData;
 
       // Usar utilitário centralizado de sanitização
@@ -373,7 +374,7 @@ export const useUpdatePersonnelMutation = () => {
       return data;
     },
     onMutate: async ({ id, ...data }) => {
-      console.log('[UPDATE MUTATION] onMutate - Optimistic update for:', id, data);
+      logger.personnel.optimistic({ action: 'UPDATE', id, fields: Object.keys(data) });
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
 
@@ -393,13 +394,13 @@ export const useUpdatePersonnelMutation = () => {
               : p
           )
         );
-        console.log('[UPDATE MUTATION] onMutate - Cache updated optimistically');
+        logger.cache.hit(`personnel_list_${activeTeam!.id}`);
       }
 
       return { previousPersonnel };
     },
     onSuccess: (data) => {
-      console.log('[UPDATE] Success:', data?.id);
+      logger.personnel.info('UPDATE_SUCCESS', { id: data?.id });
       // Realtime handles cache synchronization automatically
       
       toast({
@@ -434,33 +435,30 @@ export const useDeletePersonnelMutation = () => {
 
   return useMutation({
     mutationFn: async (personnelId: string) => {
-      console.log('[DELETE PERSONNEL] Starting deletion for ID:', personnelId);
-      console.log('[DELETE PERSONNEL] Active team:', activeTeam?.id);
+      logger.personnel.delete({ id: personnelId, teamId: activeTeam?.id });
       
       const { data, error } = await supabase
         .from('personnel')
         .delete()
         .eq('id', personnelId)
         .eq('team_id', activeTeam!.id)
-        .select(); // Add select to get deleted data
-
-      console.log('[DELETE PERSONNEL] Supabase response:', { data, error });
+        .select();
       
       if (error) {
-        console.error('[DELETE PERSONNEL] Error occurred:', error);
+        logger.personnel.error('DELETE_ERROR', error);
         throw error;
       }
       
       if (!data || data.length === 0) {
-        console.warn('[DELETE PERSONNEL] No rows were deleted. Personnel may not exist or user lacks permissions.');
+        logger.personnel.warn('DELETE_NO_ROWS', { personnelId });
         throw new Error('Nenhum registro foi excluído. Verifique se o pessoal existe e se você tem permissões.');
       }
       
-      console.log('[DELETE PERSONNEL] Successfully deleted:', data);
+      logger.personnel.info('DELETE_SUCCESS', { id: personnelId });
       return personnelId;
     },
     onMutate: async (personnelId) => {
-      console.log('[DELETE PERSONNEL] onMutate - Starting optimistic update for:', personnelId);
+      logger.personnel.optimistic({ action: 'DELETE', id: personnelId });
       await queryClient.cancelQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
 
       const previousPersonnel = queryClient.getQueryData<Personnel[]>(personnelKeys.list(activeTeam?.id));
@@ -471,16 +469,16 @@ export const useDeletePersonnelMutation = () => {
           personnelKeys.list(activeTeam.id),
           old => old?.filter(person => person.id !== personnelId) || []
         );
-        console.log('[DELETE PERSONNEL] Optimistic update applied');
+        logger.cache.hit(`personnel_list_${activeTeam.id}`);
       }
 
       return { previousPersonnel };
     },
     onError: (err, personnelId, context) => {
-      console.error('[DELETE PERSONNEL] onError - Mutation failed:', err);
+      logger.personnel.error('DELETE_ROLLBACK', { id: personnelId, error: err });
       if (context?.previousPersonnel && activeTeam) {
         queryClient.setQueryData(personnelKeys.list(activeTeam.id), context.previousPersonnel);
-        console.log('[DELETE PERSONNEL] Reverted optimistic update');
+        logger.cache.invalidate(`personnel_list_${activeTeam.id}`);
       }
       
       toast({
@@ -490,7 +488,7 @@ export const useDeletePersonnelMutation = () => {
       });
     },
     onSuccess: (personnelId) => {
-      console.log('[DELETE PERSONNEL] onSuccess - Personnel deleted successfully:', personnelId);
+      logger.personnel.info('DELETE_COMPLETE', { id: personnelId });
       toast({
         title: "Sucesso",
         description: "Pessoal excluído com sucesso!",

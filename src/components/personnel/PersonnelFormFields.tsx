@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
@@ -93,17 +93,8 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
     }
   };
 
-  const handleCEPSearch = async () => {
-    const cep = formData.address_zip_code.replace(/\D/g, '');
-    if (cep.length !== 8) {
-      toast({
-        title: 'CEP inválido',
-        description: 'CEP deve ter 8 dígitos',
-        variant: 'destructive'
-      });
-      return;
-    }
-
+  // Busca automática de CEP com debounce
+  const handleCEPSearchAuto = async (cep: string) => {
     setLoadingCEP(true);
     try {
       const address = await fetchAddressByCEP(cep);
@@ -116,22 +107,39 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
           title: 'Endereço encontrado!',
           description: 'Dados preenchidos automaticamente'
         });
-      } else {
-        toast({
-          title: 'CEP não encontrado',
-          description: 'Verifique o CEP e tente novamente',
-          variant: 'destructive'
-        });
       }
     } catch (error) {
-      toast({
-        title: 'Erro ao buscar CEP',
-        description: 'Tente novamente mais tarde',
-        variant: 'destructive'
-      });
+      console.error('Error fetching CEP:', error);
     } finally {
       setLoadingCEP(false);
     }
+  };
+
+  // FASE 5: Debounce automático para busca de CEP (800ms)
+  useEffect(() => {
+    const cep = formData.address_zip_code.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    const timer = setTimeout(() => {
+      handleCEPSearchAuto(cep);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [formData.address_zip_code]);
+
+  // Busca manual de CEP (botão)
+  const handleCEPSearch = async () => {
+    const cep = formData.address_zip_code.replace(/\D/g, '');
+    if (cep.length !== 8) {
+      toast({
+        title: 'CEP inválido',
+        description: 'CEP deve ter 8 dígitos',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    await handleCEPSearchAuto(cep);
   };
 
   return (
