@@ -15,6 +15,26 @@ const removeNonNumeric = (value: string | null | undefined): string => {
 };
 
 /**
+ * Busca as funções de um personnel do banco de dados
+ */
+const fetchPersonnelFunctions = async (personnelId: string, teamId: string) => {
+  const { data, error } = await supabase
+    .from('personnel_functions')
+    .select('function_id, is_primary, functions:function_id(id, name, description)')
+    .eq('personnel_id', personnelId)
+    .eq('team_id', teamId);
+
+  if (error) {
+    console.error('[Realtime] Error fetching functions:', error);
+    return [];
+  }
+
+  return (data || [])
+    .map(pf => pf.functions)
+    .filter(f => f != null) as any[];
+};
+
+/**
  * Hook para sincronização em tempo real de dados de pessoal
  * Atualiza o cache do React Query quando houver mudanças no banco
  */
@@ -37,7 +57,7 @@ export const usePersonnelRealtime = () => {
           table: 'personnel',
           filter: `team_id=eq.${activeTeam.id}`
         },
-        (payload) => {
+        async (payload) => {
           logger.realtime.change(payload.eventType, { id: (payload.new as any)?.id || (payload.old as any)?.id });
 
           const queryKey = personnelKeys.list(activeTeam.id);
@@ -53,14 +73,15 @@ export const usePersonnelRealtime = () => {
               const existingIndex = currentData.findIndex(p => p.id === newPersonnel.id);
               if (existingIndex !== -1) {
                 console.log('[Realtime] Personnel already in cache, updating instead:', newPersonnel.id);
-                // Atualizar o registro existente se necessário
+                // Buscar funções atualizadas e atualizar o registro existente
+                const functions = await fetchPersonnelFunctions(newPersonnel.id, activeTeam.id);
                 queryClient.setQueryData<Personnel[]>(
                   queryKey,
                   currentData.map(p => 
                     p.id === newPersonnel.id 
                       ? {
                           ...newPersonnel,
-                          functions: p.functions || [],
+                          functions: functions,
                           type: newPersonnel.type || 'freelancer',
                         }
                       : p
@@ -90,10 +111,13 @@ export const usePersonnelRealtime = () => {
                 return true;
               });
               
-              // Adicionar novo registro real
+              // Buscar funções do banco de dados
+              const functions = await fetchPersonnelFunctions(newPersonnel.id, activeTeam.id);
+              
+              // Adicionar novo registro real com funções
               const personnelToAdd: Personnel = {
                 ...newPersonnel,
-                functions: [],
+                functions: functions,
                 type: newPersonnel.type || 'freelancer',
               };
               
@@ -105,6 +129,7 @@ export const usePersonnelRealtime = () => {
               );
               
               console.log('[Realtime] Personnel added to cache:', newPersonnel.id);
+              console.log('[Realtime] Functions loaded:', functions.length);
               console.log('[Realtime] Final cache state:', finalData.length, 'records');
               
               break;
@@ -112,21 +137,25 @@ export const usePersonnelRealtime = () => {
 
             case 'UPDATE': {
               const updatedPersonnel = payload.new as any;
-              // Atualizar registro existente, preservando apenas functions do cache
-              // primaryFunctionId vem do payload, não preservar do cache
+              
+              // Buscar funções atualizadas do banco de dados
+              const functions = await fetchPersonnelFunctions(updatedPersonnel.id, activeTeam.id);
+              
+              // Atualizar registro existente com funções atualizadas
               queryClient.setQueryData<Personnel[]>(
                 queryKey,
                 currentData.map(p => 
                   p.id === updatedPersonnel.id
                     ? {
                         ...updatedPersonnel,
-                        functions: p.functions || [], // Preservar apenas functions (não vem no payload)
+                        functions: functions,
                         type: updatedPersonnel.type || 'freelancer',
                       }
                     : p
                 )
               );
               console.log('[Realtime] Personnel updated in cache:', updatedPersonnel.id);
+              console.log('[Realtime] Functions reloaded:', functions.length);
               break;
             }
 
