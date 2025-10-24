@@ -30,12 +30,17 @@ import { ManageSuppliers } from './components/suppliers/ManageSuppliers';
 import { Card, CardContent } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
-import { ErrorBoundary } from './components/shared/ErrorBoundary';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { RouteErrorBoundary } from '@/components/shared/RouteErrorBoundary';
+import { DashboardErrorBoundary } from '@/components/shared/DashboardErrorBoundary';
+import { FormErrorBoundary } from '@/components/shared/FormErrorBoundary';
 import { PendingApprovalScreen } from './components/PendingApprovalScreen';
 import { TermsAcceptanceModal } from './components/shared/TermsAcceptanceModal';
 import { supabase } from './integrations/supabase/client';
 import './App.css';
 import { EnhancedAdminSettings } from './components/admin/EnhancedAdminSettings';
+import { ErrorDashboard } from './components/admin/ErrorDashboard';
+import { ErrorTester } from './components/shared/ErrorTester';
 import SuperAdmin from './pages/SuperAdmin';
 import UpgradePlan from './pages/UpgradePlan';
 import PlansPage from './pages/PlansPage';
@@ -242,25 +247,111 @@ const AppContent = () => {
           <TermsAcceptanceModal />
           <Layout>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/pessoal" element={<ManagePersonnel />} />
-              <Route path="/funcoes" element={<ManageFunctions />} />
-              <Route path="/eventos" element={<ManageEvents />} />
-              <Route path="/eventos/:id" element={<EventDetail />} />
-              <Route path="/fornecedores" element={<ManageSuppliers />} />
-              <Route path="/custos" element={<EstimatedCosts />} />
-              <Route path="/folha" element={<PayrollManager />} />
-              <Route path="/folha/:eventId" element={<PayrollEventView />} />
-              <Route path="/equipe" element={<TeamManagement />} />
-              <Route path="/configuracoes" element={<SettingsPage />} />
-              <Route path="/upgrade" element={<UpgradePlan />} />
-              <Route path="/plans" element={<PlansPage />} />
-              <Route path="/subscription" element={<ManageSubscription />} />
+              <Route path="/" element={
+                <RouteErrorBoundary routeName="Dashboard" fallbackRoute="/app/eventos">
+                  <DashboardErrorBoundary sectionName="Principal">
+                    <Dashboard />
+                  </DashboardErrorBoundary>
+                </RouteErrorBoundary>
+              } />
+              <Route path="/pessoal" element={
+                <RouteErrorBoundary routeName="Pessoal">
+                  <ManagePersonnel />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/funcoes" element={
+                <RouteErrorBoundary routeName="Funções">
+                  <ManageFunctions />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/eventos" element={
+                <RouteErrorBoundary routeName="Eventos">
+                  <ManageEvents />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/eventos/:id" element={
+                <RouteErrorBoundary routeName="Detalhes do Evento">
+                  <EventDetail />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/fornecedores" element={
+                <RouteErrorBoundary routeName="Fornecedores">
+                  <ManageSuppliers />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/custos" element={
+                <RouteErrorBoundary routeName="Custos">
+                  <EstimatedCosts />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/folha" element={
+                <RouteErrorBoundary routeName="Folha de Pagamento">
+                  <PayrollManager />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/folha/:eventId" element={
+                <RouteErrorBoundary routeName="Visualização da Folha">
+                  <PayrollEventView />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/equipe" element={
+                <RouteErrorBoundary routeName="Equipe">
+                  <TeamManagement />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/configuracoes" element={
+                <RouteErrorBoundary routeName="Configurações">
+                  <FormErrorBoundary formName="Configuracoes">
+                    <SettingsPage />
+                  </FormErrorBoundary>
+                </RouteErrorBoundary>
+              } />
+              <Route path="/upgrade" element={
+                <RouteErrorBoundary routeName="Upgrade">
+                  <UpgradePlan />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/plans" element={
+                <RouteErrorBoundary routeName="Planos">
+                  <PlansPage />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/subscription" element={
+                <RouteErrorBoundary routeName="Assinatura">
+                  <FormErrorBoundary formName="Assinatura">
+                    <ManageSubscription />
+                  </FormErrorBoundary>
+                </RouteErrorBoundary>
+              } />
               {user.role === 'admin' && (
-                <Route path="/admin/configuracoes" element={<Settings />} />
+                <Route path="/admin/configuracoes" element={
+                  <RouteErrorBoundary routeName="Admin - Configurações">
+                    <FormErrorBoundary formName="AdminConfiguracoes">
+                      <Settings />
+                    </FormErrorBoundary>
+                  </RouteErrorBoundary>
+                } />
+              )}
+              {user.role === 'admin' && (
+                <Route path="/admin/erros" element={
+                  <RouteErrorBoundary routeName="Admin - Dashboard de Erros">
+                    <ErrorDashboard />
+                  </RouteErrorBoundary>
+                } />
+              )}
+              {user.role === 'admin' && (
+                <Route path="/admin/test-errors" element={
+                  <RouteErrorBoundary routeName="Admin - Testador de Erros">
+                    <ErrorTester />
+                  </RouteErrorBoundary>
+                } />
               )}
               {user.role === 'superadmin' && (
-                <Route path="/superadmin" element={<SuperAdmin />} />
+                <Route path="/superadmin" element={
+                  <RouteErrorBoundary routeName="Super Admin">
+                    <SuperAdmin />
+                  </RouteErrorBoundary>
+                } />
               )}
               <Route path="*" element={<Navigate to="/app" replace />} />
             </Routes>
@@ -283,14 +374,20 @@ function App() {
             <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/plans" element={<PlansPage />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/app/*" element={<AppContent />} />
+            <Route path="/app/*" element={
+              <RouteErrorBoundary routeName="App Principal">
+                <AppContent />
+              </RouteErrorBoundary>
+            } />
             {/* Rota de impressão fora do Layout */}
             <Route path="/app/folha/relatorio/:eventId" element={
-              <TeamProvider>
-                <EnhancedDataProvider>
-                  <PayrollReportPage />
-                </EnhancedDataProvider>
-              </TeamProvider>
+              <RouteErrorBoundary routeName="Relatório de Folha">
+                <TeamProvider>
+                  <EnhancedDataProvider>
+                    <PayrollReportPage />
+                  </EnhancedDataProvider>
+                </TeamProvider>
+              </RouteErrorBoundary>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

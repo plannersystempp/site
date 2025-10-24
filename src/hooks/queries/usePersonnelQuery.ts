@@ -222,18 +222,32 @@ export const useCreatePersonnelMutation = () => {
           created_at: new Date().toISOString(),
         };
 
+        // CORREÇÃO: Garantir que o placeholder seja adicionado imediatamente
+        const updatedData = [...previousPersonnel, optimisticPersonnel];
         queryClient.setQueryData<Personnel[]>(
           personnelKeys.list(activeTeam!.id),
-          [...previousPersonnel, optimisticPersonnel]
+          updatedData
         );
+        
+        console.log('[CREATE MUTATION] onMutate - Optimistic personnel added to cache:', optimisticPersonnel.id);
       }
 
       return { previousPersonnel };
     },
     onSuccess: (data) => {
       console.log('[CREATE] Success:', data.id);
-      // Invalidar query para refetch automático (confiando no Realtime para sync entre abas)
-      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
+      
+      // CORREÇÃO DEFINITIVA: Não invalidar automaticamente
+      // O realtime já cuida da sincronização completa
+      // Apenas invalidar se houver problemas específicos
+      console.log('[CREATE] Skipping automatic invalidation - realtime handles sync');
+      
+      // Opcional: invalidar apenas se necessário após um delay maior
+      // setTimeout(() => {
+      //   queryClient.invalidateQueries({
+      //     queryKey: personnelKeys.list(activeTeam!.id),
+      //   });
+      // }, 1000);
       
       toast({
         title: "Sucesso",

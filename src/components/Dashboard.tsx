@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign, Package, AlertTriangle } from 'lucide-react';
+import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign, Package, AlertTriangle, UserCheck, Circle, TrendingUp } from 'lucide-react';
 import { LoadingSpinner } from './shared/LoadingSpinner';
 import { EmptyState } from './shared/EmptyState';
 import { NoTeamSelected } from './shared/NoTeamSelected';
@@ -266,10 +266,10 @@ const Dashboard = () => {
 
       <QuickActions />
 
-      {/* Grid de KPIs com destaque para eventos em andamento */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Grid de KPIs com destaque para eventos em andamento - Otimizado para telas maiores */}
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4">
         {/* KPI em destaque - Eventos em Andamento (largura total em mobile) */}
-        <Card className="col-span-2 lg:col-span-1 border-yellow-200 bg-yellow-50/50">
+        <Card className="col-span-2 md:col-span-1 border-yellow-200 bg-yellow-50/50 hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Eventos em Andamento</CardTitle>
             <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -283,7 +283,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Outros KPIs */}
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Eventos</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -293,7 +293,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pessoal Cadastrado</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -303,13 +303,34 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Funções Criadas</CardTitle>
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{uniqueFunctionsCount}</div>
+          </CardContent>
+        </Card>
+
+        {/* Cards adicionais para telas muito grandes */}
+        <Card className="hover:shadow-md transition-shadow hidden 2xl:block">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Próximos Eventos</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow hidden 2xl:block">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pagamentos Próximos</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{upcomingPayments.length}</div>
           </CardContent>
         </Card>
       </div>
@@ -356,8 +377,12 @@ const Dashboard = () => {
         </Card>
       )}
 
-      <div className={`grid grid-cols-1 ${isSuperAdmin ? 'lg:grid-cols-2' : 'lg:grid-cols-2 xl:grid-cols-3'} gap-6`}>
-        <Card>
+      {/* Seções principais - Layout otimizado para telas maiores */}
+      <div className={`grid gap-6 ${isSuperAdmin 
+        ? 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3' 
+        : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'
+      }`}>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-yellow-600" />
@@ -391,7 +416,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -431,7 +456,7 @@ const Dashboard = () => {
 
         {/* Card de Pagamentos Próximos - apenas para não-superadmin */}
         {!isSuperAdmin && (
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-red-600" />

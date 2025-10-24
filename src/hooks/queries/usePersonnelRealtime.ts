@@ -48,9 +48,23 @@ export const usePersonnelRealtime = () => {
             case 'INSERT': {
               const newPersonnel = payload.new as any;
               
-              // Verificar se já existe no cache (evitar duplicação)
-              if (currentData.some(p => p.id === newPersonnel.id)) {
-                console.log('[Realtime] Personnel already in cache, skipping:', newPersonnel.id);
+              // CORREÇÃO DEFINITIVA: Verificar se já existe no cache (evitar duplicação)
+              const existingIndex = currentData.findIndex(p => p.id === newPersonnel.id);
+              if (existingIndex !== -1) {
+                console.log('[Realtime] Personnel already in cache, updating instead:', newPersonnel.id);
+                // Atualizar o registro existente se necessário
+                queryClient.setQueryData<Personnel[]>(
+                  queryKey,
+                  currentData.map(p => 
+                    p.id === newPersonnel.id 
+                      ? {
+                          ...newPersonnel,
+                          functions: p.functions || [],
+                          type: newPersonnel.type || 'freelancer',
+                        }
+                      : p
+                  )
+                );
                 break;
               }
               
@@ -82,11 +96,19 @@ export const usePersonnelRealtime = () => {
                 type: newPersonnel.type || 'freelancer',
               };
               
+              const finalData = [...filteredData, personnelToAdd];
+              
               queryClient.setQueryData<Personnel[]>(
                 queryKey,
-                [...filteredData, personnelToAdd]
+                finalData
               );
+              
               console.log('[Realtime] Personnel added to cache:', newPersonnel.id);
+              console.log('[Realtime] Final cache state:', finalData.length, 'records');
+              
+              // FORÇA atualização da UI
+              queryClient.invalidateQueries({ queryKey, exact: true });
+              
               break;
             }
 

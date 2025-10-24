@@ -14,7 +14,8 @@ import {
   Briefcase,
   Bug,
   ShieldCheck,
-  Package
+  Package,
+  AlertTriangle
 } from 'lucide-react';
 import {
   Sidebar,
@@ -59,6 +60,8 @@ const financialItems = [
 
 const adminItems = [
   { title: 'Gerenciar Equipe', url: '/app/equipe', icon: Users },
+  { title: 'Dashboard de Erros', url: '/app/admin/erros', icon: AlertTriangle },
+  { title: 'Testar Erros', url: '/app/admin/test-errors', icon: Bug },
 ];
 
 const platformItems = [
