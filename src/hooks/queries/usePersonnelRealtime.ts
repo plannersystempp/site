@@ -106,9 +106,6 @@ export const usePersonnelRealtime = () => {
               console.log('[Realtime] Personnel added to cache:', newPersonnel.id);
               console.log('[Realtime] Final cache state:', finalData.length, 'records');
               
-              // FORÇA atualização da UI
-              queryClient.invalidateQueries({ queryKey, exact: true });
-              
               break;
             }
 

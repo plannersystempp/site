@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 import { useTeam } from './TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { fetchPersonnelByRole, type PersonnelRedacted } from '@/services/personnelService';
+import { sanitizePersonnelData } from '@/utils/dataTransform';
 import {
   fetchSuppliers,
   createSupplier,
@@ -125,64 +126,10 @@ interface PersonnelFormData {
   overtime_rate: number;
   cpf: string;
   cnpj: string;
-  functionIds: string[]; // Array of function IDs instead of single function_id
+  functionIds: string[];
   primaryFunctionId?: string;
-  pixKey?: string; // PIX key field (handled separately)
+  pixKey?: string;
 }
-
-// Helper function to sanitize personnel data for database operations
-const sanitizePersonnelData = (data: PersonnelFormData | Partial<PersonnelFormData>) => {
-  const { functionIds, primaryFunctionId, pixKey, ...rest } = data;
-  
-  // Helper para converter strings vazias/whitespace em null
-  const sanitizeString = (value: any): string | null => {
-    if (value === null || value === undefined) return null;
-    const trimmed = String(value).trim();
-    return trimmed === '' ? null : trimmed;
-  };
-  
-  // Helper para arredondar números em 2 casas decimais
-  const sanitizeNumber = (value: any): number => {
-    const num = Number(value) || 0;
-    return Math.round(num * 100) / 100;
-  };
-  
-  const sanitized: any = { ...rest };
-  
-  // Documentos
-  if ('cpf' in rest) sanitized.cpf = sanitizeString(rest.cpf);
-  if ('cnpj' in rest) sanitized.cnpj = sanitizeString(rest.cnpj);
-  
-  // Contatos
-  if ('email' in rest) sanitized.email = sanitizeString(rest.email);
-  if ('phone' in rest) sanitized.phone = sanitizeString(rest.phone);
-  if ('phone_secondary' in rest) sanitized.phone_secondary = sanitizeString((rest as any).phone_secondary);
-  
-  // Foto e roupa
-  if ('photo_url' in rest) sanitized.photo_url = sanitizeString((rest as any).photo_url);
-  if ('shirt_size' in rest) sanitized.shirt_size = sanitizeString((rest as any).shirt_size);
-  
-  // Endereço completo
-  if ('address_zip_code' in rest) sanitized.address_zip_code = sanitizeString((rest as any).address_zip_code);
-  if ('address_street' in rest) sanitized.address_street = sanitizeString((rest as any).address_street);
-  if ('address_number' in rest) sanitized.address_number = sanitizeString((rest as any).address_number);
-  if ('address_complement' in rest) sanitized.address_complement = sanitizeString((rest as any).address_complement);
-  if ('address_neighborhood' in rest) sanitized.address_neighborhood = sanitizeString((rest as any).address_neighborhood);
-  if ('address_city' in rest) sanitized.address_city = sanitizeString((rest as any).address_city);
-  if ('address_state' in rest) sanitized.address_state = sanitizeString((rest as any).address_state);
-  
-  // Valores financeiros (arredondar em 2 casas)
-  if ('monthly_salary' in rest) sanitized.monthly_salary = sanitizeNumber(rest.monthly_salary);
-  if ('event_cache' in rest) sanitized.event_cache = sanitizeNumber(rest.event_cache);
-  if ('overtime_rate' in rest) sanitized.overtime_rate = sanitizeNumber(rest.overtime_rate);
-  
-  // Ensure type is converted to string for database
-  if (sanitized.type) {
-    sanitized.type = sanitized.type as string;
-  }
-  
-  return sanitized;
-};
 
 interface EnhancedDataContextType {
   events: Event[];

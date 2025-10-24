@@ -236,11 +236,7 @@ export const useCreatePersonnelMutation = () => {
     },
     onSuccess: (data) => {
       console.log('[CREATE] Success:', data.id);
-      
-      // Invalidar query para refetch imediato
-      queryClient.invalidateQueries({
-        queryKey: personnelKeys.list(activeTeam!.id),
-      });
+      // Realtime handles cache synchronization automatically
       
       toast({
         title: "Sucesso",
@@ -359,11 +355,7 @@ export const useUpdatePersonnelMutation = () => {
     },
     onSuccess: (data) => {
       console.log('[UPDATE] Success:', data?.id);
-      
-      // Invalidar query para refetch imediato
-      queryClient.invalidateQueries({
-        queryKey: personnelKeys.list(activeTeam!.id),
-      });
+      // Realtime handles cache synchronization automatically
       
       toast({
         title: "Sucesso",
