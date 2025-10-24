@@ -297,7 +297,7 @@ export const ErrorTester: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <DashboardErrorBoundary section="KPIs">
+                <DashboardErrorBoundary sectionName="KPIs">
                   <TestErrorComponent 
                     errorType="render" 
                     message="Erro simulado no Dashboard - Seção KPIs"
@@ -332,7 +332,7 @@ export const ErrorTester: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <DashboardErrorBoundary section="Charts">
+                  <DashboardErrorBoundary sectionName="Charts">
                     <TestErrorComponent 
                       errorType="effect" 
                       delay={1000}

@@ -237,17 +237,10 @@ export const useCreatePersonnelMutation = () => {
     onSuccess: (data) => {
       console.log('[CREATE] Success:', data.id);
       
-      // CORREÇÃO DEFINITIVA: Não invalidar automaticamente
-      // O realtime já cuida da sincronização completa
-      // Apenas invalidar se houver problemas específicos
-      console.log('[CREATE] Skipping automatic invalidation - realtime handles sync');
-      
-      // Opcional: invalidar apenas se necessário após um delay maior
-      // setTimeout(() => {
-      //   queryClient.invalidateQueries({
-      //     queryKey: personnelKeys.list(activeTeam!.id),
-      //   });
-      // }, 1000);
+      // Invalidar query para refetch imediato
+      queryClient.invalidateQueries({
+        queryKey: personnelKeys.list(activeTeam!.id),
+      });
       
       toast({
         title: "Sucesso",
@@ -366,8 +359,11 @@ export const useUpdatePersonnelMutation = () => {
     },
     onSuccess: (data) => {
       console.log('[UPDATE] Success:', data?.id);
-      // Invalidar query para refetch automático (confiando no Realtime)
-      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
+      
+      // Invalidar query para refetch imediato
+      queryClient.invalidateQueries({
+        queryKey: personnelKeys.list(activeTeam!.id),
+      });
       
       toast({
         title: "Sucesso",
