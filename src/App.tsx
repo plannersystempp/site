@@ -116,6 +116,12 @@ const PendingApprovalMessage = () => {
   );
 };
 
+// Componente interno que ativa realtime DENTRO do TeamProvider
+const RealtimeSyncInitializer = () => {
+  useRealtimeSync();
+  return null;
+};
+
 const AppContent = () => {
   const { user, isLoading } = useAuth();
   const [teamApprovalStatus, setTeamApprovalStatus] = useState<{
@@ -123,9 +129,6 @@ const AppContent = () => {
     status: 'approved' | 'pending' | 'rejected' | null;
     teamName: string;
   }>({ loading: true, status: null, teamName: '' });
-
-  // Ativar sincronização em tempo real para todos os módulos
-  useRealtimeSync();
 
 
   useEffect(() => {
@@ -243,6 +246,7 @@ const AppContent = () => {
   return (
     <ErrorBoundary>
       <TeamProvider>
+        <RealtimeSyncInitializer />
         <EnhancedDataProvider>
           <RouteTracker />
           <RouteRestorer />
