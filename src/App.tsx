@@ -44,6 +44,7 @@ import UpgradePlan from './pages/UpgradePlan';
 import PlansPage from './pages/PlansPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import ManageSubscription from './pages/ManageSubscription';
+import { useRealtimeSync } from './hooks/queries/useRealtimeSync';
 
 
 
@@ -122,6 +123,9 @@ const AppContent = () => {
     status: 'approved' | 'pending' | 'rejected' | null;
     teamName: string;
   }>({ loading: true, status: null, teamName: '' });
+
+  // Ativar sincronização em tempo real para todos os módulos
+  useRealtimeSync();
 
 
   useEffect(() => {
