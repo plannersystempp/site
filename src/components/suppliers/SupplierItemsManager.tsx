@@ -73,7 +73,7 @@ export const SupplierItemsManager: React.FC<SupplierItemsManagerProps> = ({ supp
               <Label>Nome do Item *</Label>
               <Input value={formData.item_name} onChange={(e) => setFormData({ ...formData, item_name: e.target.value })} required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Categoria</Label>
                 <Input value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />

@@ -23,6 +23,9 @@ import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/utils/formatters';
 
 const Dashboard = () => {
+  console.log('🏠 Dashboard: Iniciando renderização');
+  
+  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - BEFORE ANY CONDITIONAL RETURNS
   const { events, personnel, functions, eventSupplierCosts, suppliers, loading } = useEnhancedData();
   const { activeTeam } = useTeam();
   const { user } = useAuth();
@@ -30,22 +33,25 @@ const Dashboard = () => {
   const isSuperAdmin = user?.role === 'superadmin';
   const { subscription, isLoading: subscriptionLoading } = useSubscriptionGuard(activeTeam?.id);
 
-  // Check if user is superadmin
+  // All useState hooks must be at the top level
+  const [superAdminPersonnelCount, setSuperAdminPersonnelCount] = useState<number | null>(null);
+  const [eventsWithCompletePayments, setEventsWithCompletePayments] = useState<string[]>([]);
+
+  // Check if user is superadmin - HOOK MUST BE CALLED UNCONDITIONALLY
   const { data: isSuperAdminCheck } = useQuery({
     queryKey: ['is-superadmin'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('is_super_admin');
       if (error) throw error;
       return data as boolean;
-    }
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    refetchOnWindowFocus: false
   });
-  
-  const [superAdminPersonnelCount, setSuperAdminPersonnelCount] = useState<number | null>(null);
-  
-  // State to track events with complete payments - moved to top to follow Rules of Hooks
-  const [eventsWithCompletePayments, setEventsWithCompletePayments] = useState<string[]>([]);
 
-  // Fetch total personnel count for super admin
+  // Fetch total personnel count for super admin - HOOK MUST BE CALLED UNCONDITIONALLY
   useEffect(() => {
     if (isSuperAdmin && !loading) {
       const fetchTotalPersonnel = async () => {
@@ -69,7 +75,7 @@ const Dashboard = () => {
     }
   }, [isSuperAdmin, loading]);
 
-  // Check which events have completed payments using cached data
+  // Check which events have completed payments using cached data - HOOK MUST BE CALLED UNCONDITIONALLY
   useEffect(() => {
     const checkCompletedPayments = async () => {
       if (!activeTeam || isSuperAdmin) return;
@@ -91,7 +97,18 @@ const Dashboard = () => {
 
     checkCompletedPayments();
   }, [events, activeTeam, isSuperAdmin]);
+
+  console.log('🏠 Dashboard: Dados carregados', {
+    eventsCount: events?.length || 0,
+    personnelCount: personnel?.length || 0,
+    functionsCount: functions?.length || 0,
+    loading,
+    subscriptionLoading,
+    activeTeam: activeTeam?.id,
+    isSuperAdmin
+  });
   
+  // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS HAVE BEEN CALLED
   if (!activeTeam && !isSuperAdmin) {
     return <NoTeamSelected />;
   }
@@ -240,23 +257,27 @@ const Dashboard = () => {
       </div>
 
       {/* Banner de Aviso de Assinatura */}
-      {!isSuperAdmin && subscription && subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0 && (
+      {!isSuperAdmin && subscription && subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0 && subscription.status !== 'trial_expired' && (
         <Card className="border-orange-200 bg-orange-50/50">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-semibold text-orange-900">Assinatura Expirando em Breve</h3>
+                <h3 className="font-semibold text-orange-900">
+                  {subscription.status === 'trial' ? 'Trial Expirando em Breve' : 'Assinatura Expirando em Breve'}
+                </h3>
                 <p className="text-sm text-orange-800 mt-1">
-                  Sua assinatura {subscription.planName} expira em {subscription.daysUntilExpiration} dia(s). 
-                  Renove agora para continuar usando o SIGE sem interrupções.
+                  {subscription.status === 'trial' 
+                    ? `Seu período de trial expira em ${subscription.daysUntilExpiration} dia(s). Assine um plano para continuar usando o SIGE.`
+                    : `Sua assinatura ${subscription.planName} expira em ${subscription.daysUntilExpiration} dia(s). Renove agora para continuar usando o SIGE sem interrupções.`
+                  }
                 </p>
                 <Button 
                   size="sm" 
                   className="mt-3"
-                  onClick={() => navigate('/app/upgrade')}
+                  onClick={() => navigate(subscription.status === 'trial' ? '/plans' : '/app/upgrade')}
                 >
-                  Renovar Assinatura
+                  {subscription.status === 'trial' ? 'Escolher Plano' : 'Renovar Assinatura'}
                 </Button>
               </div>
             </div>
@@ -266,10 +287,10 @@ const Dashboard = () => {
 
       <QuickActions />
 
-      {/* Grid de KPIs com destaque para eventos em andamento - Otimizado para telas maiores */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-4">
-        {/* KPI em destaque - Eventos em Andamento (largura total em mobile) */}
-        <Card className="col-span-2 md:col-span-1 border-yellow-200 bg-yellow-50/50 hover:shadow-md transition-shadow">
+      {/* Grid de KPIs com destaque para eventos em andamento - Otimizado para mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {/* KPI em destaque - Eventos em Andamento */}
+        <Card className="sm:col-span-2 md:col-span-1 border-yellow-200 bg-yellow-50/50 hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Eventos em Andamento</CardTitle>
             <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -313,8 +334,8 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Cards adicionais para telas muito grandes */}
-        <Card className="hover:shadow-md transition-shadow hidden 2xl:block">
+        {/* Cards adicionais para telas maiores */}
+        <Card className="hover:shadow-md transition-shadow hidden lg:block">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Próximos Eventos</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -324,7 +345,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow hidden 2xl:block">
+        <Card className="hover:shadow-md transition-shadow hidden xl:block">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pagamentos Próximos</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -345,16 +366,22 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               <div className="text-center">
                 <div className="text-lg font-bold">{suppliers.length}</div>
-                <p className="text-xs text-muted-foreground">Total Cadastrados</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="hidden sm:inline">Total Cadastrados</span>
+                  <span className="sm:hidden">Total</span>
+                </p>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-orange-600">
                   {eventSupplierCosts.filter(c => c.payment_status === 'pending').length}
                 </div>
-                <p className="text-xs text-muted-foreground">Custos Pendentes</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="hidden sm:inline">Custos Pendentes</span>
+                  <span className="sm:hidden">Pendentes</span>
+                </p>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-green-600">
@@ -362,7 +389,10 @@ const Dashboard = () => {
                     .filter(c => c.payment_status === 'paid')
                     .reduce((sum, c) => sum + (c.paid_amount || 0), 0))}
                 </div>
-                <p className="text-xs text-muted-foreground">Total Pago</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="hidden sm:inline">Total Pago</span>
+                  <span className="sm:hidden">Pago</span>
+                </p>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-red-600">
@@ -370,89 +400,96 @@ const Dashboard = () => {
                     .filter(c => c.payment_status !== 'paid')
                     .reduce((sum, c) => sum + ((c.total_amount || 0) - (c.paid_amount || 0)), 0))}
                 </div>
-                <p className="text-xs text-muted-foreground">Total Pendente</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="hidden sm:inline">Total Pendente</span>
+                  <span className="sm:hidden">Pendente</span>
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Seções principais - Layout otimizado para telas maiores */}
-      <div className={`grid gap-6 ${isSuperAdmin 
-        ? 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3' 
-        : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'
+      {/* Seções principais - Layout otimizado para mobile */}
+      <div className={`grid gap-4 md:gap-6 ${isSuperAdmin 
+        ? 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3' 
+        : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
       }`}>
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-yellow-600" />
-              Eventos em Andamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {eventsInProgress.length === 0 ? (
-              <EmptyState
-                title="Nenhum evento em andamento"
-                description="Não há eventos acontecendo no momento."
-              />
-            ) : (
-              <div className="space-y-2">
-                {eventsInProgress.map(event => (
-                  <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium truncate">{event.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
-                      </p>
+        {!isSuperAdmin && (
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                Eventos em Andamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {eventsInProgress.length === 0 ? (
+                <EmptyState
+                  title="Nenhum evento em andamento"
+                  description="Não há eventos acontecendo no momento."
+                />
+              ) : (
+                <div className="space-y-2">
+                  {eventsInProgress.map(event => (
+                    <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium truncate">{event.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
+                        </p>
+                      </div>
+                      <Badge className={getStatusColor(event.status)}>
+                        {getStatusIcon(event.status)}
+                        <span className="ml-1 hidden sm:inline">{event.status.replace('_', ' ')}</span>
+                      </Badge>
                     </div>
-                    <Badge className={getStatusColor(event.status)}>
-                      {getStatusIcon(event.status)}
-                      <span className="ml-1 hidden sm:inline">{event.status.replace('_', ' ')}</span>
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Próximos Eventos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {upcomingEvents.length === 0 ? (
-              <EmptyState
-                title="Nenhum evento próximo"
-                description="Não há eventos programados para os próximos dias."
-              />
-            ) : (
-              <div className="space-y-2">
-                {upcomingEvents.map(event => (
-                  <button 
-                    key={event.id} 
-                    className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/app/eventos/${event.id}`)}
-                  >
-                    <div className="flex-1 min-w-0 text-left">
-                      <h4 className="font-medium truncate">{event.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
-                      </p>
-                    </div>
-                    <Badge className={getStatusColor(event.status)}>
-                      {getStatusIcon(event.status)}
-                      <span className="ml-1 hidden sm:inline">{event.status.replace('_', ' ')}</span>
-                    </Badge>
-                  </button>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {!isSuperAdmin && (
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Próximos Eventos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upcomingEvents.length === 0 ? (
+                <EmptyState
+                  title="Nenhum evento próximo"
+                  description="Não há eventos programados para os próximos dias."
+                />
+              ) : (
+                <div className="space-y-2">
+                  {upcomingEvents.map(event => (
+                    <button 
+                      key={event.id} 
+                      className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/app/eventos/${event.id}`)}
+                    >
+                      <div className="flex-1 min-w-0 text-left">
+                        <h4 className="font-medium truncate">{event.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
+                        </p>
+                      </div>
+                      <Badge className={getStatusColor(event.status)}>
+                        {getStatusIcon(event.status)}
+                        <span className="ml-1 hidden sm:inline">{event.status.replace('_', ' ')}</span>
+                      </Badge>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Card de Pagamentos Próximos - apenas para não-superadmin */}
         {!isSuperAdmin && (

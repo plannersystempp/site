@@ -286,8 +286,9 @@ export function SubscriptionManagementTab() {
             </div>
           ) : (
             // Table View para Desktop
-            <div className="border rounded-lg overflow-x-auto">
-              <Table>
+            <div className="border rounded-lg" style={{overflow: 'visible'}}>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[150px]">Equipe</TableHead>
@@ -335,18 +336,25 @@ export function SubscriptionManagementTab() {
                         </TableCell>
                         <TableCell>R$ {sub.subscription_plans.price.toFixed(2)}</TableCell>
                         <TableCell>
-                          <div className="relative z-10">
-                            <DropdownMenu modal={false}>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                  <span className="sr-only">Abrir menu</span>
-                                </Button>
-                              </DropdownMenuTrigger>
+                          <DropdownMenu modal={false} onOpenChange={(open) => console.log('Dropdown state changed:', open)}>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 w-8 p-0 relative z-50"
+                                onClick={() => console.log('Button clicked!')}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">Abrir menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
                               <DropdownMenuContent 
                                 align="end" 
-                                className="w-56 z-[99999] bg-popover border shadow-md"
+                                className="w-56 z-[99999] bg-white dark:bg-gray-800 border shadow-lg"
                                 sideOffset={5}
+                                side="bottom"
+                                avoidCollisions={true}
+                                collisionPadding={10}
                               >
                                 <DropdownMenuItem
                                   onClick={() => {
@@ -385,13 +393,13 @@ export function SubscriptionManagementTab() {
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          </div>
-                        </TableCell>
+                          </TableCell>
                       </TableRow>
                     ))
                   )}
                 </TableBody>
               </Table>
+              </div>
             </div>
           )}
 

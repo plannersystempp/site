@@ -182,7 +182,7 @@ export const SettingsPage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* Menu Desktop - Abas horizontais */}
-        <TabsList className="hidden md:grid w-full grid-cols-6">
+        <TabsList className="hidden md:grid w-full grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>

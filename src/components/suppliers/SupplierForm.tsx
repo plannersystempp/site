@@ -162,16 +162,16 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose })
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="dados-empresa">Empresa</TabsTrigger>
-              <TabsTrigger value="endereco">Endereço</TabsTrigger>
-              <TabsTrigger value="contatos">Contatos</TabsTrigger>
-              <TabsTrigger value="observacoes">Observações</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+              <TabsTrigger value="dados-empresa" className="text-xs sm:text-sm">Empresa</TabsTrigger>
+              <TabsTrigger value="endereco" className="text-xs sm:text-sm">Endereço</TabsTrigger>
+              <TabsTrigger value="contatos" className="text-xs sm:text-sm">Contatos</TabsTrigger>
+              <TabsTrigger value="observacoes" className="text-xs sm:text-sm">Observações</TabsTrigger>
             </TabsList>
 
             {/* Aba: Dados da Empresa */}
             <TabsContent value="dados-empresa" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="name">Nome Fantasia *</Label>
                   <Input
@@ -228,8 +228,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose })
 
             {/* Aba: Endereço */}
             <TabsContent value="endereco" className="space-y-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="space-y-2 col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="address_zip_code">CEP</Label>
                   <div className="flex gap-2">
                     <Input
@@ -328,7 +328,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ supplier, onClose })
 
             {/* Aba: Contatos */}
             <TabsContent value="contatos" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="contact_person">Pessoa de Contato</Label>
                   <Input

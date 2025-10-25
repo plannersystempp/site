@@ -60,14 +60,21 @@ export function useSubscriptionGuard(teamId: string | undefined) {
       const expiresAt = data.trial_ends_at || data.current_period_ends_at;
       
       let daysUntilExpiration = undefined;
+      let isActuallyActive = isActive;
+      
       if (expiresAt) {
         const expirationDate = new Date(expiresAt);
         const now = new Date();
         daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Se o trial/assinatura expirou (dias negativos), marcar como inativo
+        if (daysUntilExpiration <= 0) {
+          isActuallyActive = false;
+        }
       }
       
       return {
-        isActive,
+        isActive: isActuallyActive,
         status: data.status,
         planName: (data.subscription_plans as any)?.display_name || 'Desconhecido',
         expiresAt,

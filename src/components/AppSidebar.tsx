@@ -27,6 +27,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
@@ -73,6 +74,7 @@ export const AppSidebar = () => {
   const [showErrorReportDialog, setShowErrorReportDialog] = useState(false);
   const isMobile = useIsMobile();
   const { setTheme } = useTheme();
+  const { setOpenMobile } = useSidebar();
 
   const handleLogout = async () => {
     try {
@@ -87,6 +89,13 @@ export const AppSidebar = () => {
       return location.pathname === '/app' || location.pathname === '/app/';
     }
     return location.pathname === path;
+  };
+
+  // Função para fechar o sidebar no mobile ao clicar em um link
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   return (
@@ -115,7 +124,7 @@ export const AppSidebar = () => {
               {menuItems
                 .filter(item => {
                   if (userRole === 'superadmin') {
-                    return item.title !== 'Pessoal' && item.title !== 'Eventos' && item.title !== 'Funções';
+                    return item.title !== 'Pessoal' && item.title !== 'Eventos' && item.title !== 'Funções' && item.title !== 'Fornecedores';
                   }
                   if (userRole === 'coordinator') {
                     return item.title !== 'Funções';
@@ -125,7 +134,7 @@ export const AppSidebar = () => {
                 .map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <Link to={item.url} className="flex items-center gap-2">
+                      <Link to={item.url} className="flex items-center gap-2" onClick={handleLinkClick}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -144,7 +153,7 @@ export const AppSidebar = () => {
                 {financialItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <Link to={item.url} className="flex items-center gap-2">
+                      <Link to={item.url} className="flex items-center gap-2" onClick={handleLinkClick}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -164,7 +173,7 @@ export const AppSidebar = () => {
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <Link to={item.url} className="flex items-center gap-2">
+                      <Link to={item.url} className="flex items-center gap-2" onClick={handleLinkClick}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -184,7 +193,7 @@ export const AppSidebar = () => {
                 {platformItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <Link to={item.url} className="flex items-center gap-2">
+                      <Link to={item.url} className="flex items-center gap-2" onClick={handleLinkClick}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
@@ -255,7 +264,7 @@ export const AppSidebar = () => {
                     <div className="h-px my-1 bg-muted" />
                     <div className="px-2 py-1.5 text-sm space-y-2">
                       <div className="font-medium">Tema</div>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 gap-2">
                         <Button variant="outline" size="sm" onClick={() => setTheme('light')}>Claro</Button>
                         <Button variant="outline" size="sm" onClick={() => setTheme('dark')}>Escuro</Button>
                         <Button variant="outline" size="sm" onClick={() => setTheme('system')}>Sistema</Button>
@@ -305,7 +314,7 @@ export const AppSidebar = () => {
                   <DropdownMenuSeparator />
                   <div className="px-2 py-1.5 text-sm">
                     <div className="font-medium mb-2">Tema</div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 gap-2">
                       <Button variant="outline" size="sm" onClick={() => setTheme('light')}>Claro</Button>
                       <Button variant="outline" size="sm" onClick={() => setTheme('dark')}>Escuro</Button>
                       <Button variant="outline" size="sm" onClick={() => setTheme('system')}>Sistema</Button>
