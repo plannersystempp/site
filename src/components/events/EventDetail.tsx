@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone, DollarSign } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone, DollarSign, Lock, ShieldAlert } from 'lucide-react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AllocationManager } from './AllocationManager';
 import { EventForm } from './EventForm';
@@ -18,6 +18,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { AbsenceHistory } from './AbsenceHistory';
 import { EventCostsTab } from './costs/EventCostsTab';
+import { useHasEventPermission } from '@/hooks/useEventPermissions';
+import { useTeam } from '@/contexts/TeamContext';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { EventPermissionsManager } from '@/components/admin/EventPermissionsManager';
 
 export const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,8 +29,16 @@ export const EventDetail: React.FC = () => {
   const { events, assignments, personnel, functions, workLogs, divisions, loading, deleteEvent } = useEnhancedData();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { userRole } = useTeam();
   const [showEditForm, setShowEditForm] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('allocations');
+
+  // Buscar permissões do coordenador
+  const { data: canView, isLoading: checkingPermission } = useHasEventPermission(id || '', 'view');
+  const { data: canEdit } = useHasEventPermission(id || '', 'edit');
+  const { data: canManageAllocations } = useHasEventPermission(id || '', 'allocations');
+  const { data: canManageCosts } = useHasEventPermission(id || '', 'costs');
+  const { data: canViewPayroll } = useHasEventPermission(id || '', 'payroll');
 
   // Refs para rolar até o conteúdo correspondente
   const allocationsRef = useRef<HTMLDivElement | null>(null);
@@ -66,6 +78,33 @@ export const EventDetail: React.FC = () => {
   }, [activeTab]);
 
   const event = events.find(e => e.id === id);
+  
+  // Verificação de acesso para coordenadores
+  useEffect(() => {
+    if (!loading && !checkingPermission && event) {
+      // Coordenadores sem permissão são redirecionados
+      if (userRole === 'coordinator' && canView === false) {
+        toast({
+          title: "Acesso Negado",
+          description: "Você não tem permissão para visualizar este evento.",
+          variant: "destructive"
+        });
+        navigate('/app/eventos');
+      }
+    }
+  }, [loading, checkingPermission, event, userRole, canView, navigate, toast]);
+  
+  // Skeleton durante verificação de permissão
+  if (checkingPermission) {
+    return (
+      <div className="p-4 md:p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+        </div>
+        <SkeletonCard />
+      </div>
+    );
+  }
   
   // Only show skeleton on initial load, not on background refreshes
   if (loading && events.length === 0) {
@@ -107,6 +146,29 @@ export const EventDetail: React.FC = () => {
             Voltar para Eventos
           </Button>
         </div>
+      </div>
+    );
+  }
+  
+  // Bloqueio visual se coordenador não tiver acesso
+  if (event && userRole === 'coordinator' && canView === false) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>Acesso Restrito</AlertTitle>
+          <AlertDescription>
+            Você não tem permissão para visualizar os detalhes deste evento. 
+            Entre em contato com um administrador para solicitar acesso.
+          </AlertDescription>
+        </Alert>
+        <Button
+          onClick={() => navigate('/app/eventos')}
+          className="mt-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar para Lista de Eventos
+        </Button>
       </div>
     );
   }
@@ -180,48 +242,52 @@ export const EventDetail: React.FC = () => {
         </div>
         
         <div className="flex gap-2 no-print">
-          {/* Botão de Folha de Pagamento */}
-          <Button 
-            variant="secondary" 
-            onClick={() => navigate(`/app/folha/${event.id}`)}
-            className="flex items-center gap-2"
-          >
-            <DollarSign className="w-4 h-4" />
-            <span className="hidden sm:inline">Folha de Pagamento</span>
-            <span className="sm:hidden">Folha</span>
-          </Button>
+          {/* Botão de Folha de Pagamento - apenas para admins ou coordenadores com permissão */}
+          {(userRole === 'admin' || canViewPayroll) && (
+            <Button 
+              variant="secondary" 
+              onClick={() => navigate(`/app/folha/${event.id}`)}
+              className="flex items-center gap-2"
+            >
+              <DollarSign className="w-4 h-4" />
+              <span className="hidden sm:inline">Folha de Pagamento</span>
+              <span className="sm:hidden">Folha</span>
+            </Button>
+          )}
           {/* Botão secundário - Imprimir (outline) */}
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Imprimir</span>
           </Button>
-          {user?.role === 'admin' && (
+          {(userRole === 'admin' || (userRole === 'coordinator' && canEdit)) && (
             <>
-              {/* Botão de Deletar (destructive) */}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    <span className="hidden sm:inline">Excluir</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir Evento</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tem certeza que deseja excluir o evento "{event.name}"? 
-                      Esta ação não pode ser desfeita e removerá todas as alocações e registros relacionados.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Excluir
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              {/* Botão primário - Editar (solid) */}
+              {/* Botão de Deletar (apenas admin) */}
+              {userRole === 'admin' && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      <span className="hidden sm:inline">Excluir</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir Evento</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir o evento "{event.name}"? 
+                        Esta ação não pode ser desfeita e removerá todas as alocações e registros relacionados.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              {/* Botão primário - Editar */}
               <Button variant="default" onClick={() => setShowEditForm(true)}>
                 <Settings2 className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Editar</span>
@@ -454,14 +520,17 @@ export const EventDetail: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-8 space-y-6">
-          <TabsList className={`grid w-full h-10 md:h-12 ${user?.role === 'admin' ? 'grid-cols-4' : 'grid-cols-2'}`}>
+          <TabsList className={`grid w-full h-10 md:h-12 ${
+            (userRole === 'admin' || canManageCosts) ? 'grid-cols-4' : 
+            userRole === 'admin' ? 'grid-cols-4' : 'grid-cols-2'
+          }`}>
             <TabsTrigger value="allocations" className="text-sm">Alocações</TabsTrigger>
             <TabsTrigger value="overview" className="text-sm">Visão Geral</TabsTrigger>
-            {user?.role === 'admin' && (
-              <>
-                <TabsTrigger value="costs" className="text-sm">Custos</TabsTrigger>
-                <TabsTrigger value="absences" className="text-sm">Faltas</TabsTrigger>
-              </>
+            {(userRole === 'admin' || canManageCosts) && (
+              <TabsTrigger value="costs" className="text-sm">Custos</TabsTrigger>
+            )}
+            {userRole === 'admin' && (
+              <TabsTrigger value="absences" className="text-sm">Faltas</TabsTrigger>
             )}
           </TabsList>
 
@@ -577,6 +646,16 @@ export const EventDetail: React.FC = () => {
             </>
           )}
         </Tabs>
+        
+        {/* Gerenciador de Permissões - apenas para admins */}
+        {userRole === 'admin' && (
+          <div className="mt-8">
+            <EventPermissionsManager
+              eventId={event.id}
+              eventName={event.name}
+            />
+          </div>
+        )}
       </div>
 
       {showEditForm && (

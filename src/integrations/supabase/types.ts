@@ -142,6 +142,66 @@ export type Database = {
         }
         Relationships: []
       }
+      coordinator_event_permissions: {
+        Row: {
+          can_edit: boolean
+          can_manage_allocations: boolean
+          can_manage_costs: boolean
+          can_view_details: boolean
+          can_view_payroll: boolean
+          coordinator_id: string
+          created_at: string | null
+          event_id: string
+          granted_by: string | null
+          id: string
+          team_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          can_edit?: boolean
+          can_manage_allocations?: boolean
+          can_manage_costs?: boolean
+          can_view_details?: boolean
+          can_view_payroll?: boolean
+          coordinator_id: string
+          created_at?: string | null
+          event_id: string
+          granted_by?: string | null
+          id?: string
+          team_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          can_edit?: boolean
+          can_manage_allocations?: boolean
+          can_manage_costs?: boolean
+          can_view_details?: boolean
+          can_view_payroll?: boolean
+          coordinator_id?: string
+          created_at?: string | null
+          event_id?: string
+          granted_by?: string | null
+          id?: string
+          team_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordinator_event_permissions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordinator_event_permissions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deletion_logs: {
         Row: {
           data_summary: Json | null
@@ -1981,6 +2041,14 @@ export type Database = {
       get_user_role_in_team: {
         Args: { check_team_id: string }
         Returns: string
+      }
+      has_event_permission: {
+        Args: {
+          p_event_id: string
+          p_permission_type?: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }

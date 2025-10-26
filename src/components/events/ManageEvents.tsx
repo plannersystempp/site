@@ -21,6 +21,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
 import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
+import { useMyEventPermissions } from '@/hooks/useEventPermissions';
+import { Lock } from 'lucide-react';
 
 export const ManageEvents: React.FC = () => {
   const { events, assignments, personnel, deleteEvent } = useEnhancedData();
@@ -28,6 +30,9 @@ export const ManageEvents: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Buscar permissões do coordenador
+  const { data: myPermissions = [], isLoading: permissionsLoading } = useMyEventPermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [periodStart, setPeriodStart] = useState('');
   const [periodEnd, setPeriodEnd] = useState('');
@@ -43,6 +48,29 @@ export const ManageEvents: React.FC = () => {
     setSearchTerm('');
     setPeriodStart('');
     setPeriodEnd('');
+  };
+  
+  // Criar map de permissões para lookup rápido
+  const permissionsMap = React.useMemo(() => {
+    const map = new Map();
+    myPermissions.forEach(perm => map.set(perm.event_id, perm));
+    return map;
+  }, [myPermissions]);
+
+  // Função para verificar se coordenador pode ver detalhes
+  const canViewEventDetails = (eventId: string): boolean => {
+    // Admins e superadmins sempre podem
+    if (userRole === 'admin' || user?.role === 'superadmin') {
+      return true;
+    }
+    
+    // Coordenadores precisam de permissão
+    if (userRole === 'coordinator') {
+      const permission = permissionsMap.get(eventId);
+      return permission?.can_view_details === true;
+    }
+    
+    return false;
   };
 
   if (!activeTeam) {
@@ -303,11 +331,35 @@ export const ManageEvents: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedEvents.map((event) => {
             const stats = getEventStats(event.id);
+            const hasAccess = canViewEventDetails(event.id);
+            
             return (
-              <Card key={event.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card 
+                key={event.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  if (hasAccess) {
+                    navigate(`/app/eventos/${event.id}`);
+                  } else {
+                    toast({
+                      title: "Acesso Restrito",
+                      description: "Você não tem permissão para visualizar os detalhes deste evento.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{event.name}</CardTitle>
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{event.name}</CardTitle>
+                      {userRole === 'coordinator' && !hasAccess && (
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          <Lock className="w-3 h-3 mr-1" />
+                          Acesso Restrito
+                        </Badge>
+                      )}
+                    </div>
                     <StatusBadge status={event.status || 'planejado'} />
                   </div>
                   {event.description && (
@@ -328,12 +380,25 @@ export const ManageEvents: React.FC = () => {
 
                     <div className="flex gap-2 pt-2">
                       <Button 
-                        variant="outline" 
+                        variant={hasAccess ? "outline" : "ghost"}
                         size="sm"
-                        onClick={() => navigate(`/app/eventos/${event.id}`)}
+                        disabled={!hasAccess}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (hasAccess) {
+                            navigate(`/app/eventos/${event.id}`);
+                          }
+                        }}
                         className="flex-1"
                       >
-                        Ver Detalhes
+                        {hasAccess ? (
+                          <>Ver Detalhes</>
+                        ) : (
+                          <>
+                            <Lock className="w-4 h-4 mr-2" />
+                            Sem Acesso
+                          </>
+                        )}
                       </Button>
                       {canManageEvents && (
                         <DropdownMenu>
