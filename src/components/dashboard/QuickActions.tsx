@@ -29,13 +29,13 @@ export const QuickActions: React.FC = () => {
   const [overtimeData, setOvertimeData] = useState<QuickOvertimeData>({
     eventId: '',
     personnelId: '',
-    workDate: new Date().toISOString().split('T')[0],
+    workDate: '',
     overtimeHours: 0,
     notes: ''
   });
 
   const handleQuickOvertime = async () => {
-    if (!overtimeData.eventId || !overtimeData.personnelId || !overtimeData.overtimeHours) {
+    if (!overtimeData.eventId || !overtimeData.personnelId || !overtimeData.workDate || !overtimeData.overtimeHours) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios.",
@@ -129,7 +129,7 @@ export const QuickActions: React.FC = () => {
       setOvertimeData({
         eventId: '',
         personnelId: '',
-        workDate: new Date().toISOString().split('T')[0],
+        workDate: '',
         overtimeHours: 0,
         notes: ''
       });
@@ -189,6 +189,13 @@ export const QuickActions: React.FC = () => {
         a.event_id === overtimeData.eventId
       )
     : null;
+
+  // Obter apenas os dias válidos (dentro do evento E alocados)
+  const validWorkDates = selectedAssignment && selectedEvent
+    ? selectedAssignment.work_days.filter(date => 
+        isDateWithinEventPeriod(date, selectedEvent)
+      ).sort((a, b) => a.localeCompare(b))
+    : [];
 
   return (
     <>
@@ -252,7 +259,7 @@ export const QuickActions: React.FC = () => {
               <Label htmlFor="personnel">Funcionário</Label>
               <Select
                 value={overtimeData.personnelId}
-                onValueChange={(value) => setOvertimeData(prev => ({ ...prev, personnelId: value }))}
+                onValueChange={(value) => setOvertimeData(prev => ({ ...prev, personnelId: value, workDate: '' }))}
                 disabled={!overtimeData.eventId}
               >
                 <SelectTrigger>
@@ -279,30 +286,41 @@ export const QuickActions: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="workDate">Data</Label>
-              <Input
-                id="workDate"
-                type="date"
+              <Select
                 value={overtimeData.workDate}
-                onChange={(e) => setOvertimeData(prev => ({ ...prev, workDate: e.target.value }))}
-                min={selectedEvent?.start_date}
-                max={selectedEvent?.end_date}
-                disabled={!overtimeData.personnelId}
-              />
+                onValueChange={(value) => setOvertimeData(prev => ({ ...prev, workDate: value }))}
+                disabled={!overtimeData.personnelId || validWorkDates.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={
+                    !overtimeData.personnelId ? "Selecione um funcionário primeiro" :
+                    validWorkDates.length === 0 ? "Nenhum dia disponível" :
+                    "Selecione uma data"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {validWorkDates.map((date) => (
+                    <SelectItem key={date} value={date}>
+                      {formatDateBR(date)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {selectedEvent && (
                 <p className="text-xs text-muted-foreground">
                   📅 Período do evento: <span className="font-medium">{formatDateBR(selectedEvent.start_date)}</span> até <span className="font-medium">{formatDateBR(selectedEvent.end_date)}</span>
                 </p>
               )}
-              {selectedAssignment && selectedEvent && selectedAssignment.work_days.length > 0 && (
+              {validWorkDates.length > 0 && (
                 <p className="text-xs text-blue-600">
-                  ✅ Funcionário alocado em {selectedAssignment.work_days.length} dia(s) deste evento
+                  ✅ {validWorkDates.length} dia(s) disponível(is) para lançamento
                 </p>
               )}
-              {selectedAssignment && selectedAssignment.work_days.length === 0 && (
+              {selectedAssignment && validWorkDates.length === 0 && (
                 <Alert className="mt-2">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    Este funcionário não possui dias de trabalho alocados neste evento.
+                    Este funcionário não possui dias de trabalho alocados neste evento ou os dias estão fora do período.
                   </AlertDescription>
                 </Alert>
               )}
