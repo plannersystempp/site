@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Clock, Calendar, Users, FileText } from 'lucide-react';
+import { Zap, Clock, Calendar, Users, FileText, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { isDateWithinEventPeriod, isDateInAllocation, formatDateBR } from '@/utils/dateValidation';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface QuickOvertimeData {
   eventId: string;
@@ -70,6 +72,38 @@ export const QuickActions: React.FC = () => {
         toast({
           title: "Erro", 
           description: "Funcionário não está alocado neste evento. Aloque o funcionário primeiro.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Buscar evento completo
+      const event = events.find(e => e.id === overtimeData.eventId);
+
+      if (!event) {
+        toast({
+          title: "Erro",
+          description: "Evento não encontrado.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // VALIDAÇÃO 1: Verificar se a data está dentro do período do evento
+      if (!isDateWithinEventPeriod(overtimeData.workDate, event)) {
+        toast({
+          title: "Data inválida",
+          description: `A data deve estar entre ${formatDateBR(event.start_date)} e ${formatDateBR(event.end_date)}.`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // VALIDAÇÃO 2: Verificar se a data está nos work_days da alocação
+      if (!isDateInAllocation(overtimeData.workDate, assignment.work_days)) {
+        toast({
+          title: "Data inválida",
+          description: "O funcionário não está alocado para trabalhar nesta data.",
           variant: "destructive"
         });
         return;
@@ -144,6 +178,17 @@ export const QuickActions: React.FC = () => {
         )
       )
     : [];
+
+  // Buscar o evento selecionado
+  const selectedEvent = events.find(e => e.id === overtimeData.eventId);
+
+  // Buscar a alocação do funcionário selecionado
+  const selectedAssignment = overtimeData.eventId && overtimeData.personnelId
+    ? assignments.find(a => 
+        a.personnel_id === overtimeData.personnelId && 
+        a.event_id === overtimeData.eventId
+      )
+    : null;
 
   return (
     <>
@@ -239,7 +284,28 @@ export const QuickActions: React.FC = () => {
                 type="date"
                 value={overtimeData.workDate}
                 onChange={(e) => setOvertimeData(prev => ({ ...prev, workDate: e.target.value }))}
+                min={selectedEvent?.start_date}
+                max={selectedEvent?.end_date}
+                disabled={!overtimeData.personnelId}
               />
+              {selectedEvent && (
+                <p className="text-xs text-muted-foreground">
+                  📅 Período do evento: <span className="font-medium">{formatDateBR(selectedEvent.start_date)}</span> até <span className="font-medium">{formatDateBR(selectedEvent.end_date)}</span>
+                </p>
+              )}
+              {selectedAssignment && selectedEvent && selectedAssignment.work_days.length > 0 && (
+                <p className="text-xs text-blue-600">
+                  ✅ Funcionário alocado em {selectedAssignment.work_days.length} dia(s) deste evento
+                </p>
+              )}
+              {selectedAssignment && selectedAssignment.work_days.length === 0 && (
+                <Alert className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Este funcionário não possui dias de trabalho alocados neste evento.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <div className="space-y-2">
