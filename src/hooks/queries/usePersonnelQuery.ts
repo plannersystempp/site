@@ -282,7 +282,9 @@ export const useCreatePersonnelMutation = () => {
     },
     onSuccess: (data) => {
       logger.personnel.info('CREATE_SUCCESS', { id: data.id, name: data.name });
-      // Realtime handles cache synchronization automatically
+      
+      // CORREÇÃO: Invalidar cache explicitamente para garantir sincronização
+      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
       
       toast({
         title: "Sucesso",

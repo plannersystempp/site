@@ -303,6 +303,12 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     setLoading(true);
 
     try {
+      console.log('[PersonnelForm] Submitting form...', { 
+        isUpdate: !!personnel, 
+        name: formData.name,
+        type: formData.type 
+      });
+      
       let personnelId: string;
       
       if (personnel) {
@@ -313,6 +319,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
           delete updatePayload.functionIds;
           delete updatePayload.primaryFunctionId;
         }
+        console.log('[PersonnelForm] Updating personnel...', personnel.id);
         await updatePersonnel.mutateAsync({
           id: personnel.id,
           ...updatePayload
@@ -320,8 +327,10 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         personnelId = personnel.id;
       } else {
         // Create new personnel
+        console.log('[PersonnelForm] Creating new personnel...');
         const newPersonnel = await createPersonnel.mutateAsync(formData);
         personnelId = newPersonnel.id;
+        console.log('[PersonnelForm] Personnel created:', personnelId);
       }
 
       // Handle PIX key if provided

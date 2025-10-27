@@ -21,7 +21,7 @@ import { useTeam } from '@/contexts/TeamContext';
 
 export const ManagePersonnel: React.FC = () => {
   const { functions } = useEnhancedData();
-  const { data: personnel = [] } = usePersonnelQuery();
+  const { data: personnel = [], isFetching, isLoading } = usePersonnelQuery();
   const deletePersonnelMutation = useDeletePersonnelMutation();
   
   // Hook de sincronização em tempo real
@@ -133,6 +133,11 @@ export const ManagePersonnel: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div className="text-sm text-muted-foreground order-2 sm:order-1">
           {filteredPersonnel.length} pessoa(s) encontrada(s)
+          {isFetching && !isLoading && (
+            <span className="ml-2 text-xs text-primary">
+              • Atualizando...
+            </span>
+          )}
         </div>
         <div className="order-1 sm:order-2 w-full sm:w-auto">
           {!isMobile && (

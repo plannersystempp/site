@@ -69,69 +69,72 @@ export const usePersonnelRealtime = () => {
             case 'INSERT': {
               const newPersonnel = payload.new as any;
               
-              // CORREÇÃO DEFINITIVA: Verificar se já existe no cache (evitar duplicação)
-              const existingIndex = currentData.findIndex(p => p.id === newPersonnel.id);
-              if (existingIndex !== -1) {
-                console.log('[Realtime] Personnel already in cache, updating instead:', newPersonnel.id);
-                // Buscar funções atualizadas e atualizar o registro existente
+              try {
+                // CORREÇÃO DEFINITIVA: Verificar se já existe no cache (evitar duplicação)
+                const existingIndex = currentData.findIndex(p => p.id === newPersonnel.id);
+                if (existingIndex !== -1) {
+                  console.log('[Realtime] Personnel already in cache, updating instead:', newPersonnel.id);
+                  // Buscar funções atualizadas e atualizar o registro existente
+                  const functions = await fetchPersonnelFunctions(newPersonnel.id, activeTeam.id);
+                  queryClient.setQueryData<Personnel[]>(
+                    queryKey,
+                    currentData.map(p => 
+                      p.id === newPersonnel.id 
+                        ? {
+                            ...newPersonnel,
+                            functions: functions,
+                            type: newPersonnel.type || 'freelancer',
+                          }
+                        : p
+                    )
+                  );
+                  break;
+                }
+                
+                // Remover placeholders temporários relacionados ao mesmo registro
+                const cpfCleaned = removeNonNumeric(newPersonnel.cpf);
+                const filteredData = currentData.filter(p => {
+                  // Manter registros reais
+                  if (!p.id.startsWith('temp-')) return true;
+                  
+                  // Remover temp- com mesmo CPF (se CPF existir)
+                  if (cpfCleaned && removeNonNumeric(p.cpf) === cpfCleaned) {
+                    console.log('[Realtime] Removing temp placeholder by CPF:', p.id);
+                    return false;
+                  }
+                  
+                  // Remover temp- com mesmo nome exato (fallback)
+                  if (p.name === newPersonnel.name) {
+                    console.log('[Realtime] Removing temp placeholder by name:', p.id);
+                    return false;
+                  }
+                  
+                  return true;
+                });
+                
+                // Buscar funções do banco de dados
                 const functions = await fetchPersonnelFunctions(newPersonnel.id, activeTeam.id);
+                
+                // Adicionar novo registro real com funções
+                const personnelToAdd: Personnel = {
+                  ...newPersonnel,
+                  functions: functions,
+                  type: newPersonnel.type || 'freelancer',
+                };
+                
+                const finalData = [...filteredData, personnelToAdd];
+                
                 queryClient.setQueryData<Personnel[]>(
                   queryKey,
-                  currentData.map(p => 
-                    p.id === newPersonnel.id 
-                      ? {
-                          ...newPersonnel,
-                          functions: functions,
-                          type: newPersonnel.type || 'freelancer',
-                        }
-                      : p
-                  )
+                  finalData
                 );
-                break;
+                
+                console.log('[Realtime] Personnel added/updated:', newPersonnel.id);
+              } catch (error) {
+                // FALLBACK: Se falhar ao sincronizar via realtime, invalidar cache
+                console.error('[Realtime] Error syncing INSERT, invalidating cache:', error);
+                queryClient.invalidateQueries({ queryKey });
               }
-              
-              // Remover placeholders temporários relacionados ao mesmo registro
-              const cpfCleaned = removeNonNumeric(newPersonnel.cpf);
-              const filteredData = currentData.filter(p => {
-                // Manter registros reais
-                if (!p.id.startsWith('temp-')) return true;
-                
-                // Remover temp- com mesmo CPF (se CPF existir)
-                if (cpfCleaned && removeNonNumeric(p.cpf) === cpfCleaned) {
-                  console.log('[Realtime] Removing temp placeholder by CPF:', p.id);
-                  return false;
-                }
-                
-                // Remover temp- com mesmo nome exato (fallback)
-                if (p.name === newPersonnel.name) {
-                  console.log('[Realtime] Removing temp placeholder by name:', p.id);
-                  return false;
-                }
-                
-                return true;
-              });
-              
-              // Buscar funções do banco de dados
-              const functions = await fetchPersonnelFunctions(newPersonnel.id, activeTeam.id);
-              
-              // Adicionar novo registro real com funções
-              const personnelToAdd: Personnel = {
-                ...newPersonnel,
-                functions: functions,
-                type: newPersonnel.type || 'freelancer',
-              };
-              
-              const finalData = [...filteredData, personnelToAdd];
-              
-              queryClient.setQueryData<Personnel[]>(
-                queryKey,
-                finalData
-              );
-              
-              console.log('[Realtime] Personnel added to cache:', newPersonnel.id);
-              console.log('[Realtime] Functions loaded:', functions.length);
-              console.log('[Realtime] Final cache state:', finalData.length, 'records');
-              
               break;
             }
 
