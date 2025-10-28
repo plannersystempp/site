@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { Personnel } from '@/contexts/EnhancedDataContext';
@@ -79,9 +79,12 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
   });
   const [loading, setLoading] = useState(false);
 
+  // Snapshot do estado inicial para detectar alterações (isDirty)
+  const initialDataRef = useRef<PersonnelFormData>(formData);
+
   useEffect(() => {
     if (personnel) {
-      setFormData(prev => ({
+      const initialData = {
         name: personnel.name,
         email: personnel.email || '',
         phone: personnel.phone || '',
@@ -93,7 +96,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         overtime_rate: personnel.overtime_rate || 0,
         cpf: personnel.cpf || '',
         cnpj: personnel.cnpj || '',
-        pixKey: prev.pixKey || '', // Preserve existing PIX key if already fetched
+        pixKey: '',
         photo_url: personnel.photo_url || '',
         shirt_size: personnel.shirt_size || '',
         address_zip_code: personnel.address_zip_code || '',
@@ -103,7 +106,9 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         address_neighborhood: personnel.address_neighborhood || '',
         address_city: personnel.address_city || '',
         address_state: personnel.address_state || ''
-      }));
+      };
+      setFormData(initialData);
+      initialDataRef.current = initialData;
     }
   }, [personnel]);
 
@@ -135,12 +140,26 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     fetchPixKey();
   }, [personnel, userRole]);
 
+  // Detectar alterações não salvas comparando formData com initialDataRef
+  const isDirty = useMemo(() => {
+    return JSON.stringify(formData) !== JSON.stringify(initialDataRef.current);
+  }, [formData]);
+
   const handleFieldChange = (field: keyof PersonnelFormData, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handlePhoneChange = (value: string) => {
     setFormData(prev => ({ ...prev, phone: value }));
+  };
+
+  // Prevenir submit involuntário por Enter em qualquer campo
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('[PersonnelForm] Enter prevenido - submit bloqueado');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -402,6 +421,11 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       onClick={(e) => {
         // Fechar apenas se clicar no backdrop e não está salvando
         if (e.target === e.currentTarget && !loading) {
+          if (isDirty) {
+            const confirmClose = window.confirm('Existem alterações não salvas. Deseja descartar?');
+            console.log('[PersonnelForm] Tentativa de fechar com alterações. Confirmado?', confirmClose);
+            if (!confirmClose) return;
+          }
           onClose();
         }
       }}
@@ -409,7 +433,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
         <PersonnelFormHeader personnel={personnel} onClose={onClose} />
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} autoComplete="off">
             <PersonnelFormFields
               formData={formData}
               functions={functions}

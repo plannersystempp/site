@@ -317,6 +317,15 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
             value={formData.monthly_salary}
             onChange={(value) => onFieldChange('monthly_salary', value)}
             placeholder="R$ 3.500,00"
+            enterKeyHint="next"
+            inputMode="numeric"
+            autoComplete="off"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
           />
         </div>
       )}
@@ -329,6 +338,15 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
           onChange={(value) => onFieldChange('event_cache', value)}
           placeholder="R$ 450,00"
           required
+          enterKeyHint="next"
+          inputMode="numeric"
+          autoComplete="off"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
         />
         <p className="text-xs text-muted-foreground mt-1">
           Valor do cachê diário; na conversão de HE, cada cachê cobre até 8h extras no mesmo dia.
@@ -343,6 +361,15 @@ export const PersonnelFormFields: React.FC<PersonnelFormFieldsProps> = ({
           onChange={(value) => onFieldChange('overtime_rate', value)}
           placeholder="R$ 37,50"
           required
+          enterKeyHint="next"
+          inputMode="numeric"
+          autoComplete="off"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
         />
         <p className="text-xs text-muted-foreground mt-1">
           Valor por hora para HE avulsas (dias abaixo do limiar ou acima de 8h no dia).
