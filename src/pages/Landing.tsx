@@ -1,34 +1,27 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, LogIn } from 'lucide-react';
+import { ArrowRight, Calendar, Users, DollarSign, BarChart3, Clock, FileText, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Hero } from '@/components/landing/Hero';
-import { Features } from '@/components/landing/Features';
 
 export const Landing: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2 group">
-            <img 
-              src="/icons/sige-logo.svg" 
-              alt="SIGE Logo" 
-              className="h-8 sm:h-10 w-auto group-hover:scale-105 transition-transform"
-            />
-          </Link>
-          <div className="flex gap-2 sm:gap-3">
-            <Link to="/plans" className="hidden sm:inline-block">
-              <Button variant="outline" size="sm" className="sm:px-4">
+      <header className="border-b bg-card/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-primary">SIGE</h1>
+          <div className="flex gap-2">
+            <Link to="/plans">
+              <Button variant="outline" size="sm">
                 Ver Planos
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="sm" className="sm:px-4">
-                <LogIn className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Login</span>
+              <Button size="sm">
+                <LogIn className="w-4 h-4 mr-1" />
+                Login
               </Button>
             </Link>
           </div>
@@ -36,101 +29,184 @@ export const Landing: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <Hero />
+      <section className="container mx-auto px-4 py-12 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Gerencie seus eventos com eficiência total
+          </h2>
+          <p className="text-base md:text-lg text-muted-foreground mb-6 leading-relaxed max-w-2xl mx-auto">
+            Controle completo de pessoal, custos e folha de pagamento para seus eventos em uma única plataforma
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/plans">
+              <Button size="default" className="px-6 py-2">
+                Ver Planos
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/auth">
+              <Button size="default" variant="outline" className="px-6 py-2">
+                Começar Grátis (Trial 15 Dias)
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Features Grid */}
-      <Features />
+      <section className="container mx-auto px-4 py-12">
+        <h3 className="text-2xl font-bold text-center mb-8">Funcionalidades Principais</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Feature Cards */}
+          <Card className="hover:scale-[1.02] transition-transform duration-200">
+            <CardHeader className="pb-3">
+              <Calendar className="w-8 h-8 text-primary mb-2" />
+              <CardTitle className="text-lg">Gestão de Eventos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Crie e gerencie eventos com datas precisas, controle de status e organização completa.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200">
+            <CardHeader className="pb-3">
+              <Users className="w-8 h-8 text-primary mb-2" />
+              <CardTitle className="text-lg">Controle de Pessoal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Cadastre funcionários fixos e freelancers, defina funções e gerencie alocações por divisão.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200">
+            <CardHeader className="pb-3">
+              <Clock className="w-8 h-8 text-primary mb-2" />
+              <CardTitle className="text-lg">Lançamento de Horas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Registre horas trabalhadas com regras claras de HE: limiar diário gera 1 cachê não cumulativo.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200">
+            <CardHeader className="pb-3">
+              <DollarSign className="w-8 h-8 text-primary mb-2" />
+              <CardTitle className="text-lg">Folha de Pagamento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Calcule automaticamente pagamentos baseados em cachês diários e horas extras trabalhadas.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200">
+            <CardHeader className="pb-3">
+              <BarChart3 className="w-8 h-8 text-primary mb-2" />
+              <CardTitle className="text-lg">Estimativa de Custos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Visualize custos estimados por evento e acompanhe o orçamento em tempo real.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200">
+            <CardHeader className="pb-3">
+              <FileText className="w-8 h-8 text-primary mb-2" />
+              <CardTitle className="text-lg">Relatórios Detalhados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Gere relatórios completos de pagamentos com filtros por período e profissional.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       {/* Benefits Section */}
-      <section className="bg-card/30 py-12 sm:py-16 lg:py-20">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <section className="bg-card/30 py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
-              <Badge variant="secondary" className="mb-4">
-                Benefícios
-              </Badge>
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8">
-                Por que escolher o SIGE?
-              </h3>
-              <div className="space-y-4 sm:space-y-6">
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <Badge variant="secondary" className="p-1.5 sm:p-2 mt-0.5">
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+              <h3 className="text-2xl font-bold mb-4">Por que escolher nosso sistema?</h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Badge variant="secondary" className="p-1.5 mt-0.5">
+                    <ArrowRight className="w-3 h-3" />
                   </Badge>
                   <div>
-                    <h4 className="font-semibold mb-1 text-sm sm:text-base">Economia de Tempo</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      Automatize cálculos complexos e reduza até 20 horas de trabalho manual por semana
+                    <h4 className="font-semibold mb-1 text-sm">Economia de Tempo</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Automatize cálculos complexos e reduza horas de trabalho manual
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <Badge variant="secondary" className="p-1.5 sm:p-2 mt-0.5">
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                <div className="flex items-start gap-3">
+                  <Badge variant="secondary" className="p-1.5 mt-0.5">
+                    <ArrowRight className="w-3 h-3" />
                   </Badge>
                   <div>
-                    <h4 className="font-semibold mb-1 text-sm sm:text-base">Controle Total</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      Tenha visibilidade completa sobre custos, equipe e alocação de recursos em tempo real
+                    <h4 className="font-semibold mb-1 text-sm">Controle Total</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Tenha visibilidade completa sobre custos e alocação de recursos
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <Badge variant="secondary" className="p-1.5 sm:p-2 mt-0.5">
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                <div className="flex items-start gap-3">
+                  <Badge variant="secondary" className="p-1.5 mt-0.5">
+                    <ArrowRight className="w-3 h-3" />
                   </Badge>
                   <div>
-                    <h4 className="font-semibold mb-1 text-sm sm:text-base">Precisão nos Cálculos</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      Elimine erros humanos com cálculos automáticos e precisos de folha de pagamento
+                    <h4 className="font-semibold mb-1 text-sm">Precisão nos Cálculos</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Elimine erros humanos com cálculos automáticos e precisos
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <Badge variant="secondary" className="p-1.5 sm:p-2 mt-0.5">
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                <div className="flex items-start gap-3">
+                  <Badge variant="secondary" className="p-1.5 mt-0.5">
+                    <ArrowRight className="w-3 h-3" />
                   </Badge>
                   <div>
-                    <h4 className="font-semibold mb-1 text-sm sm:text-base">Fácil de Usar</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      Interface intuitiva que qualquer pessoa pode aprender em minutos
+                    <h4 className="font-semibold mb-1 text-sm">Fácil de Usar</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Interface intuitiva que qualquer pessoa pode aprender rapidamente
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-6 sm:p-8">
-              <h4 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Como funciona?</h4>
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <Badge className="min-w-6 sm:min-w-7 h-6 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm">
-                    1
-                  </Badge>
-                  <span className="text-sm sm:text-base">Cadastre seus eventos e datas</span>
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-6">
+              <h4 className="text-lg font-semibold mb-3">Como funciona?</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Badge className="min-w-6 h-6 rounded-full flex items-center justify-center text-xs">1</Badge>
+                  <span className="text-sm">Cadastre seus eventos e datas</span>
                 </div>
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <Badge className="min-w-6 sm:min-w-7 h-6 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm">
-                    2
-                  </Badge>
-                  <span className="text-sm sm:text-base">Adicione sua equipe e funções</span>
+                <div className="flex items-center gap-3">
+                  <Badge className="min-w-6 h-6 rounded-full flex items-center justify-center text-xs">2</Badge>
+                  <span className="text-sm">Adicione sua equipe e funções</span>
                 </div>
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <Badge className="min-w-6 sm:min-w-7 h-6 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm">
-                    3
-                  </Badge>
-                  <span className="text-sm sm:text-base">Aloque pessoas por divisões</span>
+                <div className="flex items-center gap-3">
+                  <Badge className="min-w-6 h-6 rounded-full flex items-center justify-center text-xs">3</Badge>
+                  <span className="text-sm">Aloque pessoas por divisões</span>
                 </div>
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <Badge className="min-w-6 sm:min-w-7 h-6 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm">
-                    4
-                  </Badge>
-                  <span className="text-sm sm:text-base">Lance horas trabalhadas diariamente</span>
+                <div className="flex items-center gap-3">
+                  <Badge className="min-w-6 h-6 rounded-full flex items-center justify-center text-xs">4</Badge>
+                  <span className="text-sm">Lance horas trabalhadas diariamente</span>
                 </div>
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <Badge className="min-w-6 sm:min-w-7 h-6 sm:h-7 rounded-full flex items-center justify-center text-xs sm:text-sm">
-                    5
-                  </Badge>
-                  <span className="text-sm sm:text-base">Gere relatórios de pagamento automáticos</span>
+                <div className="flex items-center gap-3">
+                  <Badge className="min-w-6 h-6 rounded-full flex items-center justify-center text-xs">5</Badge>
+                  <span className="text-sm">Gere relatórios de pagamento</span>
                 </div>
               </div>
             </div>
@@ -139,59 +215,34 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 py-12 sm:py-16 lg:py-20">
-        <div className="container relative mx-auto px-4 sm:px-6 text-center">
-          <div className="max-w-2xl mx-auto">
-            <Badge variant="default" className="mb-4 sm:mb-6">
-              Comece Agora
-            </Badge>
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
-              Pronto para transformar sua gestão de eventos?
-            </h3>
-            <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-              Junte-se a centenas de empresas que já economizam tempo e dinheiro com o SIGE.
-              <span className="block mt-2 font-medium text-foreground">
-                Comece grátis hoje, sem compromisso!
-              </span>
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <Link to="/auth" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-base px-8 py-6 shadow-lg hover:shadow-xl transition-shadow">
-                  Começar Grátis Agora 🚀
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/plans" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-8 py-6">
-                  Ver Todos os Planos
-                </Button>
-              </Link>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-4 sm:mt-6">
-              <span className="font-semibold text-foreground">15 dias grátis</span> • Sem cartão de crédito • Suporte em português
-            </p>
+      <section className="container mx-auto px-4 py-12 text-center">
+        <div className="max-w-xl mx-auto">
+          <h3 className="text-2xl font-bold mb-3">Pronto para começar?</h3>
+          <p className="text-sm md:text-base text-muted-foreground mb-6">
+            Transforme a gestão dos seus eventos hoje mesmo e tenha controle total sobre custos e equipe.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/plans">
+              <Button size="default" className="px-6 py-2">
+                Ver Planos
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/auth">
+              <Button size="default" variant="outline" className="px-6 py-2">
+                Começar Grátis (Trial 15 Dias)
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-card/50 py-8 sm:py-10">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <img 
-                src="/icons/sige-logo.svg" 
-                alt="SIGE Logo" 
-                className="h-8 w-auto"
-              />
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
-              © 2024 SIGE - Sistema de Gestão de Eventos
-              <span className="block sm:inline sm:ml-2">
-                Desenvolvido para simplificar sua operação
-              </span>
-            </p>
-          </div>
+      <footer className="border-t bg-card/30 py-6">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            © 2024 Sistema de Gestão de Eventos. Desenvolvido para simplificar sua operação.
+          </p>
         </div>
       </footer>
     </div>
