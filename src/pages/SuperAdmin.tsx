@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
@@ -22,6 +22,7 @@ import { TeamManagementTab } from '@/components/admin/TeamManagementTab';
 import { DeletionLogsTab } from '@/components/admin/DeletionLogsTab';
 import { SubscriptionManagementTab } from '@/components/subscriptions/SubscriptionManagementTab';
 import { ErrorReportsManagement } from '@/components/admin/ErrorReportsManagement';
+import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -293,7 +294,7 @@ export default function SuperAdmin() {
   const stats = getUserStats();
   const filteredUsers = getFilteredUsers();
 
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
@@ -316,6 +317,16 @@ export default function SuperAdmin() {
               <SheetTitle>Menu de Navegação</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-2 mt-6">
+              <Button 
+                variant={activeTab === 'dashboard' ? 'default' : 'ghost'} 
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('dashboard');
+                  setSheetOpen(false);
+                }}
+              >
+                <LayoutDashboard className="mr-3 h-5 w-5" /> Dashboard
+              </Button>
               <Button 
                 variant={activeTab === 'users' ? 'default' : 'ghost'} 
                 className="justify-start h-12 text-base"
@@ -395,6 +406,7 @@ export default function SuperAdmin() {
       <div className="md:hidden bg-muted rounded-lg p-3">
         <p className="text-sm text-muted-foreground">Seção atual:</p>
         <p className="font-semibold">
+          {activeTab === 'dashboard' && 'Dashboard'}
           {activeTab === 'users' && 'Usuários'}
           {activeTab === 'teams' && 'Equipes'}
           {activeTab === 'subscriptions' && 'Assinaturas'}
@@ -426,7 +438,8 @@ export default function SuperAdmin() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
-        <TabsList className="hidden md:grid w-full md:grid-cols-7">
+        <TabsList className="hidden md:grid w-full md:grid-cols-8">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
           <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
@@ -435,6 +448,10 @@ export default function SuperAdmin() {
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
           <TabsTrigger value="error-reports">Reportes</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          <SuperAdminDashboard />
+        </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
           {/* KPI Cards */}

@@ -2015,6 +2015,7 @@ export type Database = {
           name: string
         }[]
       }
+      get_superadmin_dashboard_stats: { Args: never; Returns: Json }
       get_team_by_invite_code: {
         Args: { invite_code_input: string }
         Returns: {
