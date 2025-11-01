@@ -479,7 +479,18 @@ export const Landing: React.FC = () => {
               <h4 className="text-lg font-bold">Contato</h4>
               <div className="space-y-3 text-base text-muted-foreground">
                 <p>suporte@plannersystem.com.br</p>
-                <p>(11) 9999-9999</p>
+                <p>(21) 96523-2224</p>
+                <div className="flex items-center gap-2">
+                  <span>WhatsApp:</span>
+                  <a 
+                    href="https://wa.me/5521965232224" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-700 transition-colors"
+                  >
+                    (21) 96523-2224
+                  </a>
+                </div>
                 <p>Segunda a Sexta, 9h às 18h</p>
               </div>
             </div>

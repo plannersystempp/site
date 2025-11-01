@@ -227,12 +227,12 @@ export default function PlansPage() {
           </div>
         </div>
 
-        {/* Pricing Cards - Grid para 4 Planos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 max-w-7xl mx-auto mb-8 sm:mb-12">
+        {/* Pricing Cards - Grid para 4 Planos com altura flexível */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 max-w-7xl mx-auto mb-8 sm:mb-12 items-start">
           {plans?.map((plan, index) => (
             <Card 
               key={plan.id}
-              className={`relative flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group ${
+              className={`relative flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group h-fit ${
                 plan.is_popular 
                   ? 'border-primary shadow-lg scale-100 xl:scale-105 z-10 bg-gradient-to-br from-primary/5 to-primary/10' 
                   : 'border-border hover:border-primary/50 bg-card/50 backdrop-blur-sm'
@@ -289,26 +289,21 @@ export default function PlansPage() {
                   )}
                 </div>
 
-                {/* Features - Limitado a 3 principais para economizar espaço */}
+                {/* Features - Todos os recursos visíveis */}
                 {Array.isArray(plan.features) && plan.features.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">
-                      Principais Recursos
+                      Recursos Inclusos
                     </h4>
-                    <ul className="space-y-1.5">
-                      {(plan.features as string[]).slice(0, 3).map((feature, idx) => (
+                    <ul className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                      {(plan.features as string[]).map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-1.5 group/item">
-                          <div className="p-0.5 rounded-full bg-primary/10 group-hover/item:bg-primary/20 transition-colors mt-0.5">
-                            <Check className="h-2 w-2 text-primary flex-shrink-0" />
+                          <div className="p-0.5 rounded-full bg-primary/10 group-hover/item:bg-primary/20 transition-colors mt-0.5 flex-shrink-0">
+                            <Check className="h-2 w-2 text-primary" />
                           </div>
-                          <span className="text-xs leading-relaxed">{feature}</span>
+                          <span className="text-xs leading-relaxed text-left">{feature}</span>
                         </li>
                       ))}
-                      {(plan.features as string[]).length > 3 && (
-                        <li className="text-xs text-muted-foreground">
-                          + {(plan.features as string[]).length - 3} recursos adicionais
-                        </li>
-                      )}
                     </ul>
                   </div>
                 )}
@@ -480,7 +475,7 @@ export default function PlansPage() {
                   size="sm"
                   variant="outline"
                   className="hover:bg-primary/5 hover:border-primary/50 transition-all duration-300"
-                  onClick={() => window.open('https://wa.me/5511999999999', '_blank')}
+                  onClick={() => window.open('https://wa.me/5521965232224', '_blank')}
                 >
                   <Zap className="mr-2 h-3 w-3" />
                   WhatsApp

@@ -167,13 +167,25 @@ export const PoliticaPrivacidade: React.FC = () => {
                 <li>
                   Email: 
                   <a 
-                    href="mailto:sigefgoa@gmail.com" 
+                    href="mailto:suporte@plannersystem.com.br" 
                     className="text-primary hover:underline ml-1"
                   >
-                    sigefgoa@gmail.com
+                    suporte@plannersystem.com.br
                   </a>
                 </li>
-                <li>Assunto: "Privacidade - SIGE"</li>
+                <li>Telefone: (21) 96523-2224</li>
+                <li>
+                  WhatsApp: 
+                  <a 
+                    href="https://wa.me/5521965232224" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline ml-1"
+                  >
+                    (21) 96523-2224
+                  </a>
+                </li>
+                <li>Assunto: "Privacidade - Planner System"</li>
               </ul>
             </div>
 

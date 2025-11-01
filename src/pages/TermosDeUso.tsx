@@ -172,14 +172,31 @@ export const TermosDeUso: React.FC = () => {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">9. Contato</h2>
               <p>
-                Se você tiver alguma dúvida sobre estes Termos de Uso, entre em contato conosco pelo e-mail: 
-                <a 
-                  href="mailto:sigefgoa@gmail.com" 
-                  className="text-primary hover:underline ml-1"
-                >
-                  sigefgoa@gmail.com
-                </a>
+                Se você tiver alguma dúvida sobre estes Termos de Uso, entre em contato conosco:
               </p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li>
+                  Email: 
+                  <a 
+                    href="mailto:suporte@plannersystem.com.br" 
+                    className="text-primary hover:underline ml-1"
+                  >
+                    suporte@plannersystem.com.br
+                  </a>
+                </li>
+                <li>Telefone: (21) 96523-2224</li>
+                <li>
+                  WhatsApp: 
+                  <a 
+                    href="https://wa.me/5521965232224" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline ml-1"
+                  >
+                    (21) 96523-2224
+                  </a>
+                </li>
+              </ul>
             </div>
           </CardContent>
         </Card>
