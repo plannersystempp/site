@@ -401,6 +401,21 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* Animations */
+  @keyframes grid-move {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(50px, 50px, 0); }
+  }
+
+  @keyframes grid {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 50px 50px, 50px 50px; }
+  }
+
+  .animate-grid {
+    animation: grid 20s linear infinite;
+  }
+
   .gradient-bg {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
   }

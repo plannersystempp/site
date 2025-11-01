@@ -202,116 +202,171 @@ export default function PlansPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Escolha o Plano Ideal para sua Equipe
+      {/* Hero Section - Mais Compacto */}
+      <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8 lg:mb-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Escolha seu Plano
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Gerencie eventos, equipes e folha de pagamento com a plataforma SIGE
+          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
+            Gerencie eventos e equipes com facilidade
           </p>
+          <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Check className="h-3 w-3 text-green-500" />
+              <span>15 dias grátis</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Check className="h-3 w-3 text-green-500" />
+              <span>Sem cartão</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Check className="h-3 w-3 text-green-500" />
+              <span>Cancele quando quiser</span>
+            </div>
+          </div>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans?.map((plan) => (
+        {/* Pricing Cards - Grid para 4 Planos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 max-w-7xl mx-auto mb-8 sm:mb-12">
+          {plans?.map((plan, index) => (
             <Card 
               key={plan.id}
-              className={`relative flex flex-col ${
+              className={`relative flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group ${
                 plan.is_popular 
-                  ? 'border-primary shadow-xl scale-105 z-10' 
-                  : 'border-border'
+                  ? 'border-primary shadow-lg scale-100 xl:scale-105 z-10 bg-gradient-to-br from-primary/5 to-primary/10' 
+                  : 'border-border hover:border-primary/50 bg-card/50 backdrop-blur-sm'
               }`}
             >
               {plan.is_popular && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
-                  Mais Popular
-                </Badge>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                  <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-2 py-0.5 text-xs font-semibold shadow-lg">
+                    ⭐ Popular
+                  </Badge>
+                </div>
               )}
 
-              <CardHeader className="space-y-4">
+              <CardHeader className="space-y-2 sm:space-y-3 pb-2 sm:pb-3">
                 <div className="flex items-center justify-between">
-                  {getPlanIcon(plan.name)}
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${
+                    plan.is_popular 
+                      ? 'bg-primary/10 ring-1 ring-primary/20' 
+                      : 'bg-muted/50 group-hover:bg-primary/10'
+                  } transition-all duration-300`}>
+                    {getPlanIcon(plan.name)}
+                  </div>
                   {plan.name === 'trial' && (
-                    <Badge variant="outline">Grátis</Badge>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                      Grátis
+                    </Badge>
                   )}
                 </div>
-                <div>
-                  <CardTitle className="text-2xl">{plan.display_name}</CardTitle>
-                  <CardDescription className="mt-2">{plan.description}</CardDescription>
+                <div className="space-y-1">
+                  <CardTitle className="text-base sm:text-lg lg:text-xl font-bold leading-tight">
+                    {plan.display_name}
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm leading-relaxed line-clamp-2">
+                    {plan.description}
+                  </CardDescription>
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 space-y-6">
-                {/* Pricing */}
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold">
-                    R$ {plan.price.toFixed(2)}
-                  </span>
-                  <span className="text-muted-foreground">
-                    /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                  </span>
+              <CardContent className="flex-1 space-y-3 sm:space-y-4 px-3 sm:px-4 lg:px-6">
+                {/* Pricing - Compacto */}
+                <div className="text-center py-1 sm:py-2">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                      R$ {plan.price.toFixed(2)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                    </span>
+                  </div>
+                  {plan.billing_cycle === 'annually' && (
+                    <Badge variant="secondary" className="text-xs mt-1">
+                      Economize 20%
+                    </Badge>
+                  )}
                 </div>
 
-                {/* Features */}
+                {/* Features - Limitado a 3 principais para economizar espaço */}
                 {Array.isArray(plan.features) && plan.features.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                      Recursos Inclusos
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">
+                      Principais Recursos
                     </h4>
-                    <ul className="space-y-2">
-                      {(plan.features as string[]).map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm">{feature}</span>
+                    <ul className="space-y-1.5">
+                      {(plan.features as string[]).slice(0, 3).map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5 group/item">
+                          <div className="p-0.5 rounded-full bg-primary/10 group-hover/item:bg-primary/20 transition-colors mt-0.5">
+                            <Check className="h-2 w-2 text-primary flex-shrink-0" />
+                          </div>
+                          <span className="text-xs leading-relaxed">{feature}</span>
                         </li>
                       ))}
+                      {(plan.features as string[]).length > 3 && (
+                        <li className="text-xs text-muted-foreground">
+                          + {(plan.features as string[]).length - 3} recursos adicionais
+                        </li>
+                      )}
                     </ul>
                   </div>
                 )}
 
-                {/* Limits */}
-                <div className="space-y-2 pt-4 border-t">
-                  <div className="text-sm text-muted-foreground">
-                    {plan.limits.max_team_members === null ? (
-                      <span>✓ Membros ilimitados</span>
-                    ) : (
-                      <span>• Até {plan.limits.max_team_members} membros</span>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {plan.limits.max_events_per_month === null ? (
-                      <span>✓ Eventos ilimitados</span>
-                    ) : (
-                      <span>• Até {plan.limits.max_events_per_month} eventos/mês</span>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {plan.limits.max_personnel === null ? (
-                      <span>✓ Pessoal ilimitado</span>
-                    ) : (
-                      <span>• Até {plan.limits.max_personnel} pessoas</span>
-                    )}
+                {/* Limits - Compacto */}
+                <div className="space-y-1.5 pt-2 border-t border-border/50">
+                  <div className="grid gap-1 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1 h-1 rounded-full bg-primary/60"></div>
+                      {plan.limits.max_team_members === null ? (
+                        <span className="text-green-600 font-medium">Membros ilimitados</span>
+                      ) : (
+                        <span>Até <strong>{plan.limits.max_team_members}</strong> membros</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1 h-1 rounded-full bg-primary/60"></div>
+                      {plan.limits.max_events_per_month === null ? (
+                        <span className="text-green-600 font-medium">Eventos ilimitados</span>
+                      ) : (
+                        <span>Até <strong>{plan.limits.max_events_per_month}</strong> eventos/mês</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
 
-              <CardFooter>
+              <CardFooter className="pt-3 px-3 sm:px-4 lg:px-6">
                 <Button
-                  size="lg"
-                  className="w-full"
+                  size="sm"
+                  className={`w-full h-8 sm:h-10 text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                    plan.is_popular 
+                      ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl' 
+                      : 'hover:bg-primary/90 hover:shadow-lg'
+                  }`}
                   variant={plan.is_popular ? 'default' : 'outline'}
                   onClick={() => handleSelectPlan(plan.id, plan.name)}
                   disabled={isCreatingCheckout}
                 >
                   {isCreatingCheckout ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-1 h-2.5 w-2.5 animate-spin" />
                       Processando...
                     </>
                   ) : (
-                    plan.name === 'trial' ? 'Começar Trial Grátis' : 'Assinar Agora'
+                    <>
+                      {plan.name === 'trial' ? (
+                        <>
+                          <Zap className="mr-1 h-2.5 w-2.5" />
+                          Começar Grátis
+                        </>
+                      ) : (
+                        <>
+                          <Crown className="mr-1 h-2.5 w-2.5" />
+                          Assinar
+                        </>
+                      )}
+                    </>
                   )}
                 </Button>
               </CardFooter>
@@ -319,67 +374,120 @@ export default function PlansPage() {
           ))}
         </div>
 
-        {/* FAQ Section */}
-        <div className="mt-20 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8">Perguntas Frequentes</h2>
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Posso mudar de plano depois?</CardTitle>
+        {/* Trust Indicators - Mais Compacto */}
+        <div className="text-center mb-8 sm:mb-10">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                <Check className="h-3 w-3 text-green-600" />
+              </div>
+              <span>SSL Seguro</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                <Crown className="h-3 w-3 text-blue-600" />
+              </div>
+              <span>Suporte 24/7</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
+                <Star className="h-3 w-3 text-purple-600" />
+              </div>
+              <span>99.9% Uptime</span>
+            </div>
+          </div>
+        </div>
+
+        {/* FAQ Section - Reduzido para 3 perguntas principais */}
+        <div className="mt-12 sm:mt-16 max-w-3xl mx-auto">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-6 sm:mb-8">
+            Dúvidas Frequentes
+          </h2>
+          <div className="grid gap-3 sm:gap-4">
+            <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary/20 hover:border-l-primary">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-bold text-xs">?</span>
+                  </div>
+                  Posso mudar de plano depois?
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Sim! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento.
-                  As mudanças entram em vigor imediatamente.
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Sim! Você pode fazer upgrade ou downgrade a qualquer momento.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Como funciona o trial gratuito?</CardTitle>
+            <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500/20 hover:border-l-blue-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+                    <span className="text-blue-500 font-bold text-xs">?</span>
+                  </div>
+                  Como funciona o trial?
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  O trial gratuito dura 15 dias e inclui acesso completo a todas as funcionalidades.
-                  Não é necessário cartão de crédito para começar.
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  15 dias grátis com acesso completo. Sem cartão de crédito.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Posso cancelar a qualquer momento?</CardTitle>
+            <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500/20 hover:border-l-green-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <span className="text-green-500 font-bold text-xs">?</span>
+                  </div>
+                  Posso cancelar quando quiser?
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Sim, sem taxas de cancelamento. Você pode cancelar sua assinatura a qualquer momento
-                  e terá acesso até o fim do período pago.
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Sim, sem taxas. Acesso até o final do período pago.
                 </p>
               </CardContent>
             </Card>
           </div>
-        </div>
 
-        {/* CTA Section */}
-        <div className="mt-20 text-center">
-          <Card className="max-w-2xl mx-auto bg-primary text-primary-foreground">
-            <CardHeader>
-              <CardTitle className="text-3xl">Ainda tem dúvidas?</CardTitle>
-              <CardDescription className="text-primary-foreground/80 text-lg">
-                Nossa equipe está pronta para ajudar você a escolher o melhor plano
-              </CardDescription>
-            </CardHeader>
-            <CardFooter className="flex justify-center">
-              <Button 
-                size="lg" 
-                variant="secondary"
-                onClick={() => window.location.href = 'mailto:contato@sige.com.br'}
-              >
-                Falar com Vendas
-              </Button>
-            </CardFooter>
-          </Card>
+          {/* CTA Section - Mais Compacto */}
+          <div className="mt-8 sm:mt-12 text-center">
+            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <CardHeader className="space-y-3 pb-4">
+                <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                  <Crown className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg sm:text-xl">
+                  Ainda tem dúvidas?
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  Nossa equipe está pronta para ajudar
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex flex-col sm:flex-row gap-3 justify-center pt-0">
+                <Button 
+                  size="sm"
+                  className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                  onClick={() => window.location.href = 'mailto:suporte@plannersystem.com.br'}
+                >
+                  <Star className="mr-2 h-3 w-3" />
+                  Falar com Vendas
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  className="hover:bg-primary/5 hover:border-primary/50 transition-all duration-300"
+                  onClick={() => window.open('https://wa.me/5511999999999', '_blank')}
+                >
+                  <Zap className="mr-2 h-3 w-3" />
+                  WhatsApp
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
