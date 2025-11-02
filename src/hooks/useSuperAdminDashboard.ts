@@ -38,5 +38,6 @@ export function useSuperAdminDashboard() {
       return data as unknown as DashboardStats;
     },
     refetchInterval: 30000, // Refetch a cada 30 segundos
+    staleTime: 30000, // Cache de 30 segundos
   });
 }

@@ -16,15 +16,21 @@ import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserM
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
-import { OrphanUsersTab } from '@/components/admin/OrphanUsersTab';
 import { UserManagementDialog } from '@/components/admin/UserManagementDialog';
-import { TeamManagementTab } from '@/components/admin/TeamManagementTab';
-import { DeletionLogsTab } from '@/components/admin/DeletionLogsTab';
-import { SubscriptionManagementTab } from '@/components/subscriptions/SubscriptionManagementTab';
-import { ErrorReportsManagement } from '@/components/admin/ErrorReportsManagement';
 import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { MobileBottomNav } from '@/components/admin/mobile/MobileBottomNav';
+import { lazy, Suspense } from 'react';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+
+// Lazy load das abas para otimizar performance (Fase 11)
+const LazyMonitoringDashboard = lazy(() => import('@/components/admin/MonitoringDashboard').then(m => ({ default: m.MonitoringDashboard })));
+const LazyOrphanUsersTab = lazy(() => import('@/components/admin/OrphanUsersTab').then(m => ({ default: m.OrphanUsersTab })));
+const LazyTeamManagementTab = lazy(() => import('@/components/admin/TeamManagementTab').then(m => ({ default: m.TeamManagementTab })));
+const LazyDeletionLogsTab = lazy(() => import('@/components/admin/DeletionLogsTab').then(m => ({ default: m.DeletionLogsTab })));
+const LazySubscriptionManagementTab = lazy(() => import('@/components/subscriptions/SubscriptionManagementTab').then(m => ({ default: m.SubscriptionManagementTab })));
+const LazyErrorReportsManagement = lazy(() => import('@/components/admin/ErrorReportsManagement').then(m => ({ default: m.ErrorReportsManagement })));
+const LazyAuditLog = lazy(() => import('@/components/admin/AuditLog').then(m => ({ default: m.AuditLog })));
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -742,86 +748,39 @@ export default function SuperAdmin() {
         </TabsContent>
 
         <TabsContent value="orphans" className="space-y-6">
-          <OrphanUsersTab teams={teams} />
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyOrphanUsersTab teams={teams} />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="teams" className="space-y-6">
-          <TeamManagementTab />
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyTeamManagementTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="subscriptions" className="space-y-6">
-          <SubscriptionManagementTab />
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazySubscriptionManagementTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="deletion-logs" className="space-y-6">
-          <DeletionLogsTab />
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyDeletionLogsTab />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-6">
-          {/* Audit Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Filtros Avançados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <Input
-                  placeholder="Buscar usuário..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                />
-                
-                <Select value={teamFilter} onValueChange={setTeamFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Empresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {teams.filter(team => team.id).map(team => (
-                      <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={actionFilter} onValueChange={setActionFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Ação" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="INSERT">INSERT</SelectItem>
-                    <SelectItem value="UPDATE">UPDATE</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  type="date"
-                  placeholder="Data inicial"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-
-                <Input
-                  type="date"
-                  placeholder="Data final"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Enhanced Audit Logs */}
-          <EnhancedAuditLogCard 
-            logs={auditLogs}
-            loading={loading}
-            onRefresh={fetchAuditLogs}
-          />
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyAuditLog />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="error-reports" className="space-y-6">
-          <ErrorReportsManagement />
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyErrorReportsManagement />
+          </Suspense>
         </TabsContent>
       </Tabs>
 

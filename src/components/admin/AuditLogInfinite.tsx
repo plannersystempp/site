@@ -131,7 +131,11 @@ export const AuditLogInfinite: React.FC<AuditLogInfiniteProps> = ({ filters = {}
           ) : (
             <>
               {allLogs.map((log: any) => (
-                <EnhancedAuditLogCard key={log.id} logs={[log]} loading={false} onRefresh={() => refetch()} />
+                <EnhancedAuditLogCard 
+                  key={log.id} 
+                  log={log} 
+                  userName={log.user_name || log.user_email || 'Sistema'}
+                />
               ))}
 
               {/* Infinite scroll trigger */}

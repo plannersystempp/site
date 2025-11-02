@@ -1,201 +1,165 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, User, Calendar, Building2, Activity } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { 
+  User, 
+  Database, 
+  Calendar, 
+  FileEdit, 
+  FilePlus, 
+  FileX,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
-interface AuditLogEntry {
-  id: string;
-  user_name: string | null;
-  user_email: string | null;
-  team_name: string | null;
-  action: string;
-  table_name: string;
-  entity_name: string | null;
-  record_id: string | null;
-  old_values: any;
-  new_values: any;
-  changed_fields: any;
-  action_summary: string;
-  created_at: string;
+interface AuditLogCardProps {
+  log: {
+    id: string;
+    user_id: string | null;
+    action: string;
+    table_name: string;
+    record_id: string | null;
+    old_values: any;
+    new_values: any;
+    created_at: string;
+  };
+  userName?: string;
 }
 
-interface EnhancedAuditLogCardProps {
-  logs: AuditLogEntry[];
-  loading: boolean;
-  onRefresh: () => void;
-}
-
-const getActionColor = (action: string): string => {
-  switch (action) {
+const getActionIcon = (action: string) => {
+  switch (action.toUpperCase()) {
     case 'INSERT':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+      return <FilePlus className="h-4 w-4" />;
     case 'UPDATE':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+      return <FileEdit className="h-4 w-4" />;
     case 'DELETE':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+      return <FileX className="h-4 w-4" />;
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
+      return <Database className="h-4 w-4" />;
   }
 };
 
-const formatChangeValue = (value: any): string => {
-  if (value === null) return 'null';
-  if (value === undefined) return 'indefinido';
-  if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
-  if (typeof value === 'string') return value;
-  return String(value);
+const getActionColor = (action: string) => {
+  switch (action.toUpperCase()) {
+    case 'INSERT':
+      return 'bg-green-500/10 text-green-500 border-green-500/20';
+    case 'UPDATE':
+      return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+    case 'DELETE':
+      return 'bg-red-500/10 text-red-500 border-red-500/20';
+    default:
+      return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+  }
 };
 
-export function EnhancedAuditLogCard({ logs, loading, onRefresh }: EnhancedAuditLogCardProps) {
-  const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
-
-  const toggleExpanded = (logId: string) => {
-    const newExpanded = new Set(expandedLogs);
-    if (newExpanded.has(logId)) {
-      newExpanded.delete(logId);
-    } else {
-      newExpanded.add(logId);
-    }
-    setExpandedLogs(newExpanded);
-  };
+const DiffViewer = ({ oldValue, newValue, fieldName }: { oldValue: any; newValue: any; fieldName: string }) => {
+  const oldStr = oldValue !== undefined && oldValue !== null ? String(oldValue) : '';
+  const newStr = newValue !== undefined && newValue !== null ? String(newValue) : '';
+  
+  if (oldStr === newStr) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Logs de Auditoria
-          </CardTitle>
-          <Button variant="outline" size="sm" onClick={onRefresh}>
-            Atualizar
-          </Button>
+    <div className="space-y-1 p-3 bg-muted/30 rounded-md border">
+      <div className="text-xs font-medium text-muted-foreground mb-2">{fieldName}</div>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="space-y-1">
+          <div className="text-red-500 font-medium">Antes:</div>
+          <div className="p-2 bg-red-500/5 border border-red-500/20 rounded line-through">
+            {oldStr || <span className="text-muted-foreground italic">vazio</span>}
+          </div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-green-500 font-medium">Depois:</div>
+          <div className="p-2 bg-green-500/5 border border-green-500/20 rounded">
+            {newStr || <span className="text-muted-foreground italic">vazio</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export function EnhancedAuditLogCard({ log, userName }: AuditLogCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  const hasChanges = log.old_values || log.new_values;
+  const changedFields = hasChanges ? Object.keys({ ...log.old_values, ...log.new_values }) : [];
+
+  return (
+    <Card className="hover:shadow-md transition-shadow border-l-4" style={{
+      borderLeftColor: log.action.toUpperCase() === 'INSERT' ? 'hsl(142 76% 36%)' : 
+                       log.action.toUpperCase() === 'UPDATE' ? 'hsl(221 83% 53%)' :
+                       log.action.toUpperCase() === 'DELETE' ? 'hsl(0 84% 60%)' : 
+                       'hsl(var(--muted))'
+    }}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <div className={`p-2 rounded-lg border ${getActionColor(log.action)}`}>
+              {getActionIcon(log.action)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="outline" className="font-mono text-xs">
+                  {log.action.toUpperCase()}
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {log.table_name}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  {userName || 'Sistema'}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {format(new Date(log.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </span>
+                {log.record_id && (
+                  <span className="font-mono text-[10px]">
+                    ID: {log.record_id.substring(0, 8)}...
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {hasChanges && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="shrink-0"
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
       </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
-              </div>
-            ))}
+
+      {isExpanded && hasChanges && (
+        <CardContent className="pt-0 space-y-2">
+          <div className="text-xs font-medium text-muted-foreground mb-2">
+            {changedFields.length} campo(s) alterado(s):
           </div>
-        ) : logs.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
-            Nenhum log de auditoria encontrado.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {logs.map((log) => {
-              const isExpanded = expandedLogs.has(log.id);
-              
-              return (
-                <Collapsible key={log.id}>
-                  <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <CollapsibleTrigger 
-                      className="w-full text-left"
-                      onClick={() => toggleExpanded(log.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {isExpanded ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          <Badge className={getActionColor(log.action)}>
-                            {log.action_summary}
-                          </Badge>
-                          <span className="font-medium">
-                            {log.entity_name || log.table_name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(log.created_at), { 
-                            addSuffix: true,
-                            locale: ptBR 
-                          })}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {log.user_name || log.user_email || 'Sistema'}
-                        </div>
-                        {log.team_name && (
-                          <div className="flex items-center gap-1">
-                            <Building2 className="h-3 w-3" />
-                            {log.team_name}
-                          </div>
-                        )}
-                      </div>
-                    </CollapsibleTrigger>
-                    
-                    <CollapsibleContent className="mt-4 pt-4 border-t">
-                      <div className="space-y-3">
-                        {/* Changed Fields Summary */}
-                        {log.changed_fields && Array.isArray(log.changed_fields) && log.changed_fields.length > 0 && (
-                          <div>
-                            <h5 className="font-medium text-sm mb-2">Alterações:</h5>
-                            <div className="space-y-2">
-                              {log.changed_fields.map((field: any, index: number) => (
-                                <div key={index} className="bg-muted/50 rounded p-3">
-                                  <div className="font-medium text-sm mb-1">
-                                    {field.field_label}
-                                  </div>
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <span className="text-red-600 dark:text-red-400">
-                                      {formatChangeValue(field.old_value)}
-                                    </span>
-                                    <span className="text-muted-foreground">→</span>
-                                    <span className="text-green-600 dark:text-green-400">
-                                      {formatChangeValue(field.new_value)}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Additional Details */}
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">Tabela:</span>
-                            <span className="ml-2">{log.table_name}</span>
-                          </div>
-                          {log.record_id && (
-                            <div>
-                              <span className="font-medium">ID do Registro:</span>
-                              <span className="ml-2 font-mono text-xs">
-                                {log.record_id.substring(0, 8)}...
-                              </span>
-                            </div>
-                          )}
-                          <div className="col-span-2">
-                            <span className="font-medium">Data/Hora:</span>
-                            <span className="ml-2">
-                              {new Date(log.created_at).toLocaleString('pt-BR')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </div>
-                </Collapsible>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
+          {changedFields.map((field) => (
+            <DiffViewer
+              key={field}
+              fieldName={field}
+              oldValue={log.old_values?.[field]}
+              newValue={log.new_values?.[field]}
+            />
+          ))}
+        </CardContent>
+      )}
     </Card>
   );
 }
