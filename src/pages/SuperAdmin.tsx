@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
@@ -23,6 +23,8 @@ import { DeletionLogsTab } from '@/components/admin/DeletionLogsTab';
 import { SubscriptionManagementTab } from '@/components/subscriptions/SubscriptionManagementTab';
 import { ErrorReportsManagement } from '@/components/admin/ErrorReportsManagement';
 import { SuperAdminDashboard } from '@/components/admin/SuperAdminDashboard';
+import { GlobalSearch } from '@/components/admin/GlobalSearch';
+import { MobileBottomNav } from '@/components/admin/mobile/MobileBottomNav';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -296,14 +298,46 @@ export default function SuperAdmin() {
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+
+  // Atalho de teclado Cmd+K / Ctrl+K para busca global
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setGlobalSearchOpen(true);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleNavigateFromSearch = (tab: string, id?: string) => {
+    setActiveTab(tab);
+    // TODO: Scroll to item if id is provided
+  };
 
   return (
-    <div className="container mx-auto py-6 space-y-6 overflow-y-auto max-h-screen">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto py-6 space-y-6 overflow-y-auto max-h-screen pb-20 md:pb-6">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Super Administração</h1>
           <p className="text-muted-foreground">Gerenciamento global da plataforma SIGE</p>
         </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setGlobalSearchOpen(true)}
+          className="gap-2 hidden md:flex"
+        >
+          <Search className="h-4 w-4" />
+          <span className="hidden sm:inline">Buscar</span>
+          <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
         
         {/* Menu Hambúrguer Mobile */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -809,6 +843,19 @@ export default function SuperAdmin() {
         currentTeamName={managementDialog.currentTeamName}
         teams={teams}
         actionType={managementDialog.actionType}
+      />
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+      />
+      
+      {/* Global Search */}
+      <GlobalSearch
+        open={globalSearchOpen}
+        onOpenChange={setGlobalSearchOpen}
+        onNavigate={handleNavigateFromSearch}
       />
     </div>
   );
