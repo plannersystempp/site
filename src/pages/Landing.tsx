@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +6,8 @@ import { ArrowRight, Calendar, Users, DollarSign, BarChart3, Clock, FileText, Lo
 import { Link } from 'react-router-dom';
 
 export const Landing: React.FC = () => {
+  const [dashboardPreviewLoaded, setDashboardPreviewLoaded] = useState(false);
+  const [dashboardPreviewError, setDashboardPreviewError] = useState(false);
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -81,91 +83,8 @@ export const Landing: React.FC = () => {
             </div>
           </div>
 
-          {/* System Preview Column */}
-          <div className="relative">
-            {/* Main Dashboard Preview */}
-            <div className="bg-gradient-to-br from-card/90 to-card/70 dark:from-card/70 dark:to-card/50 backdrop-blur-xl rounded-3xl p-6 lg:p-8 border border-primary/20 shadow-2xl relative overflow-hidden">
-              {/* Browser Header */}
-              <div className="flex items-center gap-2 mb-6">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                </div>
-                <div className="flex-1 bg-muted/50 rounded-md px-3 py-1.5 text-xs text-muted-foreground">
-                  app.sige.com.br/dashboard
-                </div>
-                <div className="w-4 h-4 bg-muted/30 rounded"></div>
-              </div>
-
-              {/* Dashboard Content */}
-              <div className="space-y-4">
-                {/* Header Stats */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="space-y-1">
-                    <div className="h-4 bg-primary/30 rounded w-32"></div>
-                    <div className="h-3 bg-muted/60 rounded w-24"></div>
-                  </div>
-                  <div className="h-8 bg-primary/20 rounded-lg w-20"></div>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="h-20 bg-gradient-to-br from-primary/15 to-primary/8 rounded-xl border border-primary/20 p-3 space-y-2">
-                    <div className="h-2 bg-primary/40 rounded w-12"></div>
-                    <div className="h-3 bg-primary/60 rounded w-8"></div>
-                  </div>
-                  <div className="h-20 bg-gradient-to-br from-secondary/15 to-secondary/8 rounded-xl border border-secondary/20 p-3 space-y-2">
-                    <div className="h-2 bg-secondary/40 rounded w-12"></div>
-                    <div className="h-3 bg-secondary/60 rounded w-8"></div>
-                  </div>
-                  <div className="h-20 bg-gradient-to-br from-accent/15 to-accent/8 rounded-xl border border-accent/20 p-3 space-y-2">
-                    <div className="h-2 bg-accent/40 rounded w-12"></div>
-                    <div className="h-3 bg-accent/60 rounded w-8"></div>
-                  </div>
-                </div>
-
-                {/* Chart Area */}
-                <div className="h-32 bg-muted/20 rounded-xl border border-border/50 p-4">
-                  <div className="h-full bg-gradient-to-t from-primary/10 to-transparent rounded-lg relative overflow-hidden">
-                    <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 rounded-t-lg"></div>
-                  </div>
-                </div>
-
-                {/* Table Preview */}
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <div className="h-3 bg-muted/40 rounded flex-1"></div>
-                    <div className="h-3 bg-muted/40 rounded w-16"></div>
-                    <div className="h-3 bg-muted/40 rounded w-12"></div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="h-3 bg-muted/30 rounded flex-1"></div>
-                    <div className="h-3 bg-muted/30 rounded w-16"></div>
-                    <div className="h-3 bg-muted/30 rounded w-12"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating Device Icons */}
-              <div className="absolute -top-4 -right-4 bg-primary/15 backdrop-blur-sm rounded-full p-3 border border-primary/30 shadow-lg">
-                <Monitor className="w-6 h-6 text-primary" />
-              </div>
-              <div className="absolute -bottom-2 -left-2 bg-secondary/15 backdrop-blur-sm rounded-full p-2 border border-secondary/30 shadow-lg">
-                <Smartphone className="w-4 h-4 text-secondary" />
-              </div>
-              <div className="absolute top-1/2 -right-6 bg-accent/15 backdrop-blur-sm rounded-full p-2 border border-accent/30 shadow-lg">
-                <Tablet className="w-4 h-4 text-accent" />
-              </div>
-
-              {/* Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 rounded-3xl pointer-events-none"></div>
-            </div>
-
-            {/* Floating Elements */}
-            <div className="absolute -top-8 -left-8 w-16 h-16 bg-primary/10 rounded-full blur-xl animate-pulse"></div>
-            <div className="absolute -bottom-8 -right-8 w-20 h-20 bg-secondary/10 rounded-full blur-xl animate-pulse delay-1000"></div>
-          </div>
+          {/* System Preview Column removido temporariamente */}
+          {/* Conteúdo de preview virá posteriormente quando houver imagem */}
         </div>
       </section>
 
