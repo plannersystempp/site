@@ -30,7 +30,7 @@ const LazyTeamManagementTab = lazy(() => import('@/components/admin/TeamManageme
 const LazyDeletionLogsTab = lazy(() => import('@/components/admin/DeletionLogsTab').then(m => ({ default: m.DeletionLogsTab })));
 const LazySubscriptionManagementTab = lazy(() => import('@/components/subscriptions/SubscriptionManagementTab').then(m => ({ default: m.SubscriptionManagementTab })));
 const LazyErrorReportsManagement = lazy(() => import('@/components/admin/ErrorReportsManagement').then(m => ({ default: m.ErrorReportsManagement })));
-const LazyAuditLog = lazy(() => import('@/components/admin/AuditLog').then(m => ({ default: m.AuditLog })));
+const LazyAuditLog = lazy(() => import('@/components/admin/AuditLogInfinite').then(m => ({ default: m.AuditLogInfinite })));
 import {
   DropdownMenu,
   DropdownMenuContent,

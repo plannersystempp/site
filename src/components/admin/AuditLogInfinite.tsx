@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, RefreshCw, Calendar, Loader2 } from 'lucide-react';
+import { FileText, RefreshCw, Calendar, Loader2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { EnhancedAuditLogCard } from './EnhancedAuditLogCard';
 
@@ -24,25 +24,37 @@ interface AuditLogInfiniteProps {
 const PAGE_SIZE = 100;
 
 const fetchAuditLogs = async ({ pageParam = 0, filters = {} }: { pageParam?: number; filters?: AuditLogFilters }) => {
-  const from = pageParam * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  console.info('[AuditLog] Buscando logs, página:', pageParam, 'filtros:', filters);
+  
+  try {
+    const from = pageParam * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
-  const { data, error } = await supabase
-    .rpc('get_audit_logs_for_superadmin_enriched', {
-      search_text: filters.searchText || null,
-      team_filter: filters.teamFilter || null,
-      action_filter: filters.actionFilter || null,
-      start_date: filters.startDate || null,
-      end_date: filters.endDate || null,
-    })
-    .range(from, to);
+    const { data, error } = await supabase
+      .rpc('get_audit_logs_for_superadmin_enriched', {
+        search_text: filters.searchText || null,
+        team_filter: filters.teamFilter || null,
+        action_filter: filters.actionFilter || null,
+        start_date: filters.startDate || null,
+        end_date: filters.endDate || null,
+      })
+      .range(from, to);
 
-  if (error) throw error;
+    if (error) {
+      console.error('[AuditLog] Erro ao buscar logs:', error);
+      throw error;
+    }
 
-  return {
-    data: data || [],
-    nextCursor: data && data.length === PAGE_SIZE ? pageParam + 1 : undefined,
-  };
+    console.info('[AuditLog] Logs carregados:', data?.length || 0);
+    
+    return {
+      data: data || [],
+      nextCursor: data && data.length === PAGE_SIZE ? pageParam + 1 : undefined,
+    };
+  } catch (error) {
+    console.error('[AuditLog] Erro na requisição:', error);
+    throw error;
+  }
 };
 
 export const AuditLogInfinite: React.FC<AuditLogInfiniteProps> = ({ filters = {} }) => {
@@ -90,13 +102,15 @@ export const AuditLogInfinite: React.FC<AuditLogInfiniteProps> = ({ filters = {}
 
   const allLogs = data?.pages.flatMap((page) => page.data) || [];
 
-  if (isError) {
-    toast({
-      title: 'Erro',
-      description: 'Falha ao carregar logs de auditoria',
-      variant: 'destructive',
-    });
-  }
+  useEffect(() => {
+    if (isError) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao carregar logs de auditoria',
+        variant: 'destructive',
+      });
+    }
+  }, [isError, toast]);
 
   return (
     <Card>
@@ -119,10 +133,31 @@ export const AuditLogInfinite: React.FC<AuditLogInfiniteProps> = ({ filters = {}
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span>Carregando logs...</span>
+          {isError ? (
+            <div className="py-12">
+              <div className="text-center space-y-4">
+                <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+                <div>
+                  <h3 className="text-lg font-semibold">Erro ao carregar logs de auditoria</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Verifique suas permissões ou tente novamente
+                  </p>
+                </div>
+                <Button onClick={() => refetch()} variant="outline" size="sm">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Tentar Novamente
+                </Button>
+              </div>
+            </div>
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <div className="text-center">
+                <p className="font-medium">Carregando logs de auditoria...</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Aguarde um momento
+                </p>
+              </div>
             </div>
           ) : allLogs.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -160,3 +195,5 @@ export const AuditLogInfinite: React.FC<AuditLogInfiniteProps> = ({ filters = {}
     </Card>
   );
 };
+
+export default AuditLogInfinite;
