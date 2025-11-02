@@ -32,12 +32,49 @@ export function useSuperAdminDashboard() {
     queryFn: async (): Promise<DashboardStats> => {
       const { data, error } = await supabase.rpc('get_superadmin_dashboard_stats');
       
-      if (error) throw error;
-      if (!data) throw new Error('Nenhum dado retornado');
+      if (error) {
+        console.error('[SuperAdmin] Erro ao buscar stats:', error);
+        throw new Error(`Falha ao buscar estatísticas: ${error.message}`);
+      }
       
-      return data as unknown as DashboardStats;
+      if (!data) {
+        console.warn('[SuperAdmin] Nenhum dado retornado');
+        throw new Error('Nenhum dado retornado pela função RPC');
+      }
+
+      // Validação e normalização dos dados
+      const rawData = data as any; // Type assertion para trabalhar com dados dinâmicos
+      const normalizedData: DashboardStats = {
+        user_growth: Array.isArray(rawData.user_growth) ? rawData.user_growth : [],
+        mrr_history: Array.isArray(rawData.mrr_history) ? rawData.mrr_history : [],
+        top_teams: Array.isArray(rawData.top_teams) ? rawData.top_teams : [],
+        stats: {
+          total_users: rawData.stats?.total_users ?? 0,
+          active_users: rawData.stats?.active_users ?? 0,
+          total_teams: rawData.stats?.total_teams ?? 0,
+          active_subscriptions: rawData.stats?.active_subscriptions ?? 0,
+          trial_subscriptions: rawData.stats?.trial_subscriptions ?? 0,
+          total_events: rawData.stats?.total_events ?? 0,
+          total_personnel: rawData.stats?.total_personnel ?? 0,
+          current_mrr: rawData.stats?.current_mrr ?? 0,
+          trial_conversion_rate: rawData.stats?.trial_conversion_rate ?? 0,
+          expiring_trials_7d: rawData.stats?.expiring_trials_7d ?? 0,
+          orphan_users: rawData.stats?.orphan_users ?? 0,
+          unassigned_errors: rawData.stats?.unassigned_errors ?? 0,
+        }
+      };
+
+      console.info('[SuperAdmin] Stats carregadas:', {
+        users: normalizedData.stats.total_users,
+        teams: normalizedData.stats.total_teams,
+        events: normalizedData.stats.total_events
+      });
+
+      return normalizedData;
     },
-    refetchInterval: 30000, // Refetch a cada 30 segundos
-    staleTime: 30000, // Cache de 30 segundos
+    refetchInterval: 30000,
+    staleTime: 30000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -9,6 +10,8 @@ import {
   Trash2 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 
 interface MobileBottomNavProps {
   activeTab: string;
@@ -16,6 +19,8 @@ interface MobileBottomNavProps {
 }
 
 export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps) {
+  const [moreSheetOpen, setMoreSheetOpen] = useState(false);
+  
   const tabs = [
     { value: 'dashboard', label: 'Home', icon: LayoutDashboard },
     { value: 'users', label: 'Usuários', icon: Users },
@@ -25,13 +30,17 @@ export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps
 
   const moreTabs = [
     { value: 'audit', label: 'Auditoria', icon: FileText },
-    { value: 'errors', label: 'Erros', icon: Bug },
+    { value: 'error-reports', label: 'Erros', icon: Bug },
     { value: 'orphans', label: 'Órfãos', icon: UserX },
-    { value: 'deletions', label: 'Deleções', icon: Trash2 },
+    { value: 'deletion-logs', label: 'Deleções', icon: Trash2 },
   ];
 
-  const allTabs = [...tabs, ...moreTabs];
   const isMoreActive = moreTabs.some(tab => tab.value === activeTab);
+  
+  const handleMoreTabSelect = (tabValue: string) => {
+    onTabChange(tabValue);
+    setMoreSheetOpen(false);
+  };
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 safe-area-inset-bottom">
@@ -60,29 +69,51 @@ export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps
           );
         })}
         
-        <button
-          onClick={() => {
-            if (isMoreActive) return;
-            onTabChange(moreTabs[0].value);
-          }}
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 transition-colors",
-            isMoreActive 
-              ? "text-primary" 
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <div className="grid grid-cols-2 gap-px w-5 h-5">
-            <div className="w-2 h-2 bg-current rounded-sm" />
-            <div className="w-2 h-2 bg-current rounded-sm" />
-            <div className="w-2 h-2 bg-current rounded-sm" />
-            <div className="w-2 h-2 bg-current rounded-sm" />
-          </div>
-          <span className="text-xs font-medium">Mais</span>
-          {isMoreActive && (
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-t-full" />
-          )}
-        </button>
+        <Sheet open={moreSheetOpen} onOpenChange={setMoreSheetOpen}>
+          <SheetTrigger asChild>
+            <button
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 transition-colors",
+                isMoreActive 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <div className="grid grid-cols-2 gap-px w-5 h-5">
+                <div className="w-2 h-2 bg-current rounded-sm" />
+                <div className="w-2 h-2 bg-current rounded-sm" />
+                <div className="w-2 h-2 bg-current rounded-sm" />
+                <div className="w-2 h-2 bg-current rounded-sm" />
+              </div>
+              <span className="text-xs font-medium">Mais</span>
+              {isMoreActive && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-t-full" />
+              )}
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-auto">
+            <SheetHeader>
+              <SheetTitle>Mais Opções</SheetTitle>
+            </SheetHeader>
+            <div className="grid grid-cols-2 gap-3 mt-6 pb-4">
+              {moreTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.value;
+                return (
+                  <Button
+                    key={tab.value}
+                    onClick={() => handleMoreTabSelect(tab.value)}
+                    variant={isActive ? "default" : "outline"}
+                    className="h-auto flex flex-col items-center gap-3 p-4"
+                  >
+                    <Icon className="h-6 w-6" />
+                    <span className="text-sm font-medium">{tab.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </nav>
   );

@@ -84,6 +84,9 @@ export default function SuperAdmin() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   
   // Management dialog state
   const [managementDialog, setManagementDialog] = useState<{
@@ -291,9 +294,16 @@ export default function SuperAdmin() {
   };
 
   useEffect(() => {
+    console.info('[SuperAdmin] Componente montado');
     fetchUsers();
     fetchTeams();
   }, []);
+
+  useEffect(() => {
+    console.info('[SuperAdmin] Aba ativa:', activeTab);
+    console.info('[SuperAdmin] Total de usuários:', users.length);
+    console.info('[SuperAdmin] Total de equipes:', teams.length);
+  }, [activeTab, users.length, teams.length]);
 
   useEffect(() => {
     fetchAuditLogs();
@@ -301,10 +311,6 @@ export default function SuperAdmin() {
 
   const stats = getUserStats();
   const filteredUsers = getFilteredUsers();
-
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
 
   // Atalho de teclado Cmd+K / Ctrl+K para busca global
   useEffect(() => {

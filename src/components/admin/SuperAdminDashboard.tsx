@@ -1,15 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { useSuperAdminDashboard } from '@/hooks/useSuperAdminDashboard';
 import { UserGrowthChart } from './charts/UserGrowthChart';
 import { MRRChart } from './charts/MRRChart';
 import { ConversionFunnelChart } from './charts/ConversionFunnelChart';
 import { ActivityHeatmap } from './charts/ActivityHeatmap';
 import { AlertCards } from './AlertCards';
-import { Users, Building2, Calendar, DollarSign, TrendingUp, UserCheck } from 'lucide-react';
+import { Users, Building2, Calendar, DollarSign, TrendingUp, UserCheck, AlertTriangle, RefreshCw, Database } from 'lucide-react';
 
 export function SuperAdminDashboard() {
-  const { data: dashboardData, isLoading } = useSuperAdminDashboard();
+  const { data: dashboardData, isLoading, error, refetch } = useSuperAdminDashboard();
 
   if (isLoading) {
     return (
@@ -30,8 +31,34 @@ export function SuperAdminDashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <Card className="p-12">
+        <div className="text-center space-y-4">
+          <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+          <div>
+            <h3 className="text-lg font-semibold">Erro ao carregar dashboard</h3>
+            <p className="text-sm text-muted-foreground mt-2">
+              {error instanceof Error ? error.message : 'Erro desconhecido'}
+            </p>
+          </div>
+          <Button onClick={() => refetch()} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Tentar Novamente
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
   if (!dashboardData) {
-    return <div>Erro ao carregar dados do dashboard</div>;
+    return (
+      <Card className="p-12">
+        <div className="text-center text-muted-foreground">
+          Nenhum dado disponível
+        </div>
+      </Card>
+    );
   }
 
   const { stats, user_growth, mrr_history, top_teams } = dashboardData;
@@ -118,8 +145,11 @@ export function SuperAdminDashboard() {
             {user_growth && user_growth.length > 0 ? (
               <UserGrowthChart data={user_growth} />
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                Sem dados disponíveis
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Database className="h-12 w-12 mx-auto opacity-20" />
+                  <p className="text-sm text-muted-foreground">Sem dados disponíveis</p>
+                </div>
               </div>
             )}
           </CardContent>
@@ -137,8 +167,11 @@ export function SuperAdminDashboard() {
             {mrr_history && mrr_history.length > 0 ? (
               <MRRChart data={mrr_history} />
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                Sem dados disponíveis
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <DollarSign className="h-12 w-12 mx-auto opacity-20" />
+                  <p className="text-sm text-muted-foreground">Sem dados disponíveis</p>
+                </div>
               </div>
             )}
           </CardContent>
@@ -172,8 +205,11 @@ export function SuperAdminDashboard() {
             {top_teams && top_teams.length > 0 ? (
               <ActivityHeatmap topTeams={top_teams} />
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                Sem dados disponíveis
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Building2 className="h-12 w-12 mx-auto opacity-20" />
+                  <p className="text-sm text-muted-foreground">Sem dados disponíveis</p>
+                </div>
               </div>
             )}
           </CardContent>

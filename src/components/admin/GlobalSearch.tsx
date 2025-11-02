@@ -93,7 +93,7 @@ export function GlobalSearch({ open, onOpenChange, onNavigate }: GlobalSearchPro
     const tabMap = {
       user: 'users',
       team: 'teams',
-      error: 'errors',
+      error: 'error-reports',
     };
     onNavigate(tabMap[result.type], result.id);
     onOpenChange(false);
