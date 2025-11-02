@@ -29,6 +29,7 @@ const LazyOrphanUsersTab = lazy(() => import('@/components/admin/OrphanUsersTab'
 const LazyTeamManagementTab = lazy(() => import('@/components/admin/TeamManagementTab').then(m => ({ default: m.TeamManagementTab })));
 const LazyDeletionLogsTab = lazy(() => import('@/components/admin/DeletionLogsTab').then(m => ({ default: m.DeletionLogsTab })));
 const LazySubscriptionManagementTab = lazy(() => import('@/components/subscriptions/SubscriptionManagementTab').then(m => ({ default: m.SubscriptionManagementTab })));
+const LazyPlansManagement = lazy(() => import('@/components/subscriptions/PlansManagement').then(m => ({ default: m.PlansManagement })));
 const LazyErrorReportsManagement = lazy(() => import('@/components/admin/ErrorReportsManagement').then(m => ({ default: m.ErrorReportsManagement })));
 const LazyAuditLog = lazy(() => import('@/components/admin/AuditLogInfinite').then(m => ({ default: m.AuditLogInfinite })));
 import {
@@ -404,6 +405,16 @@ export default function SuperAdmin() {
                 <UserPlus className="mr-3 h-5 w-5" /> Assinaturas
               </Button>
               <Button 
+                variant={activeTab === 'plans' ? 'default' : 'ghost'}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('plans');
+                  setSheetOpen(false);
+                }}
+              >
+                <Shield className="mr-3 h-5 w-5" /> Planos
+              </Button>
+              <Button 
                 variant={activeTab === 'orphans' ? 'default' : 'ghost'}
                 className="justify-start h-12 text-base"
                 onClick={() => {
@@ -456,6 +467,7 @@ export default function SuperAdmin() {
           {activeTab === 'users' && 'Usuários'}
           {activeTab === 'teams' && 'Equipes'}
           {activeTab === 'subscriptions' && 'Assinaturas'}
+          {activeTab === 'plans' && 'Planos'}
           {activeTab === 'orphans' && 'Órfãos'}
           {activeTab === 'deletion-logs' && 'Exclusões'}
           {activeTab === 'audit' && 'Auditoria'}
@@ -484,11 +496,12 @@ export default function SuperAdmin() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
-        <TabsList className="hidden md:grid w-full md:grid-cols-8">
+        <TabsList className="hidden md:grid w-full md:grid-cols-9">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
           <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
+          <TabsTrigger value="plans">Planos</TabsTrigger>
           <TabsTrigger value="orphans">Órfãos</TabsTrigger>
           <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
@@ -768,6 +781,12 @@ export default function SuperAdmin() {
         <TabsContent value="subscriptions" className="space-y-6">
           <Suspense fallback={<LoadingSpinner />}>
             <LazySubscriptionManagementTab />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="plans" className="space-y-6">
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyPlansManagement />
           </Suspense>
         </TabsContent>
 
