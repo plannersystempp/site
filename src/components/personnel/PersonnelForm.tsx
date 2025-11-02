@@ -24,6 +24,7 @@ interface PersonnelFormData {
   name: string;
   email: string;
   phone: string;
+  phone_secondary: string;
   type: 'fixo' | 'freelancer';
   functionIds: string[];
   primaryFunctionId: string;
@@ -58,6 +59,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     name: '',
     email: '',
     phone: '',
+    phone_secondary: '',
     type: 'freelancer',
     functionIds: [],
     primaryFunctionId: '',
@@ -88,6 +90,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         name: personnel.name,
         email: personnel.email || '',
         phone: personnel.phone || '',
+        phone_secondary: personnel.phone_secondary || '',
         type: personnel.type as 'fixo' | 'freelancer',
         functionIds: personnel.functions?.map(f => f.id) || [],
         primaryFunctionId: personnel.primaryFunctionId || (personnel.functions?.[0]?.id || ''),

@@ -16,6 +16,7 @@ export interface CreatePersonnelData {
   name: string;
   email: string;
   phone: string;
+  phone_secondary?: string;
   type: 'fixo' | 'freelancer';
   monthly_salary: number;
   event_cache: number;
@@ -66,6 +67,7 @@ export interface UpdatePersonnelData {
   name?: string;
   email?: string;
   phone?: string;
+  phone_secondary?: string;
   type?: 'fixo' | 'freelancer';
   monthly_salary?: number;
   event_cache?: number;
