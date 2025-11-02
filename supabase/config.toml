@@ -2,7 +2,6 @@ project_id = "atogozlqfwxztjyycjoy"
 
 [functions.send-push-notification]
 verify_jwt = true
-# Mantemos verify_jwt para requisições reais; preflight OPTIONS não exige JWT
 
 [functions.create-checkout-session]
 verify_jwt = true
@@ -12,3 +11,9 @@ verify_jwt = true
 
 [functions.change-subscription-plan]
 verify_jwt = true
+
+[functions.stripe-payment-info]
+verify_jwt = true
+
+[functions.stripe-webhooks]
+verify_jwt = false

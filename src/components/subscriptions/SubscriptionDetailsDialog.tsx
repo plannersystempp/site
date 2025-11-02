@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlanChangeTimeline } from './PlanChangeTimeline';
+import { StripePaymentInfo } from './StripePaymentInfo';
 
 interface SubscriptionDetailsDialogProps {
   open: boolean;
@@ -83,9 +84,10 @@ export function SubscriptionDetailsDialog({
           </div>
         ) : subscription ? (
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="w-full">
-              <TabsTrigger value="details" className="flex-1">Detalhes</TabsTrigger>
-              <TabsTrigger value="history" className="flex-1">Histórico</TabsTrigger>
+            <TabsList className="w-full grid grid-cols-3">
+              <TabsTrigger value="details">Detalhes</TabsTrigger>
+              <TabsTrigger value="payment">Pagamento</TabsTrigger>
+              <TabsTrigger value="history">Histórico</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details" className="space-y-6">
@@ -143,6 +145,10 @@ export function SubscriptionDetailsDialog({
                   </p>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="payment">
+              <StripePaymentInfo subscriptionId={subscription.id} />
             </TabsContent>
 
             <TabsContent value="history">
