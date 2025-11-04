@@ -209,12 +209,35 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('❌ Erro ao criar checkout session:', error);
+
+    // Mapear erros comuns do Stripe para respostas mais claras
+    const stripeError: any = error;
+    let status = 500;
+    let body: Record<string, unknown> = { error: 'Erro desconhecido' };
+
+    // price_id inexistente ou inválido
+    if (stripeError?.raw?.code === 'resource_missing' && stripeError?.raw?.param === 'line_items[0][price]') {
+      status = 400;
+      body = {
+        error: 'Preço do Stripe inválido',
+        details: 'O stripe_price_id configurado para este plano não existe no Stripe. Atualize o campo stripe_price_id no plano para um Price válido do mesmo ambiente (test/live) do STRIPE_SECRET_KEY.',
+        stripe_message: stripeError?.raw?.message,
+        stripe_request_id: stripeError?.raw?.requestId || stripeError?.raw?.request_id,
+      };
+    } else if (stripeError?.statusCode === 400) {
+      status = 400;
+      body = {
+        error: 'Requisição inválida ao Stripe',
+        details: stripeError?.raw?.message || 'Verifique os dados enviados para o Stripe',
+      };
+    } else if (error instanceof Error) {
+      body = { error: error.message };
+    }
+
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Erro desconhecido' 
-      }),
+      JSON.stringify(body),
       {
-        status: 500,
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );

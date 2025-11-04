@@ -29,7 +29,11 @@ export function useStripeCheckout() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        const ctx: any = (error as any)?.context?.body;
+        const serverMsg = ctx?.error || ctx?.details || ctx?.message;
+        throw new Error(serverMsg || error.message || 'Falha ao iniciar o checkout');
+      }
       if (!data?.url) throw new Error('URL do checkout não retornada');
 
       return data;
