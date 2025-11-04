@@ -1,6 +1,10 @@
 export const formatDateBR = (dateStr: string): string => {
   if (!dateStr) return '';
-  const date = new Date(dateStr + 'T12:00:00');
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    console.error('Data inválida em formatDateBR:', dateStr);
+    return '';
+  }
   return date.toLocaleDateString('pt-BR');
 };
 
@@ -27,7 +31,11 @@ export const generateDateArray = (startDate: string, endDate: string): string[] 
 
 export const formatDateWithWeekday = (dateStr: string): string => {
   if (!dateStr) return '';
-  const date = new Date(dateStr + 'T12:00:00');
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    console.error('Data inválida em formatDateWithWeekday:', dateStr);
+    return '';
+  }
   return date.toLocaleDateString('pt-BR', {
     weekday: 'short',
     day: '2-digit',
@@ -37,7 +45,11 @@ export const formatDateWithWeekday = (dateStr: string): string => {
 
 export const formatDateLong = (dateStr: string): string => {
   if (!dateStr) return '';
-  const date = new Date(dateStr + 'T12:00:00');
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    console.error('Data inválida em formatDateLong:', dateStr);
+    return '';
+  }
   return date.toLocaleDateString('pt-BR', {
     weekday: 'long',
     year: 'numeric',
@@ -48,7 +60,11 @@ export const formatDateLong = (dateStr: string): string => {
 
 export const formatDateShort = (dateStr: string): string => {
   if (!dateStr) return '';
-  const date = new Date(dateStr + 'T12:00:00');
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    console.error('Data inválida em formatDateShort:', dateStr);
+    return '';
+  }
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
