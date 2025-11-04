@@ -1,5 +1,5 @@
 // Helper: parse date strings from Supabase and various formats safely
-const parseDateSafe = (input: string): Date => {
+export const parseDateSafe = (input: string): Date => {
   if (!input) return new Date(NaN);
   const s = String(input).trim();
 

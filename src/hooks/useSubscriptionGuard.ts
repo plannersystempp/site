@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { parseDateSafe } from '@/utils/dateUtils';
 
 interface SubscriptionStatus {
   isActive: boolean;
@@ -63,13 +64,21 @@ export function useSubscriptionGuard(teamId: string | undefined) {
       let isActuallyActive = isActive;
       
       if (expiresAt) {
-        const expirationDate = new Date(expiresAt);
-        const now = new Date();
-        daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        // Usar parseDateSafe para garantir parsing correto do formato PostgreSQL
+        const expirationDate = parseDateSafe(expiresAt);
         
-        // Se o trial/assinatura expirou (dias negativos), marcar como inativo
-        if (daysUntilExpiration <= 0) {
+        // Validar se a data é válida
+        if (isNaN(expirationDate.getTime())) {
+          console.error('Data de expiração inválida:', expiresAt);
           isActuallyActive = false;
+        } else {
+          const now = new Date();
+          daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          
+          // Se o trial/assinatura expirou (dias negativos), marcar como inativo
+          if (daysUntilExpiration <= 0) {
+            isActuallyActive = false;
+          }
         }
       }
       
