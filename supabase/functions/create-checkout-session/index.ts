@@ -135,10 +135,8 @@ serve(async (req) => {
 
     console.log(`📧 Customer: ${customerId} | Email: ${customerEmail}`);
 
-    // URL base para redirecionamento
-    const baseUrl = supabaseUrl.includes('localhost') 
-      ? 'http://localhost:8080' 
-      : supabaseUrl.replace('.supabase.co', '.lovable.app');
+    // URL base para redirecionamento (apenas usado como fallback)
+    const defaultBaseUrl = 'https://atogozlqfwxztjyycjoy-2d7f5ed1.lovable.app';
 
     // Criar Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -151,8 +149,8 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: successUrl || `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${planId}&team=${teamId}`,
-      cancel_url: cancelUrl || `${baseUrl}/plans?payment=canceled`,
+      success_url: successUrl || `${defaultBaseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${planId}&team=${teamId}`,
+      cancel_url: cancelUrl || `${defaultBaseUrl}/plans?payment=canceled`,
       metadata: {
         team_id: teamId,
         plan_id: planId,

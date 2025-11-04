@@ -17,7 +17,7 @@ export function useStripeCheckout() {
       }
 
       const origin = window.location.origin;
-      const successUrl = `${origin}/payment-success?plan=${planId}&team=${teamId}`;
+      const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${planId}&team=${teamId}`;
       const cancelUrl = `${origin}/plans?payment=canceled`;
 
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
