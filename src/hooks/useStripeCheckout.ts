@@ -30,9 +30,28 @@ export function useStripeCheckout() {
       });
 
       if (error) {
+        try {
+          const res = (error as any)?.context?.response as Response | undefined;
+          if (res) {
+            const cloned = res.clone();
+            let body: any = undefined;
+            try {
+              body = await cloned.json();
+            } catch {
+              try {
+                const text = await cloned.text();
+                body = JSON.parse(text);
+              } catch {
+                // ignore
+              }
+            }
+            const serverMsg = body?.error || body?.details || body?.message;
+            throw new Error(serverMsg || (error as any)?.message || 'Falha ao iniciar o checkout');
+          }
+        } catch {}
         const ctx: any = (error as any)?.context?.body;
         const serverMsg = ctx?.error || ctx?.details || ctx?.message;
-        throw new Error(serverMsg || error.message || 'Falha ao iniciar o checkout');
+        throw new Error(serverMsg || (error as any)?.message || 'Falha ao iniciar o checkout');
       }
       if (!data?.url) throw new Error('URL do checkout não retornada');
 
