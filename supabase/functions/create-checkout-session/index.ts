@@ -52,8 +52,11 @@ serve(async (req) => {
     // Parse do corpo da requisição
     const { planId, teamId, successUrl, cancelUrl }: CheckoutRequest = await req.json();
 
+    console.log(`📥 Request recebido: planId=${planId}, teamId=${teamId}`);
+
     // Validações
     if (!planId || !teamId) {
+      console.error('❌ Erro: planId ou teamId ausente');
       return new Response(
         JSON.stringify({ error: 'planId e teamId são obrigatórios' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -68,13 +71,20 @@ serve(async (req) => {
       .single();
 
     if (planError || !plan) {
+      console.error('❌ Plano não encontrado:', planError);
       throw new Error('Plano não encontrado');
     }
 
+    console.log(`📋 Plano encontrado: ${plan.display_name} (stripe_price_id: ${plan.stripe_price_id || 'NULL'})`);
+
     // Validar se plano tem stripe_price_id
     if (!plan.stripe_price_id) {
+      console.error(`❌ Plano "${plan.display_name}" não tem stripe_price_id configurado`);
       return new Response(
-        JSON.stringify({ error: 'Este plano ainda não está disponível para pagamento' }),
+        JSON.stringify({ 
+          error: 'Este plano ainda não está disponível para pagamento',
+          details: `O plano "${plan.display_name}" precisa ter um stripe_price_id configurado no banco de dados`
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
