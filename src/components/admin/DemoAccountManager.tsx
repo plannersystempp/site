@@ -56,7 +56,7 @@ export const DemoAccountManager = () => {
             <div className="p-3 bg-muted rounded-lg">
               <h4 className="text-sm font-medium mb-2">🔐 Credenciais de Acesso:</h4>
               <p className="text-sm font-mono">euquero@plannersystem.com.br</p>
-              <p className="text-sm font-mono">Senha: Euquero</p>
+              <p className="text-sm font-mono">Senha: EuQuero@2025</p>
             </div>
             
             <div>
