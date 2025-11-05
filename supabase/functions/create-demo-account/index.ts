@@ -32,27 +32,52 @@ Deno.serve(async (req) => {
     );
 
     // Verificar se é superadmin
+    console.log('🔐 Verificando autorização...');
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('❌ Missing authorization header');
       throw new Error('Missing authorization header');
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
-    if (userError || !user) {
-      throw new Error('Unauthorized');
+    if (userError) {
+      console.error('❌ Error getting user:', userError.message);
+      throw new Error('Unauthorized: ' + userError.message);
+    }
+    
+    if (!user) {
+      console.error('❌ No user found from token');
+      throw new Error('Unauthorized: No user found');
     }
 
-    const { data: profile } = await supabaseAdmin
+    console.log(`✅ User found: ${user.email} (${user.id})`);
+
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('user_profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (profile?.role !== 'superadmin') {
+    if (profileError) {
+      console.error('❌ Error fetching profile:', profileError.message);
+      throw new Error('Error fetching user profile: ' + profileError.message);
+    }
+
+    if (!profile) {
+      console.error('❌ No profile found for user:', user.id);
+      throw new Error('User profile not found');
+    }
+
+    console.log(`👤 User role: ${profile.role}`);
+
+    if (profile.role !== 'superadmin') {
+      console.error('❌ User is not superadmin. Role:', profile.role);
       throw new Error('Only superadmins can create demo accounts');
     }
+
+    console.log('✅ Superadmin verified!');
 
     console.log('🚀 Iniciando criação de conta demo...');
 
