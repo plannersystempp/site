@@ -102,14 +102,7 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Deletar usuário pelo email
-    const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
-    const demoUser = existingUser.users.find(u => u.email === DEMO_EMAIL);
-    
-    if (demoUser) {
-      await supabaseAdmin.auth.admin.deleteUser(demoUser.id);
-    }
-
+    // Não deletamos o usuário demo; reutilizaremos se já existir
     // 2. Criar usuário demo
     console.log('👤 Criando usuário demo...');
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
@@ -122,20 +115,44 @@ Deno.serve(async (req) => {
       }
     });
 
-    if (createUserError || !newUser.user) {
-      throw new Error(`Failed to create demo user: ${createUserError?.message}`);
+    let demoUserId: string | null = null;
+
+    if (createUserError || !newUser?.user) {
+      const msg = createUserError?.message?.toLowerCase() || '';
+      if (msg.includes('already') || msg.includes('registered')) {
+        console.log('ℹ️ Usuário demo já existe, reutilizando e atualizando senha...');
+        // Procurar usuário existente por páginas
+        let foundUserId: string | null = null;
+        for (let page = 1; page <= 10; page++) {
+          const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+          const found = list?.users?.find((u: any) => u.email === DEMO_EMAIL);
+          if (found) { foundUserId = found.id; break; }
+          if (!list || list.users.length < 200) break;
+        }
+        if (!foundUserId) {
+          throw new Error('Demo user exists but could not be retrieved');
+        }
+        // Atualiza senha e metadados para garantir acesso
+        await supabaseAdmin.auth.admin.updateUserById(foundUserId, {
+          password: DEMO_PASSWORD,
+          user_metadata: { name: 'Conta Demonstração', demo_account: true }
+        });
+        demoUserId = foundUserId;
+      } else {
+        throw new Error(`Failed to create demo user: ${createUserError?.message}`);
+      }
+    } else {
+      demoUserId = newUser.user.id;
     }
 
-    const demoUserId = newUser.user.id;
-
-    // 3. Criar perfil do usuário
-    await supabaseAdmin.from('user_profiles').insert({
-      user_id: demoUserId,
+    // 3. Garantir perfil do usuário (upsert)
+    await supabaseAdmin.from('user_profiles').upsert({
+      user_id: demoUserId!,
       email: DEMO_EMAIL,
       name: 'Conta Demonstração',
       role: 'admin',
       is_approved: true
-    });
+    }, { onConflict: 'user_id' });
 
     // 4. Buscar ou criar equipe demo (idempotente por CNPJ)
     console.log('🏢 Criando equipe demo...');
