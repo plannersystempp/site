@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
     console.log('🚀 Iniciando criação de conta demo...');
 
     // Constantes da conta demo
-    const DEMO_EMAIL = 'demo@sige.com.br';
-    const DEMO_PASSWORD = 'Demo2024!';
+    const DEMO_EMAIL = 'euquero@plannersystem.com.br';
+    const DEMO_PASSWORD = 'Euquero';
     const DEMO_TEAM_NAME = 'DEMO - Sistema Completo SIGE';
 
     // 1. Deletar conta demo anterior se existir

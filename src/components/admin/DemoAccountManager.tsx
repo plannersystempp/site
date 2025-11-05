@@ -52,17 +52,25 @@ export const DemoAccountManager = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Esta conta demo incluirá:</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• 30 profissionais cadastrados (fixos e freelancers)</li>
-              <li>• 25 eventos variados (passados, em andamento e futuros)</li>
-              <li>• 250+ alocações de pessoal</li>
-              <li>• 15 fornecedores com itens catalogados</li>
-              <li>• 100+ custos de eventos</li>
-              <li>• Pagamentos avulsos, avaliações e ausências</li>
-              <li>• Assinatura Enterprise válida até 2099</li>
-            </ul>
+          <div className="space-y-3">
+            <div className="p-3 bg-muted rounded-lg">
+              <h4 className="text-sm font-medium mb-2">🔐 Credenciais de Acesso:</h4>
+              <p className="text-sm font-mono">euquero@plannersystem.com.br</p>
+              <p className="text-sm font-mono">Senha: Euquero</p>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-2">Esta conta demo incluirá:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• 30 profissionais cadastrados (fixos e freelancers)</li>
+                <li>• 25 eventos variados (passados, em andamento e futuros)</li>
+                <li>• 250+ alocações de pessoal</li>
+                <li>• 15 fornecedores com itens catalogados</li>
+                <li>• 100+ custos de eventos</li>
+                <li>• Pagamentos avulsos, avaliações e ausências</li>
+                <li>• Assinatura Enterprise válida até 2099</li>
+              </ul>
+            </div>
           </div>
 
           <Button 
