@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTeam } from '@/contexts/TeamContext';
 import { usePersonnelQuery } from '@/hooks/queries/usePersonnelQuery';
 import { personnelPaymentsService } from '@/services/personnelPaymentsService';
+import { personnelPaymentsKeys } from '@/hooks/queries/usePersonnelPaymentsQuery';
 import { toast } from '@/hooks/use-toast';
 import type { PersonnelPayment } from '@/contexts/data/types';
 import type { CreatePersonnelPaymentData } from '@/contexts/data/formTypes';
@@ -75,7 +76,7 @@ export const PersonnelPaymentFormDialog = ({ open, onOpenChange, payment }: Pers
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: ['personnel-payments'] });
+      queryClient.invalidateQueries({ queryKey: personnelPaymentsKeys.all });
       onOpenChange(false);
       form.reset();
     } catch (error) {

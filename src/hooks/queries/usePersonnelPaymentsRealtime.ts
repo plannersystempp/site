@@ -21,13 +21,13 @@ export const usePersonnelPaymentsRealtime = () => {
           table: 'personnel_payments',
           filter: `team_id=eq.${activeTeam.id}`,
         },
-        () => {
-          // Invalidar todas as queries relacionadas
+        (payload) => {
+          console.log('🔄 [Personnel Payments Realtime]', payload.eventType, payload.new);
+          
+          // Invalidar E refazer as queries imediatamente
           queryClient.invalidateQueries({ 
-            queryKey: personnelPaymentsKeys.byTeam(activeTeam.id) 
-          });
-          queryClient.invalidateQueries({ 
-            queryKey: personnelPaymentsKeys.stats(activeTeam.id) 
+            queryKey: personnelPaymentsKeys.all,
+            refetchType: 'active' // Refetch queries ativas imediatamente
           });
         }
       )

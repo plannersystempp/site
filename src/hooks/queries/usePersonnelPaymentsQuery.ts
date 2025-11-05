@@ -63,7 +63,8 @@ export const usePersonnelPaymentsQuery = (filters?: UsePersonnelPaymentsFilters)
       return data as (PersonnelPayment & { personnel: any })[];
     },
     enabled: !!activeTeam?.id,
-    staleTime: 30000,
+    staleTime: 0, // Sempre buscar dados frescos
+    refetchOnMount: true, // Refetch ao montar componente
   });
 };
 
@@ -110,6 +111,7 @@ export const usePersonnelPaymentStatsQuery = () => {
       return stats;
     },
     enabled: !!activeTeam?.id,
-    staleTime: 60000,
+    staleTime: 0, // Stats sempre atualizadas
+    refetchOnMount: true,
   });
 };
