@@ -137,33 +137,62 @@ Deno.serve(async (req) => {
       is_approved: true
     });
 
-    // 4. Criar equipe demo
+    // 4. Buscar ou criar equipe demo (idempotente por CNPJ)
     console.log('🏢 Criando equipe demo...');
-    const { data: team, error: teamError } = await supabaseAdmin
+    const { data: existingTeam, error: existingTeamError } = await supabaseAdmin
       .from('teams')
-      .insert({
-        name: DEMO_TEAM_NAME,
-        cnpj: DEMO_CNPJ,
-        owner_id: demoUserId,
-        invite_code: 'DEMO2024',
-        is_system: true
-      })
-      .select()
-      .single();
+      .select('id, name, invite_code, owner_id')
+      .eq('cnpj', DEMO_CNPJ)
+      .maybeSingle();
 
-    if (teamError || !team) {
-      throw new Error(`Failed to create team: ${teamError?.message}`);
+    if (existingTeamError) {
+      console.error('❌ Erro ao buscar equipe existente:', existingTeamError.message);
     }
 
-    const teamId = team.id;
+    let teamRow: any = null;
 
-    // 5. Adicionar usuário como admin da equipe
-    await supabaseAdmin.from('team_members').insert({
+    if (existingTeam) {
+      console.log('ℹ️ Equipe demo já existe. Reutilizando e atualizando metadados...');
+      const { data: updatedTeam, error: updateTeamError } = await supabaseAdmin
+        .from('teams')
+        .update({ name: DEMO_TEAM_NAME, owner_id: demoUserId, is_system: true })
+        .eq('id', existingTeam.id)
+        .select()
+        .single();
+
+      if (updateTeamError || !updatedTeam) {
+        throw new Error(`Failed to update existing team: ${updateTeamError?.message}`);
+      }
+      teamRow = updatedTeam;
+    } else {
+      const invite = `DEMO${Math.floor(Math.random() * 100000)}`;
+      const { data: newTeam, error: teamError } = await supabaseAdmin
+        .from('teams')
+        .insert({
+          name: DEMO_TEAM_NAME,
+          cnpj: DEMO_CNPJ,
+          owner_id: demoUserId,
+          invite_code: invite,
+          is_system: true
+        })
+        .select()
+        .single();
+
+      if (teamError || !newTeam) {
+        throw new Error(`Failed to create team: ${teamError?.message}`);
+      }
+      teamRow = newTeam;
+    }
+
+    const teamId = teamRow.id;
+
+    // 5. Adicionar usuário como admin da equipe (idempotente)
+    await supabaseAdmin.from('team_members').upsert({
       team_id: teamId,
       user_id: demoUserId,
       role: 'admin',
       status: 'approved'
-    });
+    }, { onConflict: 'team_id,user_id' });
 
     // 6. Criar assinatura Enterprise permanente
     console.log('💎 Criando assinatura Enterprise...');
