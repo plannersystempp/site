@@ -14,7 +14,8 @@ import {
   Briefcase,
   Bug,
   ShieldCheck,
-  Package
+  Package,
+  CalendarClock
 } from 'lucide-react';
 import {
   Sidebar,
@@ -56,6 +57,7 @@ const menuItems = [
 const financialItems = [
   { title: 'Custos', url: '/app/custos', icon: DollarSign },
   { title: 'Folha de Pagamento', url: '/app/folha', icon: Calculator },
+  { title: 'Pagamentos Avulsos', url: '/app/pagamentos-avulsos', icon: CalendarClock },
 ];
 
 const adminItems = [

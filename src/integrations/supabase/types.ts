@@ -1252,6 +1252,75 @@ export type Database = {
           },
         ]
       }
+      personnel_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          created_by_id: string | null
+          description: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          paid_by_id: string | null
+          payment_due_date: string
+          payment_method: string | null
+          payment_status: string
+          personnel_id: string
+          related_events: string[] | null
+          team_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          created_by_id?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          paid_by_id?: string | null
+          payment_due_date: string
+          payment_method?: string | null
+          payment_status?: string
+          personnel_id: string
+          related_events?: string[] | null
+          team_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          created_by_id?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          paid_by_id?: string | null
+          payment_due_date?: string
+          payment_method?: string | null
+          payment_status?: string
+          personnel_id?: string
+          related_events?: string[] | null
+          team_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personnel_payments_personnel_id_fkey"
+            columns: ["personnel_id"]
+            isOneToOne: false
+            referencedRelation: "personnel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personnel_payments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           billing_cycle: string

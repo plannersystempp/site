@@ -96,3 +96,24 @@ export interface UpdateDivisionData {
   name?: string;
   description?: string;
 }
+
+// Personnel Payments Form Types
+export interface CreatePersonnelPaymentData {
+  team_id: string;
+  personnel_id: string;
+  amount: number;
+  payment_due_date: string;
+  related_events?: string[];
+  description: string;
+  notes?: string;
+}
+
+export interface UpdatePersonnelPaymentData {
+  amount?: number;
+  payment_due_date?: string;
+  payment_status?: 'pending' | 'paid' | 'cancelled';
+  related_events?: string[];
+  description?: string;
+  notes?: string;
+  payment_method?: string;
+}

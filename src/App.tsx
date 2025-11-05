@@ -23,6 +23,7 @@ import { EstimatedCosts } from './components/costs/EstimatedCosts';
 import { PayrollManager } from './components/payroll/PayrollManager';
 import { PayrollEventView } from './components/payroll/PayrollEventView';
 import { PayrollReportPage } from './pages/PayrollReportPage';
+import PersonnelPaymentsPage from './pages/PersonnelPayments';
 import { Settings } from './components/admin/Settings';
 import { SettingsPage } from './components/SettingsPage';
 import { TeamManagement } from './components/teams/TeamManagement';
@@ -298,6 +299,11 @@ const AppContent = () => {
               <Route path="/folha/:eventId" element={
                 <RouteErrorBoundary routeName="Visualização da Folha">
                   <PayrollEventView />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/pagamentos-avulsos" element={
+                <RouteErrorBoundary routeName="Pagamentos Avulsos">
+                  <PersonnelPaymentsPage />
                 </RouteErrorBoundary>
               } />
               <Route path="/equipe" element={

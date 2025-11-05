@@ -176,3 +176,22 @@ export interface EventSupplierCost {
   created_at: string;
   updated_at: string;
 }
+
+// Personnel Payments Types
+export interface PersonnelPayment {
+  id: string;
+  team_id: string;
+  personnel_id: string;
+  amount: number;
+  payment_due_date: string;
+  payment_status: 'pending' | 'paid' | 'cancelled';
+  paid_at?: string;
+  paid_by_id?: string;
+  related_events: string[];
+  description: string;
+  notes?: string;
+  payment_method?: string;
+  created_at: string;
+  updated_at: string;
+  created_by_id?: string;
+}
