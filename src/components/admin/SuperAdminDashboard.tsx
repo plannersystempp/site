@@ -7,6 +7,7 @@ import { MRRChart } from './charts/MRRChart';
 import { ConversionFunnelChart } from './charts/ConversionFunnelChart';
 import { ActivityHeatmap } from './charts/ActivityHeatmap';
 import { AlertCards } from './AlertCards';
+import { DemoAccountManager } from './DemoAccountManager';
 import { Users, Building2, Calendar, DollarSign, TrendingUp, UserCheck, AlertTriangle, RefreshCw, Database } from 'lucide-react';
 
 export function SuperAdminDashboard() {
@@ -65,6 +66,9 @@ export function SuperAdminDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Demo Account Manager */}
+      <DemoAccountManager />
+
       {/* Alertas Proativos */}
       {(stats.expiring_trials_7d > 0 || stats.orphan_users > 0 || stats.unassigned_errors > 0) && (
         <AlertCards
