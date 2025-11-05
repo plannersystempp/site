@@ -60,27 +60,28 @@ Deno.serve(async (req) => {
     const DEMO_EMAIL = 'euquero@plannersystem.com.br';
     const DEMO_PASSWORD = 'Euquero';
     const DEMO_TEAM_NAME = 'DEMO - Sistema Completo SIGE';
+    const DEMO_CNPJ = '12.345.678/0001-90';
 
     // 1. Deletar conta demo anterior se existir
+    console.log('🗑️ Removendo conta demo anterior...');
+    
+    // Deletar equipe pelo CNPJ ou nome
+    const { data: oldTeams } = await supabaseAdmin
+      .from('teams')
+      .select('id')
+      .or(`name.eq.${DEMO_TEAM_NAME},cnpj.eq.${DEMO_CNPJ}`);
+    
+    if (oldTeams && oldTeams.length > 0) {
+      for (const team of oldTeams) {
+        await supabaseAdmin.from('teams').delete().eq('id', team.id);
+      }
+    }
+    
+    // Deletar usuário pelo email
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
     const demoUser = existingUser.users.find(u => u.email === DEMO_EMAIL);
     
     if (demoUser) {
-      console.log('🗑️ Removendo conta demo anterior...');
-      
-      // Deletar equipe antiga
-      const { data: oldTeams } = await supabaseAdmin
-        .from('teams')
-        .select('id')
-        .eq('name', DEMO_TEAM_NAME);
-      
-      if (oldTeams && oldTeams.length > 0) {
-        for (const team of oldTeams) {
-          await supabaseAdmin.from('teams').delete().eq('id', team.id);
-        }
-      }
-      
-      // Deletar usuário antigo
       await supabaseAdmin.auth.admin.deleteUser(demoUser.id);
     }
 
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
       .from('teams')
       .insert({
         name: DEMO_TEAM_NAME,
-        cnpj: '12.345.678/0001-90',
+        cnpj: DEMO_CNPJ,
         owner_id: demoUserId,
         invite_code: 'DEMO2024',
         is_system: true
