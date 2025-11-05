@@ -57,33 +57,36 @@ export function useSubscriptionGuard(teamId: string | undefined) {
         throw error;
       }
 
+      // Confiar no status do banco - não sobrescrever
       const isActive = ['active', 'trial'].includes(data.status);
       const expiresAt = data.trial_ends_at || data.current_period_ends_at;
       
       let daysUntilExpiration = undefined;
-      let isActuallyActive = isActive;
       
       if (expiresAt) {
-        // Usar parseDateSafe para garantir parsing correto do formato PostgreSQL
         const expirationDate = parseDateSafe(expiresAt);
         
         // Validar se a data é válida
         if (isNaN(expirationDate.getTime())) {
-          console.error('Data de expiração inválida:', expiresAt);
-          isActuallyActive = false;
+          console.error('⚠️ [useSubscriptionGuard] Data de expiração inválida:', expiresAt);
+          // NÃO marcar como inativa, apenas alertar
         } else {
           const now = new Date();
+          // Comparação direta funciona porque ambas são timestamps UTC internamente
           daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
           
-          // Se o trial/assinatura expirou (dias negativos), marcar como inativo
-          if (daysUntilExpiration <= 0) {
-            isActuallyActive = false;
-          }
+          console.log('🔍 [useSubscriptionGuard] Debug:', {
+            status: data.status,
+            expiresAt,
+            expirationDate: expirationDate.toISOString(),
+            now: now.toISOString(),
+            daysUntilExpiration
+          });
         }
       }
       
       return {
-        isActive: isActuallyActive,
+        isActive, // Usar status do banco, não sobrescrever
         status: data.status,
         planName: (data.subscription_plans as any)?.display_name || 'Desconhecido',
         expiresAt,
@@ -97,8 +100,10 @@ export function useSubscriptionGuard(teamId: string | undefined) {
 
   useEffect(() => {
     if (!isLoading && subscription) {
-      // Se assinatura expirou, redirecionar
-      if (!subscription.isActive) {
+      // APENAS redirecionar se status do BANCO for expired/canceled/past_due
+      const inactiveStatuses = ['expired', 'canceled', 'past_due', 'trial_expired'];
+      
+      if (inactiveStatuses.includes(subscription.status)) {
         toast({
           title: 'Assinatura Inativa',
           description: 'Sua assinatura expirou. Renove para continuar usando o SIGE.',
@@ -110,11 +115,10 @@ export function useSubscriptionGuard(teamId: string | undefined) {
           navigate('/plans');
         }, 3000);
       }
-      
-      // Avisar se estiver próximo da expiração (últimos 3 dias)
-      else if (subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 3 && subscription.daysUntilExpiration > 0) {
+      // Avisar se estiver próximo da expiração (últimos 7 dias)
+      else if (subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0) {
         toast({
-          title: 'Assinatura Expirando',
+          title: 'Assinatura Expirando em Breve',
           description: `Sua assinatura ${subscription.planName} expira em ${subscription.daysUntilExpiration} dia(s).`,
           variant: 'default',
           duration: 7000

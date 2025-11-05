@@ -11,8 +11,8 @@ export const parseDateSafe = (input: string): Date => {
 
   let normalized = s;
 
-  // Replace space between date and time with 'T' (e.g., '2025-12-04 13:19:41+00')
-  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[+-]\d{2}(?::?\d{2})?)?$/.test(s)) {
+  // Replace space between date and time with 'T' (supports milliseconds: '2025-12-04 13:19:41.753+00')
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}(:\d{2})?)?$/.test(s)) {
     normalized = s.replace(' ', 'T');
   }
 
