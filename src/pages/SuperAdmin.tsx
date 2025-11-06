@@ -722,7 +722,14 @@ export default function SuperAdmin() {
                             {user.team_name || 'Sem equipe'}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={user.is_approved ? 'default' : 'destructive'}>
+                            <Badge 
+                              variant={user.is_approved ? 'default' : 'destructive'}
+                              className="cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openManagementDialog(user, 'approve');
+                              }}
+                            >
                               {user.is_approved ? 'Aprovado' : 'Pendente'}
                             </Badge>
                           </TableCell>
@@ -738,7 +745,12 @@ export default function SuperAdmin() {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-10 w-10 md:h-8 md:w-8 relative z-10">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-12 w-12 md:h-10 md:w-10 min-h-[44px] min-w-[44px] hover:bg-accent"
+                                  aria-label="Ações do usuário"
+                                >
                                   <UserCog className="h-5 w-5 md:h-4 md:w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
