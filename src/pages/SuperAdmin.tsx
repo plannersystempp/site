@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp, Edit2, Loader2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SuperAdminUser {
   user_id: string;
@@ -90,6 +91,7 @@ export default function SuperAdmin() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
   
   // Management dialog state
   const [managementDialog, setManagementDialog] = useState<{
@@ -334,7 +336,7 @@ export default function SuperAdmin() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6 overflow-y-auto max-h-screen pb-20 md:pb-6">
+    <div className="container mx-auto py-6 space-y-6 overflow-y-auto max-h-screen pb-24 md:pb-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Super Administração</h1>
@@ -355,7 +357,7 @@ export default function SuperAdmin() {
         </Button>
         
         {/* Menu Hambúrguer Mobile */}
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen} modal={false}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="md:hidden h-10 w-10 relative z-10">
               <Menu className="h-5 w-5" />
@@ -498,25 +500,6 @@ export default function SuperAdmin() {
           {activeTab === 'metrics' && 'Métricas'}
         </p>
       </div>
-
-      {/* FASE 5: Botão de Emergência para Desbloquear Scroll */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="fixed bottom-4 left-4 z-[9999] md:hidden"
-        onClick={() => {
-          document.body.style.overflow = '';
-          document.body.style.paddingRight = '';
-          document.body.style.position = '';
-          setSheetOpen(false);
-          toast({
-            title: "Scroll restaurado",
-            description: "A navegação foi desbloqueada"
-          });
-        }}
-      >
-        🔓 Desbloquear
-      </Button>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
@@ -662,7 +645,8 @@ export default function SuperAdmin() {
               <CardTitle>Lista de Usuários</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
+              <div className="overflow-x-auto -mx-4 px-4">
+                <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">
@@ -722,16 +706,26 @@ export default function SuperAdmin() {
                             {user.team_name || 'Sem equipe'}
                           </TableCell>
                           <TableCell>
-                            <Badge 
-                              variant={user.is_approved ? 'default' : 'destructive'}
-                              className="cursor-pointer hover:opacity-80 transition-opacity"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openManagementDialog(user, 'approve');
-                              }}
-                            >
-                              {user.is_approved ? 'Aprovado' : 'Pendente'}
-                            </Badge>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge 
+                                    variant={user.is_approved ? 'default' : 'destructive'}
+                                    className="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-1 w-fit"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openManagementDialog(user, 'approve');
+                                    }}
+                                  >
+                                    {user.is_approved ? 'Aprovado' : 'Pendente'}
+                                    <Edit2 className="h-3 w-3" />
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Clique para alterar status</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </TableCell>
                           <TableCell>
                             {user.last_sign_in_at ? (
@@ -758,37 +752,83 @@ export default function SuperAdmin() {
                                 <DropdownMenuLabel>Ações</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => openManagementDialog(user, 'approve')}
+                                  onClick={async () => {
+                                    setLoadingAction(user.user_id);
+                                    openManagementDialog(user, 'approve');
+                                    // Reset after dialog opens
+                                    setTimeout(() => setLoadingAction(null), 300);
+                                  }}
+                                  disabled={loadingAction === user.user_id}
                                 >
-                                  <Shield className="mr-2 h-4 w-4" />
+                                  {loadingAction === user.user_id ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Shield className="mr-2 h-4 w-4" />
+                                  )}
                                   {user.is_approved ? 'Desaprovar' : 'Aprovar'}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => openManagementDialog(user, 'role')}
+                                  onClick={async () => {
+                                    setLoadingAction(user.user_id);
+                                    openManagementDialog(user, 'role');
+                                    setTimeout(() => setLoadingAction(null), 300);
+                                  }}
+                                  disabled={loadingAction === user.user_id}
                                 >
-                                  <UserCog className="mr-2 h-4 w-4" />
+                                  {loadingAction === user.user_id ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <UserCog className="mr-2 h-4 w-4" />
+                                  )}
                                   Alterar Função
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => openManagementDialog(user, 'assign')}
+                                  onClick={async () => {
+                                    setLoadingAction(user.user_id);
+                                    openManagementDialog(user, 'assign');
+                                    setTimeout(() => setLoadingAction(null), 300);
+                                  }}
+                                  disabled={loadingAction === user.user_id}
                                 >
-                                  <UserPlus className="mr-2 h-4 w-4" />
+                                  {loadingAction === user.user_id ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                  )}
                                   {user.team_id ? 'Trocar Equipe' : 'Associar à Equipe'}
                                 </DropdownMenuItem>
                                 {user.team_id && (
                                   <DropdownMenuItem
-                                    onClick={() => openManagementDialog(user, 'remove')}
+                                    onClick={async () => {
+                                      setLoadingAction(user.user_id);
+                                      openManagementDialog(user, 'remove');
+                                      setTimeout(() => setLoadingAction(null), 300);
+                                    }}
+                                    disabled={loadingAction === user.user_id}
                                   >
-                                    <UserMinus className="mr-2 h-4 w-4" />
+                                    {loadingAction === user.user_id ? (
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <UserMinus className="mr-2 h-4 w-4" />
+                                    )}
                                     Remover da Equipe
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => openManagementDialog(user, 'delete')}
+                                  onClick={async () => {
+                                    setLoadingAction(user.user_id);
+                                    openManagementDialog(user, 'delete');
+                                    setTimeout(() => setLoadingAction(null), 300);
+                                  }}
+                                  disabled={loadingAction === user.user_id}
                                   className="text-red-600"
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  {loadingAction === user.user_id ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                  )}
                                   Excluir Usuário
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -800,6 +840,7 @@ export default function SuperAdmin() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
