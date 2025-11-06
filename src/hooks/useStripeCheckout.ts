@@ -30,6 +30,9 @@ export function useStripeCheckout() {
       });
 
       if (error) {
+        console.error('Erro detalhado do checkout:', error);
+        
+        // Tentar extrair mensagem de erro do servidor
         try {
           const res = (error as any)?.context?.response as Response | undefined;
           if (res) {
@@ -46,12 +49,27 @@ export function useStripeCheckout() {
               }
             }
             const serverMsg = body?.error || body?.details || body?.message;
-            throw new Error(serverMsg || (error as any)?.message || 'Falha ao iniciar o checkout');
+            if (serverMsg) {
+              throw new Error(serverMsg);
+            }
           }
-        } catch {}
-        const ctx: any = (error as any)?.context?.body;
-        const serverMsg = ctx?.error || ctx?.details || ctx?.message;
-        throw new Error(serverMsg || (error as any)?.message || 'Falha ao iniciar o checkout');
+        } catch (parseError) {
+          if (parseError instanceof Error && parseError.message) {
+            throw parseError;
+          }
+        }
+        
+        // Mensagens específicas por tipo de erro
+        const errorMessage = (error as any)?.message || '';
+        if (errorMessage.includes('not found')) {
+          throw new Error('Plano não encontrado. Por favor, tente novamente.');
+        } else if (errorMessage.includes('stripe')) {
+          throw new Error('Erro ao processar com Stripe. Verifique sua configuração.');
+        } else if (errorMessage.includes('network')) {
+          throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
+        }
+        
+        throw new Error('Falha ao iniciar o checkout. Tente novamente em alguns instantes.');
       }
       if (!data?.url) throw new Error('URL do checkout não retornada');
 

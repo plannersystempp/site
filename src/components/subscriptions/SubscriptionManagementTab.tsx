@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSubscriptionStats } from '@/hooks/useSubscriptionStats';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
+import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
 import { Search, MoreVertical, TrendingUp, Users, Clock, XCircle } from 'lucide-react';
 import { ExtendTrialDialog } from './ExtendTrialDialog';
 import { ChangePlanDialog } from './ChangePlanDialog';
@@ -19,6 +20,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 export function SubscriptionManagementTab() {
   const isMobile = useIsMobile();
+  const { reactivateSubscription } = useSubscriptionActions();
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
@@ -269,10 +271,11 @@ export function SubscriptionManagementTab() {
                               {(sub.status === 'canceled' || sub.status === 'trial_expired' || sub.status === 'past_due') && (
                                 <DropdownMenuItem
                                   onClick={() => {
-                                    // Implementar reativação
+                                    reactivateSubscription.mutate(sub.id);
                                   }}
+                                  disabled={reactivateSubscription.isPending}
                                 >
-                                  Reativar Assinatura
+                                  {reactivateSubscription.isPending ? 'Reativando...' : 'Reativar Assinatura'}
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -385,10 +388,11 @@ export function SubscriptionManagementTab() {
                                 {(sub.status === 'canceled' || sub.status === 'trial_expired' || sub.status === 'past_due') && (
                                   <DropdownMenuItem
                                     onClick={() => {
-                                      // Implementar reativação
+                                      reactivateSubscription.mutate(sub.id);
                                     }}
+                                    disabled={reactivateSubscription.isPending}
                                   >
-                                    Reativar Assinatura
+                                    {reactivateSubscription.isPending ? 'Reativando...' : 'Reativar Assinatura'}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>

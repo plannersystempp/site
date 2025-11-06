@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
@@ -30,6 +30,8 @@ const LazyTeamManagementTab = lazy(() => import('@/components/admin/TeamManageme
 const LazyDeletionLogsTab = lazy(() => import('@/components/admin/DeletionLogsTab').then(m => ({ default: m.DeletionLogsTab })));
 const LazySubscriptionManagementTab = lazy(() => import('@/components/subscriptions/SubscriptionManagementTab').then(m => ({ default: m.SubscriptionManagementTab })));
 const LazyPlansManagement = lazy(() => import('@/components/subscriptions/PlansManagement').then(m => ({ default: m.PlansManagement })));
+const LazyStripeSync = lazy(() => import('@/components/admin/StripeSync').then(m => ({ default: m.StripeSync })));
+const LazySubscriptionMetrics = lazy(() => import('@/components/subscriptions/SubscriptionMetrics').then(m => ({ default: m.SubscriptionMetrics })));
 const LazyErrorReportsManagement = lazy(() => import('@/components/admin/ErrorReportsManagement').then(m => ({ default: m.ErrorReportsManagement })));
 const LazyAuditLog = lazy(() => import('@/components/admin/AuditLogInfinite').then(m => ({ default: m.AuditLogInfinite })));
 import {
@@ -454,6 +456,26 @@ export default function SuperAdmin() {
               >
                 <Bug className="mr-3 h-5 w-5" /> Reportes de Erro
               </Button>
+              <Button 
+                variant={activeTab === 'stripe-sync' ? 'default' : 'ghost'}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('stripe-sync');
+                  setSheetOpen(false);
+                }}
+              >
+                <Shield className="mr-3 h-5 w-5" /> Stripe Sync
+              </Button>
+              <Button 
+                variant={activeTab === 'metrics' ? 'default' : 'ghost'}
+                className="justify-start h-12 text-base"
+                onClick={() => {
+                  setActiveTab('metrics');
+                  setSheetOpen(false);
+                }}
+              >
+                <TrendingUp className="mr-3 h-5 w-5" /> Métricas
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
@@ -472,6 +494,8 @@ export default function SuperAdmin() {
           {activeTab === 'deletion-logs' && 'Exclusões'}
           {activeTab === 'audit' && 'Auditoria'}
           {activeTab === 'error-reports' && 'Reportes de Erro'}
+          {activeTab === 'stripe-sync' && 'Stripe Sync'}
+          {activeTab === 'metrics' && 'Métricas'}
         </p>
       </div>
 
@@ -496,12 +520,14 @@ export default function SuperAdmin() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
-        <TabsList className="hidden md:grid w-full md:grid-cols-9">
+        <TabsList className="hidden md:grid w-full md:grid-cols-11">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
           <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
           <TabsTrigger value="plans">Planos</TabsTrigger>
+          <TabsTrigger value="stripe-sync">Stripe Sync</TabsTrigger>
+          <TabsTrigger value="metrics">Métricas</TabsTrigger>
           <TabsTrigger value="orphans">Órfãos</TabsTrigger>
           <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
@@ -787,6 +813,18 @@ export default function SuperAdmin() {
         <TabsContent value="plans" className="space-y-6">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyPlansManagement />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="stripe-sync" className="space-y-6">
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazyStripeSync />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="metrics" className="space-y-6">
+          <Suspense fallback={<LoadingSpinner />}>
+            <LazySubscriptionMetrics />
           </Suspense>
         </TabsContent>
 
