@@ -12,8 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp, Edit2, Loader2 } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp, Edit2, Loader2, Filter } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useDebounce } from '@/hooks/use-debounce';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { ptBR } from 'date-fns/locale';
 import { EnhancedAuditLogCard } from '@/components/admin/EnhancedAuditLogCard';
 import { UserManagementDialog } from '@/components/admin/UserManagementDialog';
@@ -92,6 +95,10 @@ export default function SuperAdmin() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const debouncedUserSearch = useDebounce(userSearchQuery, 300);
+  const itemsPerPage = 20;
   
   // Management dialog state
   const [managementDialog, setManagementDialog] = useState<{
@@ -284,6 +291,17 @@ export default function SuperAdmin() {
       );
     }
 
+    // Apply search filter
+    if (debouncedUserSearch) {
+      const searchLower = debouncedUserSearch.toLowerCase();
+      filtered = filtered.filter(
+        (user) =>
+          user.name.toLowerCase().includes(searchLower) ||
+          user.email.toLowerCase().includes(searchLower) ||
+          (user.team_name && user.team_name.toLowerCase().includes(searchLower))
+      );
+    }
+
     return filtered;
   };
 
@@ -316,6 +334,18 @@ export default function SuperAdmin() {
 
   const stats = getUserStats();
   const filteredUsers = getFilteredUsers();
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [userFilter, debouncedUserSearch]);
 
   // Atalho de teclado Cmd+K / Ctrl+K para busca global
   useEffect(() => {
@@ -517,11 +547,11 @@ export default function SuperAdmin() {
           <TabsTrigger value="error-reports">Reportes</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-6">
+        <TabsContent value="dashboard" className="space-y-6 animate-in fade-in duration-300">
           <SuperAdminDashboard />
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-6">
+        <TabsContent value="users" className="space-y-6 animate-in fade-in duration-300">
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
@@ -555,15 +585,27 @@ export default function SuperAdmin() {
             </Card>
           </div>
 
-          {/* Filters */}
+          {/* Filters and Search */}
           <Card>
             <CardHeader>
-              <CardTitle>Filtros</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filtros e Busca
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome, email ou equipe..."
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                    className="pl-10 w-full"
+                  />
+                </div>
                 <Select value={userFilter} onValueChange={(value: any) => setUserFilter(value)}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Status do usuário" />
                   </SelectTrigger>
                   <SelectContent>
@@ -573,6 +615,23 @@ export default function SuperAdmin() {
                   </SelectContent>
                 </Select>
               </div>
+              {(debouncedUserSearch || userFilter !== "all") && (
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {filteredUsers.length} resultado(s) encontrado(s)
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setUserSearchQuery("");
+                      setUserFilter("all");
+                    }}
+                  >
+                    Limpar Filtros
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -643,44 +702,85 @@ export default function SuperAdmin() {
           <Card>
             <CardHeader>
               <CardTitle>Lista de Usuários</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {filteredUsers.length > 0 ? (
+                  <>
+                    Mostrando {Math.min(paginatedUsers.length, filteredUsers.length)} de {filteredUsers.length} usuário(s)
+                    {debouncedUserSearch && ` (filtrado por "${debouncedUserSearch}")`}
+                  </>
+                ) : (
+                  "Nenhum usuário encontrado"
+                )}
+              </p>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto -mx-4 px-4">
-                <Table className="min-w-[800px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedUsers(filteredUsers.map(u => u.user_id));
-                          } else {
-                            setSelectedUsers([]);
-                          }
-                        }}
-                      />
-                    </TableHead>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Último Acesso</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center">Carregando...</TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => {
+              {filteredUsers.length === 0 ? (
+                <EmptyState
+                  icon={<Users className="h-12 w-12" />}
+                  title={
+                    debouncedUserSearch || userFilter !== "all"
+                      ? "Nenhum usuário encontrado"
+                      : "Nenhum usuário cadastrado"
+                  }
+                  description={
+                    debouncedUserSearch || userFilter !== "all"
+                      ? "Tente ajustar os filtros de busca para encontrar o que procura."
+                      : "Ainda não há usuários cadastrados no sistema."
+                  }
+                  action={
+                    (debouncedUserSearch || userFilter !== "all") ? {
+                      label: "Limpar Filtros",
+                      onClick: () => {
+                        setUserSearchQuery("");
+                        setUserFilter("all");
+                      }
+                    } : undefined
+                  }
+                />
+              ) : (
+                <>
+                  <div className="overflow-x-auto -mx-4 px-4">
+                    <Table className="min-w-[800px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={selectedUsers.length === paginatedUsers.length && paginatedUsers.length > 0}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedUsers(paginatedUsers.map(u => u.user_id));
+                                } else {
+                                  setSelectedUsers([]);
+                                }
+                              }}
+                            />
+                          </TableHead>
+                          <TableHead>Usuário</TableHead>
+                          <TableHead>Empresa</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Último Acesso</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8">
+                              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                              <p className="text-sm text-muted-foreground">Carregando usuários...</p>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          paginatedUsers.map((user) => {
                       const inactiveDays = getInactiveDays(user.last_sign_in_at);
                       const isLongInactive = user.last_sign_in_at && 
                         (new Date().getTime() - new Date(user.last_sign_in_at).getTime()) > 90 * 24 * 60 * 60 * 1000;
 
                       return (
-                        <TableRow key={user.user_id}>
+                        <TableRow 
+                          key={user.user_id}
+                          className="transition-all duration-200 hover:bg-muted/50"
+                        >
                           <TableCell>
                             <Checkbox
                               checked={selectedUsers.includes(user.user_id)}
@@ -840,60 +940,129 @@ export default function SuperAdmin() {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-center border-t pt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                        className={
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        // Show first, last, current, and adjacent pages
+                        return (
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - currentPage) <= 1
+                        );
+                      })
+                      .map((page, index, array) => {
+                        // Add ellipsis if there's a gap
+                        const showEllipsisBefore =
+                          index > 0 && page - array[index - 1] > 1;
+
+                        return (
+                          <React.Fragment key={page}>
+                            {showEllipsisBefore && (
+                              <PaginationItem>
+                                <span className="px-4 text-muted-foreground">...</span>
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(page)}
+                                isActive={currentPage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        );
+                      })}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                        }
+                        className={
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
+            )}
+          </>
+        )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="orphans" className="space-y-6">
+        <TabsContent value="orphans" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyOrphanUsersTab teams={teams} />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="teams" className="space-y-6">
+        <TabsContent value="teams" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyTeamManagementTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="subscriptions" className="space-y-6">
+        <TabsContent value="subscriptions" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazySubscriptionManagementTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="plans" className="space-y-6">
+        <TabsContent value="plans" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyPlansManagement />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="stripe-sync" className="space-y-6">
+        <TabsContent value="stripe-sync" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyStripeSync />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="metrics" className="space-y-6">
+        <TabsContent value="metrics" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazySubscriptionMetrics />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="deletion-logs" className="space-y-6">
+        <TabsContent value="deletion-logs" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyDeletionLogsTab />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="audit" className="space-y-6">
+        <TabsContent value="audit" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyAuditLog />
           </Suspense>
         </TabsContent>
 
-        <TabsContent value="error-reports" className="space-y-6">
+        <TabsContent value="error-reports" className="space-y-6 animate-in fade-in duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <LazyErrorReportsManagement />
           </Suspense>
