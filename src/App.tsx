@@ -45,6 +45,7 @@ import UpgradePlan from './pages/UpgradePlan';
 import PlansPage from './pages/PlansPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import ManageSubscription from './pages/ManageSubscription';
+import MonthlyPayrollPage from './pages/MonthlyPayrollPage';
 import { useRealtimeSync } from './hooks/queries/useRealtimeSync';
 
 
@@ -303,7 +304,7 @@ const AppContent = () => {
               } />
               <Route path="/folha/mensal" element={
                 <RouteErrorBoundary routeName="Folha Mensal">
-                  {React.createElement(React.lazy(() => import('./pages/MonthlyPayrollPage')))}
+                  <MonthlyPayrollPage />
                 </RouteErrorBoundary>
               } />
               <Route path="/pagamentos-avulsos" element={
