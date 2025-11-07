@@ -374,7 +374,7 @@ const Dashboard = () => {
         {!isSuperAdmin && (
           <Card 
             className="bg-muted/30 dark:bg-muted/20 hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => navigate('/app/pagamentos-avulsos')}
+            onClick={() => navigate('/app/eventos')}
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -391,17 +391,21 @@ const Dashboard = () => {
                   description="Não há eventos acontecendo no momento."
                 />
               ) : (
-            <div className="space-y-2">
+                <div className="space-y-2">
                   {eventsInProgress.map(event => (
-                    <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-card">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{event.name || 'Evento sem nome'}</h4>
+                    <button
+                      key={event.id}
+                      className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer bg-card"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/app/eventos/${event.id}`); }}
+                    >
+                      <div className="flex-1 min-w-0 text-left">
+                        <h4 className="font-medium text-xs sm:text-sm whitespace-normal break-words line-clamp-2">{event.name || 'Evento sem nome'}</h4>
                         <p className="text-sm text-muted-foreground">
                           {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
                         </p>
                       </div>
                       <StatusBadge status={event.status as any} />
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -446,7 +450,7 @@ const Dashboard = () => {
                       onClick={() => navigate(`/app/eventos/${event.id}`)}
                     >
                       <div className="flex-1 min-w-0 text-left">
-                        <h4 className="font-medium truncate">{event.name}</h4>
+                        <h4 className="font-medium text-xs sm:text-sm whitespace-normal break-words line-clamp-2">{event.name}</h4>
                         <p className="text-sm text-muted-foreground">
                           {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
                         </p>
@@ -505,13 +509,13 @@ const Dashboard = () => {
                         onClick={() => navigate(`/app/folha/${event.id}`)}
                       >
                         <div className="flex-1 min-w-0 text-left">
-                          <h4 className="font-medium truncate">{event.name}</h4>
+                          <h4 className="font-medium text-xs sm:text-sm whitespace-normal break-words line-clamp-2">{event.name}</h4>
                           <p className="text-sm text-muted-foreground">
                             {`Vence: ${displayDate}`}
                           </p>
                         </div>
-                        <Badge className="bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300">
-                          <AlertCircle className="h-4 w-4" />
+                        <Badge className="bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300 px-2 py-0.5">
+                          <AlertCircle className="h-3 w-3" />
                           <span className="ml-1 hidden sm:inline">Pendente</span>
                         </Badge>
                       </button>
@@ -552,7 +556,7 @@ const Dashboard = () => {
                         onClick={(e) => { e.stopPropagation(); navigate('/app/pagamentos-avulsos'); }}
                       >
                         <div className="flex-1 min-w-0 text-left">
-                          <h4 className="font-medium truncate">{p.personnel?.name || 'Funcionário'}</h4>
+                          <h4 className="font-medium text-xs sm:text-sm whitespace-normal break-words line-clamp-2">{p.personnel?.name || 'Funcionário'}</h4>
                           <p className="text-sm text-muted-foreground">{dueLabel}</p>
                         </div>
                         <div className="flex items-center gap-2">
