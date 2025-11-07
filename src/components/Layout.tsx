@@ -88,9 +88,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             aria-label="Conteúdo principal"
             tabIndex={-1}
             ref={mainRef}
-            className="flex-1 min-h-0 px-3 sm:px-4 md:px-0"
+            className="flex-1 min-h-0"
           >
-            {children}
+            <div className="w-full max-w-screen-xl 2xl:max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+              {children}
+            </div>
           </main>
           <ScrollNavigationButtons 
             showScrollToTop={showScrollToTop}
