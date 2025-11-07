@@ -12,6 +12,7 @@ import { FreelancerRatingDialog } from './FreelancerRatingDialog';
 import { FreelancerPerformanceCard } from './FreelancerPerformanceCard';
 import { WhatsAppButton } from './WhatsAppButton';
 import { PersonnelHistoryDialog } from './PersonnelHistory/PersonnelHistoryDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface PersonnelGridViewProps {
   personnel: Personnel[];
@@ -34,14 +35,16 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
   const isCoordinator = userRole === 'coordinator';
   const [historyPersonnel, setHistoryPersonnel] = useState<Personnel | null>(null);
   const [expandedPerformanceId, setExpandedPerformanceId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+    <div className="w-full mx-auto px-2 sm:px-3 md:px-4 grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
       {personnel.map((person) => {
         const personFunctions = person.functions || [];
         return (
-          <Card key={person.id} className="flex flex-col hover:shadow-md transition-shadow">
-            <div className="p-3 sm:p-4">
+          <Card key={person.id} className="flex flex-col h-full hover:shadow-md transition-shadow">
+            <div className="p-3 sm:p-4 flex-1">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {/* Photo or avatar */}
@@ -51,7 +54,11 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
                   alt={person.name}
                   crossOrigin="anonymous"
                   loading="lazy"
-                  className="w-10 h-10 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
+                  className="w-10 h-10 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0 cursor-zoom-in"
+                  onClick={() => {
+                    setPreviewImageUrl(person.photo_url!);
+                    setPreviewOpen(true);
+                  }}
                   onError={(e) => {
                     const img = e.currentTarget;
                     img.style.display = 'none';
@@ -67,7 +74,7 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
                     <User className="w-5 h-5 sm:w-4 sm:h-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-base sm:text-sm whitespace-normal break-words leading-snug">{person.name}</h3>
+                    <h3 className="font-semibold text-base sm:text-sm truncate">{person.name}</h3>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <Badge 
                         variant={person.type === 'fixo' ? 'default' : 'secondary'}
@@ -231,6 +238,22 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
           personnel={historyPersonnel}
         />
       )}
+      {/* Dialog de pré-visualização da foto */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Pré-visualização da Foto</DialogTitle>
+          </DialogHeader>
+          {previewImageUrl && (
+            <img
+              src={previewImageUrl}
+              alt="Pré-visualização da foto"
+              crossOrigin="anonymous"
+              className="w-full h-auto object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

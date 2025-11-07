@@ -13,6 +13,7 @@ import { FreelancerRatingDialog } from './FreelancerRatingDialog';
 import { FreelancerPerformanceCard } from './FreelancerPerformanceCard';
 import { WhatsAppButton } from './WhatsAppButton';
 import { PersonnelHistoryDialog } from './PersonnelHistory/PersonnelHistoryDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface PersonnelListViewProps {
   personnel: Personnel[];
@@ -35,6 +36,8 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
   const isCoordinator = userRole === 'coordinator';
   const [historyPersonnel, setHistoryPersonnel] = useState<Personnel | null>(null);
   const [expandedPerformanceId, setExpandedPerformanceId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   
   return (
     <div className="space-y-3 overflow-x-auto">
@@ -52,7 +55,11 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                     alt={person.name}
                     crossOrigin="anonymous"
                     loading="lazy"
-                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-zoom-in"
+                    onClick={() => {
+                      setPreviewImageUrl(person.photo_url!);
+                      setPreviewOpen(true);
+                    }}
                     onError={(e) => {
                       const img = e.currentTarget;
                       img.style.display = 'none';
@@ -202,7 +209,11 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                       alt={person.name}
                       crossOrigin="anonymous"
                       loading="lazy"
-                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-zoom-in"
+                      onClick={() => {
+                        setPreviewImageUrl(person.photo_url!);
+                        setPreviewOpen(true);
+                      }}
                       onError={(e) => {
                         const img = e.currentTarget;
                         img.style.display = 'none';
@@ -367,6 +378,22 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
           personnel={historyPersonnel}
         />
       )}
+      {/* Dialog de pré-visualização da foto */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Pré-visualização da Foto</DialogTitle>
+          </DialogHeader>
+          {previewImageUrl && (
+            <img
+              src={previewImageUrl}
+              alt="Pré-visualização da foto"
+              crossOrigin="anonymous"
+              className="w-full h-auto object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
