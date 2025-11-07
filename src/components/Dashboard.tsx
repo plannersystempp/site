@@ -24,6 +24,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/utils/formatters';
 import { useEventsInProgress } from '@/hooks/dashboard/useEventsInProgress';
 import { useUpcomingPayments } from '@/hooks/dashboard/useUpcomingPayments';
+import { usePersonnelPaymentsQuery } from '@/hooks/queries/usePersonnelPaymentsQuery';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { KpiGroup } from '@/components/dashboard/KpiGroup';
 import { FilterChips } from '@/components/dashboard/FilterChips';
@@ -62,6 +63,7 @@ const Dashboard = () => {
   // Custom dashboard hooks MUST be called unconditionally before any conditional returns
   const eventsInProgress = useEventsInProgress();
   const upcomingPayments = useUpcomingPayments(eventsWithCompletePayments);
+  const { data: avulsosPending = [] } = usePersonnelPaymentsQuery({ status: 'pending' });
 
   // Check if user is superadmin - HOOK MUST BE CALLED UNCONDITIONALLY
   const { data: isSuperAdminCheck } = useQuery({
@@ -138,10 +140,12 @@ const Dashboard = () => {
   // Data atual usada para filtrar próximos eventos
   const currentDate = new Date();
   const nowKey = currentDate.toDateString();
+  // Garantir que o intervalo selecionado é válido (removendo 'todos')
+  const eventsRangeSafe: DateRange = (eventsRange === 'todos' ? '30dias' : eventsRange);
 
   // Próximos eventos com ordenação e aplicação de filtro de intervalo
   const upcomingEvents = sortByNearestDate(
-    filterByDateRange(events, eventsRange, currentDate),
+    filterByDateRange(events, eventsRangeSafe, currentDate),
     currentDate
   ).slice(0, 5);
 
@@ -280,12 +284,6 @@ const Dashboard = () => {
               size="sm"
             />
           </div>
-          <KpiCard
-            title="Próximos Eventos"
-            value={upcomingEvents.length}
-            icon={<Clock className="h-4 w-4 text-muted-foreground" />}
-            size="sm"
-          />
         </KpiGroup>
 
         <KpiGroup title="Cadastro" icon={<Users className="h-4 w-4 text-muted-foreground" />}> 
@@ -309,16 +307,7 @@ const Dashboard = () => {
           />
         </KpiGroup>
 
-        <KpiGroup title="Financeiro" icon={<DollarSign className="h-4 w-4 text-red-600" />}> 
-          <KpiCard
-            title="Pagamentos Próximos"
-            value={upcomingPayments.length}
-            icon={<DollarSign className="h-4 w-4 text-red-600" />}
-            accentClassName="border-red-200 bg-red-50/50"
-            valueClassName="text-red-600"
-            size="sm"
-          />
-        </KpiGroup>
+        {/* KPI removido conforme solicitação: Pagamentos Avulsos Pendentes */}
       </div>
 
       {/* Estatísticas de Fornecedores (Fase 5) */}
@@ -383,7 +372,10 @@ const Dashboard = () => {
         : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
       }`}>
         {!isSuperAdmin && (
-          <Card className="bg-muted/30 dark:bg-muted/20 hover:shadow-lg transition-shadow">
+          <Card 
+            className="bg-muted/30 dark:bg-muted/20 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => navigate('/app/pagamentos-avulsos')}
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-yellow-600" />
@@ -424,15 +416,15 @@ const Dashboard = () => {
                 <Calendar className="h-5 w-5" />
                 Próximos Eventos
               </CardTitle>
-              <CardDescription className="text-xs">Resumo de próximos eventos ({eventsRange})</CardDescription>
+              <CardDescription className="text-xs">Resumo de próximos eventos ({eventsRangeSafe})</CardDescription>
             </CardHeader>
             <CardContent>
               <Separator className="my-2" />
               <div className="mb-3">
                 <FilterChips
                   label="Intervalo"
-                  options={['hoje','7dias','30dias','todos'] as const}
-                  value={eventsRange}
+                  options={['hoje','7dias','30dias'] as const}
+                  value={eventsRangeSafe}
                   onChange={(v) => setEventsRange(v)}
                   showCounts
                   counts={eventsCounts}
@@ -527,6 +519,62 @@ const Dashboard = () => {
                   })}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Card de Pagamentos Avulsos - apenas para não-superadmin */}
+        {!isSuperAdmin && (
+          <Card className="bg-muted/30 dark:bg-muted/20 hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-primary" />
+                Pagamentos Avulsos
+              </CardTitle>
+              <CardDescription className="text-xs">Lista de pagamentos avulsos pendentes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Separator className="my-2" />
+              {avulsosPending.length === 0 ? (
+                <EmptyState
+                  title="Nenhum pagamento avulso pendente"
+                  description="Sem pagamentos avulsos pendentes no momento."
+                />
+              ) : (
+                <div className="space-y-2">
+                  {avulsosPending.slice(0, 6).map((p) => {
+                    const isOverdue = p.payment_status === 'pending' && p.payment_due_date && new Date(p.payment_due_date) < new Date();
+                    const dueLabel = p.payment_due_date ? `Vence: ${formatDateShort(p.payment_due_date)}` : 'Sem data de vencimento';
+                    return (
+                      <button
+                        key={p.id}
+                        className={`w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer bg-card ${isOverdue ? 'border-red-200' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); navigate('/app/pagamentos-avulsos'); }}
+                      >
+                        <div className="flex-1 min-w-0 text-left">
+                          <h4 className="font-medium truncate">{p.personnel?.name || 'Funcionário'}</h4>
+                          <p className="text-sm text-muted-foreground">{dueLabel}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isOverdue && (
+                            <Badge variant="destructive">Atrasado</Badge>
+                          )}
+                          <span className="font-semibold">{formatCurrency(Number(p.amount) || 0)}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="mt-3 flex justify-end">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={(e) => { e.stopPropagation(); navigate('/app/pagamentos-avulsos'); }}
+                >
+                  Ver todos
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
