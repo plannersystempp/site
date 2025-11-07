@@ -216,12 +216,33 @@ export const usePayrollActions = (
 
   const handleCancelPayment = async (paymentId: string, personName: string) => {
     try {
-      const { error } = await supabase
+      if (!activeTeam?.id || !selectedEventId) {
+        toast({
+          title: "Erro",
+          description: "Equipe ou evento não definidos para cancelar pagamento.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Diagnóstico: checar se o registro está visível antes de apagar
+      const { data: closingRow } = await supabase
+        .from('payroll_closings')
+        .select('id, event_id, team_id, personnel_id, paid_by_id')
+        .eq('id', paymentId)
+        .maybeSingle();
+
+      // Deletar pelo id apenas, para evitar mismatch de filtros
+      const { data: deletedRows, error } = await supabase
         .from('payroll_closings')
         .delete()
-        .eq('id', paymentId);
+        .eq('id', paymentId)
+        .select();
 
       if (error) throw error;
+      if (!deletedRows || deletedRows.length === 0) {
+        throw new Error('Nenhum registro foi removido. Verifique políticas de acesso (RLS).');
+      }
 
       setEventData(prev => ({
         ...prev,
@@ -235,11 +256,11 @@ export const usePayrollActions = (
       
       // Invalidar cache para forçar atualização nos dashboards
       invalidateCache();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error canceling payment:', error);
       toast({
         title: "Erro",
-        description: "Falha ao cancelar pagamento",
+        description: error?.message ? String(error.message) : "Falha ao cancelar pagamento",
         variant: "destructive"
       });
     }

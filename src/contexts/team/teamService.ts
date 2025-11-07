@@ -190,4 +190,51 @@ export class TeamService {
       return [];
     }
   }
+
+  /**
+   * Buscar coordenadores aprovados da equipe com perfis de usuário
+   * Evita joins REST que podem causar 400 no PostgREST em alguns cenários
+   */
+  static async getApprovedCoordinatorsWithProfiles(teamId: string): Promise<Array<{ id: string; name: string | null; email: string }>> {
+    try {
+      // Primeiro: buscar membros da equipe (role=coordinator, status=approved)
+      const { data: members, error: membersError } = await supabase
+        .from('team_members')
+        .select('user_id')
+        .eq('team_id', teamId)
+        .eq('role', 'coordinator')
+        .eq('status', 'approved');
+
+      if (membersError) {
+        console.error('Erro ao buscar coordenadores aprovados:', membersError);
+        throw membersError;
+      }
+
+      const userIds = (members || []).map(m => m.user_id).filter(Boolean);
+      if (userIds.length === 0) return [];
+
+      // Segundo: buscar perfis para os user_ids encontrados
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, name, email')
+        .in('user_id', userIds);
+
+      if (profilesError) {
+        console.error('Erro ao buscar perfis dos coordenadores:', profilesError);
+        throw profilesError;
+      }
+
+      const profileByUserId = new Map<string, { name: string | null; email: string }>();
+      (profiles || []).forEach(p => {
+        profileByUserId.set(p.user_id, { name: p.name, email: p.email });
+      });
+
+      return userIds
+        .map(uid => ({ id: uid, name: profileByUserId.get(uid)?.name ?? null, email: profileByUserId.get(uid)?.email ?? '' }))
+        .filter(item => item.email); // garantir apenas perfis válidos
+    } catch (error) {
+      console.error('Exceção em getApprovedCoordinatorsWithProfiles:', error);
+      return [];
+    }
+  }
 }

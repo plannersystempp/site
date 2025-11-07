@@ -76,14 +76,44 @@ const DialogContent = React.forwardRef<
   }, [isOpen]);
 
   return (
-    <DialogPortal>
+    <DialogPortal container={typeof document !== "undefined" ? document.body : undefined}>
       <DialogOverlay />
       <DialogPrimitive.Content
         ref={ref}
         aria-modal="true"
         aria-describedby={undefined}
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          const el = e.target as Element | null
+          if (
+            el && (
+              el.closest('[data-dropdown-menu-content="true"]') ||
+              el.closest('[data-radix-select-content]') ||
+              el.closest('[data-radix-popover-content]') ||
+              el.closest('[data-radix-tooltip-content]') ||
+              el.closest('[role="menu"]')
+            )
+          ) {
+            // Permitir interação com conteúdos portados (dropdowns, selects, popovers)
+            return
+          }
+          e.preventDefault()
+        }}
+        onInteractOutside={(e) => {
+          const el = e.target as Element | null
+          if (
+            el && (
+              el.closest('[data-dropdown-menu-content="true"]') ||
+              el.closest('[data-radix-select-content]') ||
+              el.closest('[data-radix-popover-content]') ||
+              el.closest('[data-radix-tooltip-content]') ||
+              el.closest('[role="menu"]')
+            )
+          ) {
+            // Permitir interação com conteúdos portados (dropdowns, selects, popovers)
+            return
+          }
+          e.preventDefault()
+        }}
         className={cn(
           "fixed left-[50%] top-[50%] z-[70] grid w-[95vw] max-w-lg max-h-[90vh] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background px-1 py-6 md:px-6 shadow-lg duration-200 overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
           className

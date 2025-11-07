@@ -62,7 +62,7 @@ const SheetContent = React.forwardRef<
   useBodyScrollLock(isOpen);
 
   return (
-    <SheetPortal>
+    <SheetPortal container={typeof document !== "undefined" ? document.body : undefined}>
       <SheetOverlay className="fixed inset-0 z-[1040] bg-black/80" />
       <SheetPrimitive.Content
         ref={ref}
@@ -70,8 +70,36 @@ const SheetContent = React.forwardRef<
         onOpenAutoFocus={() => setIsOpen(true)}
         onCloseAutoFocus={() => setIsOpen(false)}
         onEscapeKeyDown={() => setIsOpen(false)}
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          const el = e.target as Element | null
+          if (
+            el && (
+              el.closest('[data-dropdown-menu-content="true"]') ||
+              el.closest('[data-radix-select-content]') ||
+              el.closest('[data-radix-popover-content]') ||
+              el.closest('[data-radix-tooltip-content]') ||
+              el.closest('[role="menu"]')
+            )
+          ) {
+            return
+          }
+          e.preventDefault()
+        }}
+        onInteractOutside={(e) => {
+          const el = e.target as Element | null
+          if (
+            el && (
+              el.closest('[data-dropdown-menu-content="true"]') ||
+              el.closest('[data-radix-select-content]') ||
+              el.closest('[data-radix-popover-content]') ||
+              el.closest('[data-radix-tooltip-content]') ||
+              el.closest('[role="menu"]')
+            )
+          ) {
+            return
+          }
+          e.preventDefault()
+        }}
         {...props}
       >
         {children}

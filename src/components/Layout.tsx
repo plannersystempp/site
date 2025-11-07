@@ -9,8 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Shield } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { ErrorReportFAB } from '@/components/shared/ErrorReportFAB';
 import { SkipToContent } from '@/components/a11y/SkipToContent';
+import { AppMobileBottomNav } from '@/components/shared/AppMobileBottomNav';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -98,7 +98,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             scrollToTop={scrollToTop}
             scrollToBottom={scrollToBottom}
           />
-          <ErrorReportFAB />
+          {/* Menu inferior móvel com rotas principais */}
+          <AppMobileBottomNav />
         </div>
       </div>
     </SidebarProvider>

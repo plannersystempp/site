@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Func } from '@/contexts/EnhancedDataContext';
 
 export const ManageFunctions = () => {
@@ -29,6 +30,7 @@ export const ManageFunctions = () => {
   const [editingFunction, setEditingFunction] = useState<Func | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
+  const [confirmPermanent, setConfirmPermanent] = useState(false);
 
   // Filter functions based on search term
   const filteredFunctions = functions.filter(func =>
@@ -49,12 +51,21 @@ export const ManageFunctions = () => {
   };
 
   const handleDelete = async (func: Func) => {
+    if (!confirmPermanent) {
+      toast({
+        title: 'Confirmação necessária',
+        description: 'Marque o checkbox “Entendo que esta ação é permanente”.',
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       await deleteFunction(func.id);
       toast({
         title: "Função excluída",
         description: "A função foi removida com sucesso.",
       });
+      setConfirmPermanent(false);
     } catch (error) {
       toast({
         title: "Erro",
@@ -135,7 +146,7 @@ export const ManageFunctions = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <AlertDialog>
+                      <AlertDialog onOpenChange={(open) => { if (!open) setConfirmPermanent(false); }}>
                         <AlertDialogTrigger asChild>
                           <Button
                             variant="ghost"
@@ -153,11 +164,22 @@ export const ManageFunctions = () => {
                               Esta ação não pode ser desfeita.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
+                          <div className="mt-4 flex items-center gap-2">
+                            <Checkbox
+                              id={`confirm-permanent-func-${func.id}`}
+                              checked={confirmPermanent}
+                              onCheckedChange={(v) => setConfirmPermanent(!!v)}
+                            />
+                            <label htmlFor={`confirm-permanent-func-${func.id}`} className="text-sm leading-none select-none">
+                              Entendo que esta ação é permanente
+                            </label>
+                          </div>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDelete(func)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              disabled={!confirmPermanent}
                             >
                               Excluir
                             </AlertDialogAction>

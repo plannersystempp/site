@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportDropdown } from '@/components/shared/ExportDropdown';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useCheckSubscriptionLimits } from '@/hooks/useCheckSubscriptionLimits';
 import { UpgradePrompt } from '@/components/subscriptions/UpgradePrompt';
 import { useMyEventPermissions } from '@/hooks/useEventPermissions';
@@ -43,6 +44,7 @@ export const ManageEvents: React.FC = () => {
   const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
   const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
   const checkLimits = useCheckSubscriptionLimits();
+  const [confirmPermanent, setConfirmPermanent] = useState(false);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -210,12 +212,21 @@ export const ManageEvents: React.FC = () => {
   };
 
   const handleDeleteEvent = async (eventId: string, eventName: string) => {
+    if (!confirmPermanent) {
+      toast({
+        title: 'Confirmação necessária',
+        description: 'Marque o checkbox “Entendo que esta ação é permanente”.',
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       await deleteEvent(eventId);
       toast({
         title: "Sucesso",
         description: `Evento "${eventName}" excluído com sucesso!`,
       });
+      setConfirmPermanent(false);
     } catch (error) {
       console.error('Error deleting event:', error);
       toast({
@@ -412,7 +423,7 @@ export const ManageEvents: React.FC = () => {
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
                             </DropdownMenuItem>
-                            <AlertDialog>
+                            <AlertDialog onOpenChange={(open) => { if (!open) setConfirmPermanent(false); }}>
                               <AlertDialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
                                   <Trash2 className="mr-2 h-4 w-4" />
@@ -427,11 +438,22 @@ export const ManageEvents: React.FC = () => {
                                     Esta ação não pode ser desfeita e removerá todas as alocações e registros relacionados.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
+                                <div className="mt-4 flex items-center gap-2">
+                                  <Checkbox
+                                    id={`confirm-permanent-event-${event.id}`}
+                                    checked={confirmPermanent}
+                                    onCheckedChange={(v) => setConfirmPermanent(!!v)}
+                                  />
+                                  <label htmlFor={`confirm-permanent-event-${event.id}`} className="text-sm leading-none select-none">
+                                    Entendo que esta ação é permanente
+                                  </label>
+                                </div>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                   <AlertDialogAction 
                                     onClick={() => handleDeleteEvent(event.id, event.name)}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    disabled={!confirmPermanent}
                                   >
                                     Excluir
                                   </AlertDialogAction>

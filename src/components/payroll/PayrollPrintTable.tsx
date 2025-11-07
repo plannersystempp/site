@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { formatCurrency } from '@/utils/formatters';
+import { formatPeriodDays, generateDateArray, formatDateBR } from '@/utils/dateUtils';
 
 type EventInfo = {
   name?: string;
@@ -16,6 +17,7 @@ type PayrollDetail = {
   personName: string;
   personType: string;
   workDays: string[] | number;
+  workDaysList?: string[];
   totalOvertimeHours: number | string;
   cachePay: number;
   overtimePay: number;
@@ -42,7 +44,7 @@ export const PayrollPrintTable: React.FC<PayrollPrintTableProps> = ({ teamName, 
     .reduce((sum, d) => sum + (d.paidAmount || 0), 0);
   const totalPendente = details.reduce((sum, d) => sum + (d.pendingAmount || 0), 0);
 
-  const formatDate = (d?: string) => (d ? new Date(d).toLocaleDateString('pt-BR') : '—');
+  const formatDate = (d?: string) => (d ? formatDateBR(d) : '—');
 
   // Ordenar alfabeticamente por nome, respeitando pt-BR e acentuação
   const detalhesOrdenados = useMemo(() => {
@@ -78,15 +80,12 @@ export const PayrollPrintTable: React.FC<PayrollPrintTableProps> = ({ teamName, 
           <thead>
             <tr>
               <th className="payroll-th">Nome</th>
-              <th className="payroll-th text-center">Dias</th>
+              <th className="payroll-th text-right">Cachê dia (R$)</th>
+              <th className="payroll-th text-center">Dias de trabalho</th>
+              <th className="payroll-th text-center">Qtd Dias</th>
               <th className="payroll-th text-center">H. Extras (h)</th>
-              <th className="payroll-th text-right">Cachê diário (R$)</th>
               <th className="payroll-th text-right">H. Extras (R$)</th>
               <th className="payroll-th text-right">Total (R$)</th>
-              {hasPartialPayments && (
-                <th className="payroll-th text-right">Pago (parcial)</th>
-              )}
-              <th className="payroll-th text-right">Pendente (R$)</th>
             </tr>
           </thead>
           <tbody>
@@ -96,21 +95,34 @@ export const PayrollPrintTable: React.FC<PayrollPrintTableProps> = ({ teamName, 
                   <div className="payroll-person-name">{item.personName}</div>
                   <div className="payroll-person-type">{item.personType}</div>
                 </td>
+                <td className="payroll-td text-right">{formatCurrency((item.eventSpecificCacheRate ?? item.cacheRate ?? 0))}</td>
                 <td className="payroll-td text-center">{
-                  Array.isArray(item.workDays)
-                    ? item.workDays.length
-                    : typeof item.workDays === 'number'
-                      ? item.workDays
-                      : 0
+                  (() => {
+                    const list = item.workDaysList || (Array.isArray(item.workDays) ? item.workDays as string[] : undefined);
+                    if (list?.length) return formatPeriodDays(list);
+                    if (event?.start_date && event?.end_date) {
+                      const range = generateDateArray(event.start_date, event.end_date);
+                      const count = typeof item.workDays === 'number' ? item.workDays : range.length;
+                      return formatPeriodDays(range.slice(0, count));
+                    }
+                    return '—';
+                  })()
+                }</td>
+                <td className="payroll-td text-center">{
+                  (() => {
+                    if (typeof item.workDays === 'number') return item.workDays;
+                    const list = item.workDaysList || (Array.isArray(item.workDays) ? (item.workDays as string[]) : undefined);
+                    if (list?.length) return list.length;
+                    if (event?.start_date && event?.end_date) {
+                      const range = generateDateArray(event.start_date, event.end_date);
+                      return range.length;
+                    }
+                    return 0;
+                  })()
                 }</td>
                 <td className="payroll-td text-center">{item.totalOvertimeHours ?? 0}</td>
-                <td className="payroll-td text-right">{formatCurrency((item.eventSpecificCacheRate ?? item.cacheRate ?? 0))}</td>
                 <td className="payroll-td text-right">{formatCurrency(item.overtimePay)}</td>
                 <td className="payroll-td text-right">{formatCurrency(item.totalPay)}</td>
-                {hasPartialPayments && (
-                  <td className="payroll-td text-right">{(item.paidAmount || 0) > 0 && (item.pendingAmount || 0) > 0 ? formatCurrency(item.paidAmount || 0) : ''}</td>
-                )}
-                <td className="payroll-td text-right">{formatCurrency(item.pendingAmount || 0)}</td>
               </tr>
             ))}
           </tbody>
@@ -121,11 +133,8 @@ export const PayrollPrintTable: React.FC<PayrollPrintTableProps> = ({ teamName, 
               <td className="payroll-td"></td>
               <td className="payroll-td text-right"></td>
               <td className="payroll-td text-right"></td>
+              <td className="payroll-td text-right"></td>
               <td className="payroll-td text-right font-bold">{formatCurrency(totalGeral)}</td>
-              {hasPartialPayments && (
-                <td className="payroll-td text-right font-bold">{formatCurrency(totalPagoParcial)}</td>
-              )}
-              <td className="payroll-td text-right font-bold">{formatCurrency(totalPendente)}</td>
             </tr>
           </tfoot>
         </table>

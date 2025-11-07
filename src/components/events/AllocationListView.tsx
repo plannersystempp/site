@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface AllocationListViewProps {
   assignments: Assignment[];
@@ -32,6 +33,7 @@ export const AllocationListView: React.FC<AllocationListViewProps> = ({
 }) => {
   const { personnel, workLogs } = useEnhancedData();
   const [deleteConfirmation, setDeleteConfirmation] = useState<string | null>(null);
+  const [confirmPermanent, setConfirmPermanent] = useState(false);
 
   return (
     <Card>
@@ -202,7 +204,7 @@ export const AllocationListView: React.FC<AllocationListViewProps> = ({
       </CardContent>
       
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+      <AlertDialog open={!!deleteConfirmation} onOpenChange={(open) => { if (!open) { setDeleteConfirmation(null); setConfirmPermanent(false); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
@@ -210,16 +212,29 @@ export const AllocationListView: React.FC<AllocationListViewProps> = ({
               Esta ação irá excluir permanentemente esta alocação. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="mt-4 flex items-center gap-2">
+            <Checkbox
+              id="confirm-permanent-assignment"
+              checked={confirmPermanent}
+              onCheckedChange={(v) => setConfirmPermanent(!!v)}
+            />
+            <label htmlFor="confirm-permanent-assignment" className="text-sm leading-none select-none">
+              Entendo que esta ação é permanente
+            </label>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
                 if (deleteConfirmation) {
+                  if (!confirmPermanent) return;
                   onDeleteAssignment(deleteConfirmation);
                   setDeleteConfirmation(null);
+                  setConfirmPermanent(false);
                 }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={!confirmPermanent}
             >
               Excluir
             </AlertDialogAction>

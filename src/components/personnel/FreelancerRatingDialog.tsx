@@ -21,6 +21,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useTeam } from '@/contexts/TeamContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
+import { checkFreelancerRatingEligibility, DEFAULT_RATING_COOLDOWN_MINUTES } from '@/services/freelancerRatingsService';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface FreelancerRatingDialogProps {
   freelancerId: string;
@@ -41,6 +44,9 @@ export const FreelancerRatingDialog: React.FC<FreelancerRatingDialogProps> = ({
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [eligibilityMessage, setEligibilityMessage] = useState<string>('');
+  const [canRate, setCanRate] = useState<boolean>(true);
+  const [checking, setChecking] = useState<boolean>(false);
   const { toast } = useToast();
   const { activeTeam } = useTeam();
   const { user } = useAuth();
@@ -55,12 +61,81 @@ export const FreelancerRatingDialog: React.FC<FreelancerRatingDialogProps> = ({
     );
   });
 
+  // Checagem de elegibilidade: impedir múltiplas avaliações por mesmo usuário/evento
+  useEffect(() => {
+    const run = async () => {
+      if (!activeTeam || !user || !selectedEventId || !freelancerId) {
+        setCanRate(false);
+        setEligibilityMessage('Selecione um evento para avaliar.');
+        return;
+      }
+      setChecking(true);
+      try {
+        const result = await checkFreelancerRatingEligibility({
+          teamId: activeTeam.id,
+          freelancerId,
+          eventId: selectedEventId,
+          userId: user.id,
+          cooldownMinutes: DEFAULT_RATING_COOLDOWN_MINUTES
+        });
+        if (!result.canRate) {
+          setCanRate(false);
+          if (result.reason === 'alreadyRated') {
+            setEligibilityMessage('Você já avaliou este evento para este freelancer.');
+          } else if (result.reason === 'cooldown') {
+            const endsStr = result.cooldownEndsAt ? formatDistanceToNow(new Date(result.cooldownEndsAt), { addSuffix: true, locale: ptBR }) : '';
+            setEligibilityMessage(`Aguarde o cooldown para avaliar novamente (${endsStr}).`);
+          } else {
+            setEligibilityMessage('Não é possível avaliar no momento.');
+          }
+        } else {
+          setCanRate(true);
+          setEligibilityMessage('');
+        }
+      } catch (err) {
+        console.error('[Rating] eligibility check failed', err);
+        setCanRate(false);
+        setEligibilityMessage('Erro ao verificar elegibilidade. Tente novamente.');
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    run();
+  }, [activeTeam, user, selectedEventId, freelancerId]);
+
   const handleSubmitRating = async () => {
     if (!activeTeam || !user || !selectedEventId || rating === 0) {
       toast({
         title: "Erro",
         description: "Selecione um evento e uma avaliação",
         variant: "destructive"
+      });
+      return;
+    }
+    // Verificação final de elegibilidade antes de enviar
+    try {
+      const result = await checkFreelancerRatingEligibility({
+        teamId: activeTeam.id,
+        freelancerId,
+        eventId: selectedEventId,
+        userId: user.id,
+        cooldownMinutes: DEFAULT_RATING_COOLDOWN_MINUTES
+      });
+      if (!result.canRate) {
+        toast({
+          title: 'Limite de avaliação',
+          description: eligibilityMessage || 'Não é possível avaliar agora.',
+          variant: 'destructive'
+        });
+        return;
+      }
+    } catch (err) {
+      console.error('[Rating] eligibility check failed (submit)', err);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao verificar elegibilidade. Tente novamente.',
+        variant: 'destructive'
       });
       return;
     }
@@ -153,6 +228,11 @@ export const FreelancerRatingDialog: React.FC<FreelancerRatingDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
+            {eligibilityMessage && (
+              <p className="text-xs text-muted-foreground mt-2">
+                {eligibilityMessage}
+              </p>
+            )}
           </div>
 
           <div>
@@ -160,7 +240,9 @@ export const FreelancerRatingDialog: React.FC<FreelancerRatingDialogProps> = ({
               Avaliação (1 a 5 estrelas)
             </label>
             <div className="flex justify-center gap-2">
-              {renderStars()}
+              <div className={canRate ? '' : 'opacity-50 pointer-events-none'}>
+                {renderStars()}
+              </div>
             </div>
             {rating > 0 && (
               <p className="text-center text-sm text-muted-foreground mt-2">
@@ -180,7 +262,7 @@ export const FreelancerRatingDialog: React.FC<FreelancerRatingDialogProps> = ({
           </Button>
           <Button
             onClick={handleSubmitRating}
-            disabled={!selectedEventId || rating === 0 || isSubmitting}
+            disabled={!selectedEventId || rating === 0 || isSubmitting || !canRate || checking}
           >
             {isSubmitting ? 'Enviando...' : 'Enviar Avaliação'}
           </Button>

@@ -110,3 +110,31 @@ export const formatDateShort = (dateStr: string): string => {
     year: 'numeric'
   });
 };
+
+/**
+ * Formata uma lista de datas ISO (YYYY-MM-DD) para mostrar apenas os dias do mês separados por vírgula.
+ * Ex.: ['2025-11-05','2025-11-06','2025-11-07'] -> "5,6,7"
+ */
+export const formatPeriodDays = (dates: string[]): string => {
+  if (!dates || dates.length === 0) return '—';
+  
+  const dayNumbers = dates
+    .map(d => parseDateSafe(d))
+    .filter(dt => !isNaN(dt.getTime()))
+    .map(dt => dt.getDate());
+
+  if (dayNumbers.length === 0) return '—';
+
+  // Remover duplicidades e ordenar
+  const uniqueSorted = Array.from(new Set(dayNumbers)).sort((a, b) => a - b);
+
+  // Verificar se é uma sequência contínua (dias corridos)
+  const isConsecutive = uniqueSorted.every((d, i) => i === 0 || d === uniqueSorted[i - 1] + 1);
+
+  if (isConsecutive && uniqueSorted.length > 1) {
+    return `${uniqueSorted[0]} - ${uniqueSorted[uniqueSorted.length - 1]}`;
+  }
+
+  // Caso não seja contínuo, exibir lista simples
+  return uniqueSorted.join(', ');
+};

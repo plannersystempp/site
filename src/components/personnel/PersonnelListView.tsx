@@ -8,7 +8,9 @@ import { Pencil, Trash2, Mail, Phone, User, DollarSign, Briefcase, History } fro
 import { formatCurrency, formatPhoneNumber } from '@/utils/formatters';
 import type { Personnel, Func } from '@/contexts/EnhancedDataContext';
 import { FreelancerAverageRating } from './FreelancerAverageRating';
+import { FreelancerRatingMetrics } from './FreelancerRatingMetrics';
 import { FreelancerRatingDialog } from './FreelancerRatingDialog';
+import { FreelancerPerformanceCard } from './FreelancerPerformanceCard';
 import { WhatsAppButton } from './WhatsAppButton';
 import { PersonnelHistoryDialog } from './PersonnelHistory/PersonnelHistoryDialog';
 
@@ -32,6 +34,7 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
   const { userRole } = useTeam();
   const isCoordinator = userRole === 'coordinator';
   const [historyPersonnel, setHistoryPersonnel] = useState<Personnel | null>(null);
+  const [expandedPerformanceId, setExpandedPerformanceId] = useState<string | null>(null);
   
   return (
     <div className="space-y-3 overflow-x-auto">
@@ -67,22 +70,34 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-sm truncate">{person.name}</h3>
+                    <h3 className="font-semibold text-sm whitespace-normal break-words leading-snug">{person.name}</h3>
                     <Badge variant={person.type === 'fixo' ? 'default' : 'secondary'} className="text-xs flex-shrink-0">
                       {person.type === 'fixo' ? 'Fixo' : 'Freelancer'}
                     </Badge>
                     {person.type === 'freelancer' && (
-                      <div className="flex items-center gap-2">
-                        <FreelancerAverageRating freelancerId={person.id} showCount={false} />
-                        {onRate && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onRate(person)}
-                            className="h-6 px-2 text-xs"
-                          >
-                            Avaliar
-                          </Button>
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <div className="flex items-center gap-2">
+                          <FreelancerAverageRating
+                            freelancerId={person.id}
+                            showCount={false}
+                            clickable
+                            onClick={() => setExpandedPerformanceId(prev => prev === person.id ? null : person.id)}
+                          />
+                          {onRate && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onRate(person)}
+                              className="h-6 px-2 text-xs"
+                            >
+                              Avaliar
+                            </Button>
+                          )}
+                        </div>
+                        {expandedPerformanceId === person.id && (
+                          <div className="mt-2">
+                            <FreelancerPerformanceCard freelancerId={person.id} freelancerName={person.name} />
+                          </div>
                         )}
                       </div>
                     )}
@@ -203,7 +218,7 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                     <User className="w-5 h-5 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-base truncate">{person.name}</h3>
+                    <h3 className="font-semibold text-base whitespace-normal break-words leading-snug">{person.name}</h3>
                     <div className="space-y-1 mt-1">
                       <div className="flex flex-wrap gap-1">
                         <Badge variant={person.type === 'fixo' ? 'default' : 'secondary'} className="text-xs">
@@ -211,17 +226,29 @@ export const PersonnelListView: React.FC<PersonnelListViewProps> = ({
                         </Badge>
                       </div>
                       {person.type === 'freelancer' && (
-                        <div className="flex items-center gap-2">
-                          <FreelancerAverageRating freelancerId={person.id} showCount={true} />
-                          {onRate && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onRate(person)}
-                              className="h-6 px-2 text-xs"
-                            >
-                              Avaliar
-                            </Button>
+                        <div className="flex flex-col gap-1.5 w-full">
+                          <div className="flex items-center gap-2">
+                            <FreelancerAverageRating
+                              freelancerId={person.id}
+                              showCount={true}
+                              clickable
+                              onClick={() => setExpandedPerformanceId(prev => prev === person.id ? null : person.id)}
+                            />
+                            {onRate && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onRate(person)}
+                                className="h-6 px-2 text-xs"
+                              >
+                                Avaliar
+                              </Button>
+                            )}
+                          </div>
+                          {expandedPerformanceId === person.id && (
+                            <div className="mt-2">
+                              <FreelancerPerformanceCard freelancerId={person.id} freelancerName={person.name} />
+                            </div>
                           )}
                         </div>
                       )}

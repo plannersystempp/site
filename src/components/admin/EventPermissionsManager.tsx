@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import { supabase } from '@/integrations/supabase/client';
+import { TeamService } from '@/contexts/team/teamService';
 import { useQuery } from '@tanstack/react-query';
 import {
   useEventPermissions,
@@ -61,28 +62,9 @@ export const EventPermissionsManager: React.FC<EventPermissionsManagerProps> = (
     queryKey: ['team-coordinators', activeTeam?.id],
     queryFn: async () => {
       if (!activeTeam?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('team_members')
-        .select(`
-          user_id,
-          user_profiles!inner(
-            user_id,
-            name,
-            email
-          )
-        `)
-        .eq('team_id', activeTeam.id)
-        .eq('role', 'coordinator')
-        .eq('status', 'approved');
-
-      if (error) throw error;
-      
-      return data.map(tm => ({
-        id: tm.user_id,
-        name: (tm.user_profiles as any).name,
-        email: (tm.user_profiles as any).email
-      }));
+      // Usar serviço para evitar joins REST que podem causar 400
+      const list = await TeamService.getApprovedCoordinatorsWithProfiles(activeTeam.id);
+      return list;
     },
     enabled: !!activeTeam?.id && userRole === 'admin'
   });

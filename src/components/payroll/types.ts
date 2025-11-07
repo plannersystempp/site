@@ -23,6 +23,7 @@ export interface PayrollDetails {
   personName: string;
   personType: string;
   workDays: number;
+  workDaysList?: string[];
   regularHours: number;
   totalOvertimeHours: number;
   baseSalary: number;

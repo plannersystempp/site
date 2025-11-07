@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { formatDate, formatDateTime } from '@/utils/formatters';
@@ -33,9 +34,9 @@ export const AbsencesModal: React.FC<AbsencesModalProps> = ({
           <DialogTitle>
             Histórico de Faltas - {personnelName}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">
+          <DialogDescription>
             Evento: {eventName}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

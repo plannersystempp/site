@@ -192,12 +192,21 @@ export const usePayrollData = (selectedEventId: string) => {
       const paymentHistory = PayrollCalc.processPaymentHistory(paymentRecords);
       const hasEventCache = PayrollCalc.hasEventSpecificCache(allocationsData);
 
+      // Derivar lista de datas trabalhadas (dias únicos alocados menos faltas)
+      const uniqueDaysSet = new Set<string>();
+      allocationsData.forEach(a => (a.work_days || []).forEach(d => uniqueDaysSet.add(d)));
+      const absenceDates = absencesData.map(a => a.work_date);
+      const workedDates = Array.from(uniqueDaysSet)
+        .filter(d => !absenceDates.includes(d))
+        .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
       return {
         id: allocations[0].id,
         personnelId: person.id,
         personName: person.name,
         personType: person.type,
         workDays: totalWorkDays,
+        workDaysList: workedDates,
         regularHours,
         totalOvertimeHours: overtimeResult.displayHours,
         baseSalary,

@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { getSimplifiedName } from '@/utils/nameUtils';
 import { type Assignment, type Division } from '@/contexts/EnhancedDataContext';
 import { useToast } from '@/hooks/use-toast';
@@ -42,11 +43,22 @@ export const DivisionCard: React.FC<DivisionCardProps> = ({
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteAssignmentConfirmation, setDeleteAssignmentConfirmation] = useState<string | null>(null);
+  const [confirmPermanentDivision, setConfirmPermanentDivision] = useState(false);
+  const [confirmPermanentAssignment, setConfirmPermanentAssignment] = useState(false);
 
   const handleDeleteDivision = async () => {
+    if (!confirmPermanentDivision) {
+      toast({
+        title: 'Confirmação necessária',
+        description: 'Marque o checkbox “Entendo que esta ação é permanente”.',
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       await deleteDivision(division.id);
       setShowDeleteDialog(false);
+      setConfirmPermanentDivision(false);
       toast({
         title: "Sucesso",
         description: "Divisão excluída com sucesso!"
@@ -193,7 +205,7 @@ export const DivisionCard: React.FC<DivisionCardProps> = ({
       </CardContent>
       
       {/* Delete Dialog - Outside of DropdownMenu */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={(open) => { setShowDeleteDialog(open); if (!open) setConfirmPermanentDivision(false); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Divisão</AlertDialogTitle>
@@ -202,20 +214,31 @@ export const DivisionCard: React.FC<DivisionCardProps> = ({
               Esta ação não pode ser desfeita e removerá todas as alocações desta divisão.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="mt-4 flex items-center gap-2">
+            <Checkbox
+              id={`confirm-permanent-division-${division.id}`}
+              checked={confirmPermanentDivision}
+              onCheckedChange={(v) => setConfirmPermanentDivision(!!v)}
+            />
+            <label htmlFor={`confirm-permanent-division-${division.id}`} className="text-sm leading-none select-none">
+              Entendo que esta ação é permanente
+            </label>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteDivision}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={!confirmPermanentDivision}
             >
-              Excluir
+              Excluir definitivamente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
       
       {/* Delete Assignment Confirmation Dialog */}
-      <AlertDialog open={!!deleteAssignmentConfirmation} onOpenChange={() => setDeleteAssignmentConfirmation(null)}>
+      <AlertDialog open={!!deleteAssignmentConfirmation} onOpenChange={(open) => { if (!open) { setDeleteAssignmentConfirmation(null); setConfirmPermanentAssignment(false); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
@@ -223,18 +246,31 @@ export const DivisionCard: React.FC<DivisionCardProps> = ({
               Esta ação irá excluir permanentemente esta alocação. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="mt-4 flex items-center gap-2">
+            <Checkbox
+              id={`confirm-permanent-assignment-${division.id}`}
+              checked={confirmPermanentAssignment}
+              onCheckedChange={(v) => setConfirmPermanentAssignment(!!v)}
+            />
+            <label htmlFor={`confirm-permanent-assignment-${division.id}`} className="text-sm leading-none select-none">
+              Entendo que esta ação é permanente
+            </label>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
                 if (deleteAssignmentConfirmation) {
+                  if (!confirmPermanentAssignment) return;
                   deleteAssignment(deleteAssignmentConfirmation);
                   setDeleteAssignmentConfirmation(null);
+                  setConfirmPermanentAssignment(false);
                 }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={!confirmPermanentAssignment}
             >
-              Excluir
+              Excluir definitivamente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

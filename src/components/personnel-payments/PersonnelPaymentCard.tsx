@@ -15,9 +15,11 @@ import {
 import { MarkAsPaidDialog } from './MarkAsPaidDialog';
 import { PersonnelPaymentFormDialog } from './PersonnelPaymentFormDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { personnelPaymentsKeys } from '@/hooks/queries/usePersonnelPaymentsQuery';
 import { personnelPaymentsService } from '@/services/personnelPaymentsService';
 import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { parseDateSafe } from '@/utils/dateUtils';
 import type { PersonnelPayment } from '@/contexts/data/types';
 
@@ -29,6 +31,7 @@ export const PersonnelPaymentCard = ({ payment }: PersonnelPaymentCardProps) => 
   const [showMarkAsPaid, setShowMarkAsPaid] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [confirmPermanent, setConfirmPermanent] = useState(false);
   const queryClient = useQueryClient();
 
   const dueDate = parseDateSafe(payment.payment_due_date);
@@ -41,13 +44,34 @@ export const PersonnelPaymentCard = ({ payment }: PersonnelPaymentCardProps) => 
   };
 
   const handleDelete = async () => {
+    if (!confirmPermanent) {
+      toast({
+        title: 'Confirmação necessária',
+        description: 'Marque o checkbox “Entendo que esta ação é permanente”.',
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       await personnelPaymentsService.delete(payment.id);
-      queryClient.invalidateQueries({ queryKey: ['personnel-payments'] });
+      // Atualização otimista: remover do cache imediatamente
+      queryClient.setQueriesData<(any[])>({ queryKey: personnelPaymentsKeys.all }, (old) => {
+        if (!old) return old as any;
+        try {
+          return (old as any[]).filter((p) => p.id !== payment.id);
+        } catch {
+          return old as any;
+        }
+      });
+
+      // Invalidação para garantir sincronização com o backend
+      queryClient.invalidateQueries({ queryKey: personnelPaymentsKeys.all });
       toast({
         title: 'Pagamento excluído',
         description: 'O pagamento foi removido com sucesso.',
       });
+      setConfirmPermanent(false);
+      setShowDelete(false);
     } catch (error) {
       toast({
         title: 'Erro ao excluir',
@@ -167,18 +191,46 @@ export const PersonnelPaymentCard = ({ payment }: PersonnelPaymentCardProps) => 
         />
       )}
 
-      <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
+      <AlertDialog
+        open={showDelete}
+        onOpenChange={(open) => {
+          setShowDelete(open);
+          if (!open) setConfirmPermanent(false);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
+              <div className="mt-3 space-y-1 text-sm">
+                <div><strong>Pessoa:</strong> {payment.personnel?.name || 'N/A'}</div>
+                <div><strong>Valor:</strong> {Number(payment.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                <div><strong>Vencimento:</strong> {format(dueDate, 'dd/MM/yyyy', { locale: ptBR })}</div>
+                {payment.description && (
+                  <div><strong>Descrição:</strong> {payment.description}</div>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="mt-4 flex items-center gap-2">
+            <Checkbox
+              id="confirm-permanent"
+              checked={confirmPermanent}
+              onCheckedChange={(v) => setConfirmPermanent(!!v)}
+            />
+            <label htmlFor="confirm-permanent" className="text-sm leading-none select-none">
+              Entendo que esta ação é permanente
+            </label>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={!confirmPermanent}
+            >
+              Excluir definitivamente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

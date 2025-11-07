@@ -61,6 +61,7 @@ const DropdownMenuContent = React.forwardRef<
 >(({ className, sideOffset = 4, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal container={typeof document !== "undefined" ? document.body : undefined}>
     <DropdownMenuPrimitive.Content
+      data-allow-fixed="true"
       ref={ref}
       sideOffset={sideOffset}
       collisionPadding={8}

@@ -7,7 +7,9 @@ import { Pencil, Trash2, Mail, Phone, User, DollarSign, Briefcase, History } fro
 import { formatCurrency, formatPhoneNumber } from '@/utils/formatters';
 import type { Personnel, Func } from '@/contexts/EnhancedDataContext';
 import { FreelancerAverageRating } from './FreelancerAverageRating';
+import { FreelancerRatingMetrics } from './FreelancerRatingMetrics';
 import { FreelancerRatingDialog } from './FreelancerRatingDialog';
+import { FreelancerPerformanceCard } from './FreelancerPerformanceCard';
 import { WhatsAppButton } from './WhatsAppButton';
 import { PersonnelHistoryDialog } from './PersonnelHistory/PersonnelHistoryDialog';
 
@@ -31,6 +33,7 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
   const { userRole } = useTeam();
   const isCoordinator = userRole === 'coordinator';
   const [historyPersonnel, setHistoryPersonnel] = useState<Personnel | null>(null);
+  const [expandedPerformanceId, setExpandedPerformanceId] = useState<string | null>(null);
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
@@ -64,7 +67,7 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
                     <User className="w-5 h-5 sm:w-4 sm:h-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-base sm:text-sm truncate">{person.name}</h3>
+                    <h3 className="font-semibold text-base sm:text-sm whitespace-normal break-words leading-snug">{person.name}</h3>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <Badge 
                         variant={person.type === 'fixo' ? 'default' : 'secondary'}
@@ -188,16 +191,28 @@ export const PersonnelGridView: React.FC<PersonnelGridViewProps> = ({
                 {/* Freelancer rating - Bottom action */}
                 {person.type === 'freelancer' && (
                   <div className="space-y-2 pt-2 border-t">
-                    <FreelancerAverageRating freelancerId={person.id} showCount={false} />
-                    {onRate && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onRate(person)}
-                        className="w-full text-xs h-8 min-h-[44px] sm:min-h-0"
-                      >
-                        Avaliar
-                      </Button>
+                    <div className="flex items-center gap-2">
+                      <FreelancerAverageRating
+                        freelancerId={person.id}
+                        showCount={false}
+                        clickable
+                        onClick={() => setExpandedPerformanceId(prev => prev === person.id ? null : person.id)}
+                      />
+                      {onRate && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onRate(person)}
+                          className="text-xs h-8 min-h-[32px] sm:min-h-0"
+                        >
+                          Avaliar
+                        </Button>
+                      )}
+                    </div>
+                    {expandedPerformanceId === person.id && (
+                      <div className="mt-1">
+                        <FreelancerPerformanceCard freelancerId={person.id} freelancerName={person.name} />
+                      </div>
                     )}
                   </div>
                 )}

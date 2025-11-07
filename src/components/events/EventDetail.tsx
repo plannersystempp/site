@@ -15,6 +15,7 @@ import { formatDateBR } from '@/utils/dateUtils';
 import { FreelancerRating } from '@/components/personnel/FreelancerRating';
 import { SkeletonCard } from '@/components/shared/SkeletonCard';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { AbsenceHistory } from './AbsenceHistory';
 import { EventCostsTab } from './costs/EventCostsTab';
@@ -32,6 +33,7 @@ export const EventDetail: React.FC = () => {
   const { userRole } = useTeam();
   const [showEditForm, setShowEditForm] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('allocations');
+  const [confirmPermanent, setConfirmPermanent] = useState(false);
 
   // Buscar permissões do coordenador
   const { data: canView, isLoading: checkingPermission } = useHasEventPermission(id || '', 'view');
@@ -184,12 +186,21 @@ export const EventDetail: React.FC = () => {
   const totalOvertimeHours = eventWorkLogs.reduce((sum, log) => sum + log.overtime_hours, 0);
 
   const handleDeleteEvent = async () => {
+    if (!confirmPermanent) {
+      toast({
+        title: 'Confirmação necessária',
+        description: 'Marque o checkbox “Entendo que esta ação é permanente”.',
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       await deleteEvent(event.id);
       toast({
         title: "Sucesso",
         description: "Evento excluído com sucesso!",
       });
+      setConfirmPermanent(false);
       navigate('/app/eventos');
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -263,7 +274,7 @@ export const EventDetail: React.FC = () => {
             <>
               {/* Botão de Deletar (apenas admin) */}
               {userRole === 'admin' && (
-                <AlertDialog>
+                <AlertDialog onOpenChange={(open) => { if (!open) setConfirmPermanent(false); }}>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive">
                       <Trash2 className="w-4 h-4 mr-2" />
@@ -278,9 +289,19 @@ export const EventDetail: React.FC = () => {
                         Esta ação não pode ser desfeita e removerá todas as alocações e registros relacionados.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <div className="mt-4 flex items-center gap-2">
+                      <Checkbox
+                        id={`confirm-permanent-event-detail-${event.id}`}
+                        checked={confirmPermanent}
+                        onCheckedChange={(v) => setConfirmPermanent(!!v)}
+                      />
+                      <label htmlFor={`confirm-permanent-event-detail-${event.id}`} className="text-sm leading-none select-none">
+                        Entendo que esta ação é permanente
+                      </label>
+                    </div>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={!confirmPermanent}>
                         Excluir
                       </AlertDialogAction>
                     </AlertDialogFooter>

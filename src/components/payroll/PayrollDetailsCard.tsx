@@ -12,6 +12,17 @@ import { AbsencesModal } from '../personnel/AbsencesModal';
 import { PartialPaymentDialog } from './PartialPaymentDialog';
 import { formatCurrency } from '@/utils/formatters';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface PayrollDetailsCardProps {
   detail: PayrollDetails;
@@ -40,6 +51,8 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
   const [showAbsencesModal, setShowAbsencesModal] = useState(false);
   const [showPartialPaymentDialog, setShowPartialPaymentDialog] = useState(false);
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+  const [confirmPermanent, setConfirmPermanent] = useState(false);
 
   const copyPixKey = async () => {
     if (pixKey) {
@@ -220,7 +233,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onCancelPayment(payment.id, detail.personName)}
+                      onClick={() => setConfirmCancelId(payment.id)}
                       disabled={loading}
                       className={`${
                         isMobile 
@@ -311,6 +324,65 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           }}
           loading={loading}
         />
+
+        {/* Confirmação de cancelamento de pagamento */}
+        <AlertDialog
+          open={!!confirmCancelId}
+          onOpenChange={(open) => {
+            if (!open) {
+              setConfirmCancelId(null);
+              setConfirmPermanent(false);
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancelar registro de pagamento</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja cancelar este registro de pagamento? Esta ação é permanente e removerá o registro desta folha.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {(() => {
+              const pay = detail.paymentHistory.find(p => p.id === confirmCancelId);
+              if (!pay) return null;
+              return (
+                <div className="mt-3 space-y-1 text-sm">
+                  <div><strong>Profissional:</strong> {detail.personName}</div>
+                  <div><strong>Valor:</strong> {formatCurrency(pay.amount)}</div>
+                  <div><strong>Pago em:</strong> {new Date(pay.paidAt).toLocaleString('pt-BR')}</div>
+                  {pay.notes && (
+                    <div><strong>Observações:</strong> {pay.notes}</div>
+                  )}
+                </div>
+              );
+            })()}
+            <div className="mt-4 flex items-center gap-2">
+              <Checkbox
+                id={`confirm-permanent-cancel-${detail.id}`}
+                checked={confirmPermanent}
+                onCheckedChange={(v) => setConfirmPermanent(!!v)}
+              />
+              <label htmlFor={`confirm-permanent-cancel-${detail.id}`} className="text-sm leading-none select-none">
+                Entendo que esta ação é permanente
+              </label>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (!confirmPermanent || !confirmCancelId) return;
+                  onCancelPayment(confirmCancelId, detail.personName);
+                  setConfirmCancelId(null);
+                  setConfirmPermanent(false);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={!confirmPermanent}
+              >
+                Cancelar definitivamente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );
