@@ -56,7 +56,9 @@ export const FreelancerRatingMetrics: React.FC<FreelancerRatingMetricsProps> = (
         filter: `freelancer_id=eq.${freelancerId}`
       }, () => fetchMetrics())
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [activeTeam, freelancerId]);
 
   if (loading) {

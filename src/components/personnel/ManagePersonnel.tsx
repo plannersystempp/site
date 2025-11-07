@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useEnhancedData, type Personnel, type Func } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -73,6 +73,13 @@ export const ManagePersonnel: React.FC = () => {
   };
 
   const isAdminOrCoordinator = user?.role === 'admin' || user?.role === 'coordinator';
+  
+  // Debug: Log user role
+  useEffect(() => {
+    console.log('[ManagePersonnel] User:', user);
+    console.log('[ManagePersonnel] User role:', user?.role);
+    console.log('[ManagePersonnel] isAdminOrCoordinator:', isAdminOrCoordinator);
+  }, [user, isAdminOrCoordinator]);
 
   const handleAddPersonnel = async () => {
     if (!activeTeam) return;
