@@ -88,18 +88,38 @@ Deno.serve(async (req) => {
     const DEMO_CNPJ = '12.345.678/0001-90';
 
     // 1. Deletar conta demo anterior se existir
-    console.log('🗑️ Removendo conta demo anterior...');
+    console.log('🗑️ Removendo conta demo anterior (dados completos)...');
     
-    // Deletar equipe pelo CNPJ ou nome
+    // Buscar equipe demo existente
     const { data: oldTeams } = await supabaseAdmin
       .from('teams')
       .select('id')
       .or(`name.eq.${DEMO_TEAM_NAME},cnpj.eq.${DEMO_CNPJ}`);
     
     if (oldTeams && oldTeams.length > 0) {
+      console.log(`🗑️ Encontradas ${oldTeams.length} equipe(s) demo antigas. Deletando...`);
       for (const team of oldTeams) {
+        // Deletar manualmente dados relacionados para garantir limpeza
+        await supabaseAdmin.from('personnel_payments').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('payroll_closings').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('absences').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('freelancer_ratings').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('event_supplier_costs').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('personnel_allocations').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('event_divisions').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('events').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('supplier_items').delete().in('supplier_id', 
+          (await supabaseAdmin.from('suppliers').select('id').eq('team_id', team.id)).data?.map(s => s.id) || []
+        );
+        await supabaseAdmin.from('suppliers').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('personnel_functions').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('personnel').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('functions').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('team_subscriptions').delete().eq('team_id', team.id);
+        await supabaseAdmin.from('team_members').delete().eq('team_id', team.id);
         await supabaseAdmin.from('teams').delete().eq('id', team.id);
       }
+      console.log('✅ Dados da conta demo anterior deletados completamente');
     }
     
     // Não deletamos o usuário demo; reutilizaremos se já existir
@@ -154,52 +174,26 @@ Deno.serve(async (req) => {
       is_approved: true
     }, { onConflict: 'user_id' });
 
-    // 4. Buscar ou criar equipe demo (idempotente por CNPJ)
-    console.log('🏢 Criando equipe demo...');
-    const { data: existingTeam, error: existingTeamError } = await supabaseAdmin
+    // 4. Criar equipe demo (sempre nova após limpeza)
+    console.log('🏢 Criando nova equipe demo...');
+    const invite = `DEMO${Date.now().toString().slice(-5)}`;
+    const { data: newTeam, error: teamError } = await supabaseAdmin
       .from('teams')
-      .select('id, name, invite_code, owner_id')
-      .eq('cnpj', DEMO_CNPJ)
-      .maybeSingle();
+      .insert({
+        name: DEMO_TEAM_NAME,
+        cnpj: DEMO_CNPJ,
+        owner_id: demoUserId,
+        invite_code: invite,
+        is_system: true
+      })
+      .select()
+      .single();
 
-    if (existingTeamError) {
-      console.error('❌ Erro ao buscar equipe existente:', existingTeamError.message);
+    if (teamError || !newTeam) {
+      throw new Error(`Failed to create team: ${teamError?.message}`);
     }
-
-    let teamRow: any = null;
-
-    if (existingTeam) {
-      console.log('ℹ️ Equipe demo já existe. Reutilizando e atualizando metadados...');
-      const { data: updatedTeam, error: updateTeamError } = await supabaseAdmin
-        .from('teams')
-        .update({ name: DEMO_TEAM_NAME, owner_id: demoUserId, is_system: true })
-        .eq('id', existingTeam.id)
-        .select()
-        .single();
-
-      if (updateTeamError || !updatedTeam) {
-        throw new Error(`Failed to update existing team: ${updateTeamError?.message}`);
-      }
-      teamRow = updatedTeam;
-    } else {
-      const invite = `DEMO${Math.floor(Math.random() * 100000)}`;
-      const { data: newTeam, error: teamError } = await supabaseAdmin
-        .from('teams')
-        .insert({
-          name: DEMO_TEAM_NAME,
-          cnpj: DEMO_CNPJ,
-          owner_id: demoUserId,
-          invite_code: invite,
-          is_system: true
-        })
-        .select()
-        .single();
-
-      if (teamError || !newTeam) {
-        throw new Error(`Failed to create team: ${teamError?.message}`);
-      }
-      teamRow = newTeam;
-    }
+    
+    const teamRow = newTeam;
 
     const teamId = teamRow.id;
 
@@ -211,8 +205,8 @@ Deno.serve(async (req) => {
       status: 'approved'
     }, { onConflict: 'team_id,user_id' });
 
-    // 6. Criar assinatura Enterprise permanente
-    console.log('💎 Criando assinatura Enterprise...');
+    // 6. Criar assinatura Enterprise permanente (upsert para evitar duplicação)
+    console.log('💎 Criando/Atualizando assinatura Enterprise...');
     const { data: enterprisePlan } = await supabaseAdmin
       .from('subscription_plans')
       .select('id')
@@ -220,14 +214,25 @@ Deno.serve(async (req) => {
       .single();
 
     if (enterprisePlan) {
-      await supabaseAdmin.from('team_subscriptions').insert({
-        team_id: teamId,
-        plan_id: enterprisePlan.id,
-        status: 'active',
-        current_period_starts_at: new Date().toISOString(),
-        current_period_ends_at: '2099-12-31T23:59:59Z',
-        trial_ends_at: null
-      });
+      const { error: subError } = await supabaseAdmin
+        .from('team_subscriptions')
+        .upsert({
+          team_id: teamId,
+          plan_id: enterprisePlan.id,
+          status: 'active',
+          current_period_starts_at: new Date().toISOString(),
+          current_period_ends_at: '2099-12-31T23:59:59Z',
+          trial_ends_at: null
+        }, { 
+          onConflict: 'team_id',
+          ignoreDuplicates: false 
+        });
+      
+      if (subError) {
+        console.error('⚠️ Erro ao criar assinatura:', subError.message);
+      } else {
+        console.log('✅ Assinatura Enterprise criada/atualizada');
+      }
     }
 
     // 7. Popular com dados (funções já são criadas via trigger)
