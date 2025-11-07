@@ -47,6 +47,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import ManageSubscription from './pages/ManageSubscription';
 import MonthlyPayrollPage from './pages/MonthlyPayrollPage';
 import { useRealtimeSync } from './hooks/queries/useRealtimeSync';
+import { SetDemoRoleAdmin } from './pages/SetDemoRoleAdmin';
 
 
 
@@ -357,6 +358,12 @@ const AppContent = () => {
                   </RouteErrorBoundary>
                 } />
               )}
+              {/* Utilitário: atualizar papel da conta demo para admin */}
+              <Route path="/debug/set-role-admin" element={
+                <RouteErrorBoundary routeName="Debug - Set Role Admin">
+                  <SetDemoRoleAdmin />
+                </RouteErrorBoundary>
+              } />
               <Route path="*" element={<Navigate to="/app" replace />} />
             </Routes>
           </Layout>
