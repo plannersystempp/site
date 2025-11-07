@@ -70,7 +70,8 @@ const SheetContent = React.forwardRef<
         onOpenAutoFocus={() => setIsOpen(true)}
         onCloseAutoFocus={() => setIsOpen(false)}
         onEscapeKeyDown={() => setIsOpen(false)}
-        onPointerDownOutside={() => setIsOpen(false)}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
         {...props}
       >
         {children}
