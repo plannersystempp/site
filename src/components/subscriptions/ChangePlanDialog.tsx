@@ -77,6 +77,10 @@ export function ChangePlanDialog({
     }
   };
 
+  const handleClose = () => {
+    onOpenChange(false);
+  };
+
   const handleChangePlan = async () => {
     if (!selectedPlanId) {
       toast({
@@ -222,9 +226,3 @@ export function ChangePlanDialog({
     </Dialog>
   );
 }
-  const handleClose = () => {
-    onOpenChange(false);
-    if (returnFocusTo?.current) {
-      returnFocusTo.current.focus();
-    }
-  };

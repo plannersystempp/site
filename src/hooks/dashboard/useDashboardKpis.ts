@@ -20,9 +20,15 @@ export const useDashboardKpis = (superAdminPersonnelCount: number | null) => {
     ? superAdminPersonnelCount
     : personnel.length;
 
+  // Converter eventos para o formato esperado
+  const eventsFormatted = useMemo(() => 
+    events.map(e => ({ ...e, name: e.name || '', status: e.status || 'planejado' })),
+    [events]
+  );
+
   return useMemo(() => computeDashboardKpis({
-    events,
+    events: eventsFormatted,
     functionsCount,
     personnelCount,
-  }), [events, functionsCount, personnelCount]);
+  }), [eventsFormatted, functionsCount, personnelCount]);
 };

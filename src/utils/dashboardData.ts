@@ -3,6 +3,7 @@
 
 export interface EventItem {
   id: string;
+  name?: string;
   status: string;
   start_date?: string; // ISO date (YYYY-MM-DD)
   end_date?: string;   // ISO date (YYYY-MM-DD)

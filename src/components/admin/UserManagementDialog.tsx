@@ -207,8 +207,12 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
     }
   };
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{getDialogTitle()}</DialogTitle>
@@ -288,9 +292,3 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
     </Dialog>
   );
 };
-  const handleClose = () => {
-    onClose();
-    if (returnFocusTo?.current) {
-      returnFocusTo.current.focus();
-    }
-  };

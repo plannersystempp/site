@@ -147,12 +147,23 @@ const Dashboard = () => {
 
   // Contagens para chips (useMemo incondicionais)
   const eventsCounts = useMemo(() => countEventsByRanges(events, currentDate), [events, nowKey]);
+  
+  // Converter eventos para formato compatível com filtros
+  const upcomingPaymentsFormatted = useMemo(() => 
+    upcomingPayments.map(e => ({ 
+      ...e, 
+      name: e.name || 'Evento sem nome',
+      payment_due_date: e.payment_due_date || e.end_date
+    })), 
+    [upcomingPayments]
+  );
+  
   const paymentsIntervalCounts: Record<DateRange, number> = useMemo(() => ({
-    hoje: filterByDateRange(upcomingPayments, 'hoje', currentDate).length,
-    '7dias': filterByDateRange(upcomingPayments, '7dias', currentDate).length,
-    '30dias': filterByDateRange(upcomingPayments, '30dias', currentDate).length,
-    todos: upcomingPayments.length,
-  }), [upcomingPayments, nowKey]);
+    hoje: filterByDateRange(upcomingPaymentsFormatted, 'hoje', currentDate).length,
+    '7dias': filterByDateRange(upcomingPaymentsFormatted, '7dias', currentDate).length,
+    '30dias': filterByDateRange(upcomingPaymentsFormatted, '30dias', currentDate).length,
+    todos: upcomingPaymentsFormatted.length,
+  }), [upcomingPaymentsFormatted, nowKey]);
   
   // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS HAVE BEEN CALLED
   if (!activeTeam && !isSuperAdmin) {
@@ -386,15 +397,13 @@ const Dashboard = () => {
                 <EmptyState
                   title="Nenhum evento em andamento"
                   description="Não há eventos acontecendo no momento."
-                  showActiveIcon
-                  activeVariant="outline"
                 />
               ) : (
             <div className="space-y-2">
                   {eventsInProgress.map(event => (
                     <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-card">
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{event.name}</h4>
+                        <h4 className="font-medium truncate">{event.name || 'Evento sem nome'}</h4>
                         <p className="text-sm text-muted-foreground">
                           {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
                         </p>
@@ -424,7 +433,7 @@ const Dashboard = () => {
                   label="Intervalo"
                   options={['hoje','7dias','30dias','todos'] as const}
                   value={eventsRange}
-                  onChange={setEventsRange}
+                  onChange={(v) => setEventsRange(v)}
                   showCounts
                   counts={eventsCounts}
                   showActiveIcon
@@ -476,7 +485,7 @@ const Dashboard = () => {
                   label="Intervalo"
                   options={['hoje','7dias','30dias','todos'] as const}
                   value={paymentsRange}
-                  onChange={setPaymentsRange}
+                  onChange={(v) => setPaymentsRange(v)}
                   showCounts
                   counts={paymentsIntervalCounts}
                   showActiveIcon
@@ -491,14 +500,11 @@ const Dashboard = () => {
               ) : (
                 <div className="space-y-2">
                   {sortByNearestDate(
-                      filterByDateRange(upcomingPayments, paymentsRange, currentDate),
+                      filterByDateRange(upcomingPaymentsFormatted, paymentsRange, currentDate),
                       currentDate
                     ).map(event => {
-                    const displayDate = event.payment_due_date 
-                      ? formatDateShort(event.payment_due_date)
-                      : event.end_date 
-                        ? formatDateShort(event.end_date)
-                        : 'Data não definida';
+                    const dueDate = event.payment_due_date || event.end_date;
+                    const displayDate = dueDate ? formatDateShort(dueDate) : 'Data não definida';
                     
                     return (
                       <button 

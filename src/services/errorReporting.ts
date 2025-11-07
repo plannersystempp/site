@@ -381,6 +381,23 @@ class ErrorReportingService {
       return '{}';
     }
   }
+
+  // Método safeStringify declarado para TypeScript
+  private safeStringify(obj: any): string {
+    const cache = new WeakSet();
+    const replacer = (key: string, value: any) => {
+      if (typeof value === 'function' || typeof value === 'symbol') return undefined;
+      if (value instanceof Error) {
+        return { message: value.message, stack: value.stack, name: value.name };
+      }
+      if (typeof value === 'object' && value !== null) {
+        if (cache.has(value)) return '[Circular]';
+        cache.add(value);
+      }
+      return value;
+    };
+    return JSON.stringify(obj, replacer);
+  }
 }
 
 // Instância singleton
