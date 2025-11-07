@@ -1699,6 +1699,7 @@ export type Database = {
           id: string
           invite_code: string
           is_system: boolean
+          monthly_payment_day: number | null
           name: string
           owner_id: string
           updated_at: string | null
@@ -1711,6 +1712,7 @@ export type Database = {
           id?: string
           invite_code: string
           is_system?: boolean
+          monthly_payment_day?: number | null
           name: string
           owner_id: string
           updated_at?: string | null
@@ -1723,6 +1725,7 @@ export type Database = {
           id?: string
           invite_code?: string
           is_system?: boolean
+          monthly_payment_day?: number | null
           name?: string
           owner_id?: string
           updated_at?: string | null

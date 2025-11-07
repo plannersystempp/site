@@ -11,11 +11,13 @@ import {
   LogOut,
   User,
   ChevronUp,
+  ChevronDown,
   Briefcase,
   Bug,
   ShieldCheck,
   Package,
-  CalendarClock
+  CalendarClock,
+  CalendarRange
 } from 'lucide-react';
 import {
   Sidebar,
@@ -28,8 +30,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +66,14 @@ const menuItems = [
 
 const financialItems = [
   { title: 'Custos', url: '/app/custos', icon: DollarSign },
-  { title: 'Folha de Pagamento', url: '/app/folha', icon: Calculator },
+  { 
+    title: 'Folha de Pagamento', 
+    icon: Calculator,
+    submenu: [
+      { title: 'Por Evento (Freelancers)', url: '/app/folha', icon: Calendar },
+      { title: 'Mensal (Fixos)', url: '/app/folha/mensal', icon: CalendarRange },
+    ]
+  },
   { title: 'Pagamentos Avulsos', url: '/app/pagamentos-avulsos', icon: CalendarClock },
 ];
 
@@ -74,6 +91,9 @@ export const AppSidebar = () => {
   const { userRole, activeTeam } = useTeam();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showErrorReportDialog, setShowErrorReportDialog] = useState(false);
+  const [payrollMenuOpen, setPayrollMenuOpen] = useState(
+    location.pathname.startsWith('/app/folha')
+  );
   const reportButtonRef = useRef<HTMLButtonElement>(null);
   const isMobile = useIsMobile();
   const { setTheme } = useTheme();
@@ -90,6 +110,9 @@ export const AppSidebar = () => {
   const isActive = (path: string) => {
     if (path === '/app') {
       return location.pathname === '/app' || location.pathname === '/app/';
+    }
+    if (path === '/app/folha') {
+      return location.pathname === '/app/folha' || location.pathname === '/app/folha/';
     }
     return location.pathname === path;
   };
@@ -156,12 +179,42 @@ export const AppSidebar = () => {
               <SidebarMenu>
                 {financialItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <Link to={item.url} className="flex items-center gap-2" onClick={handleLinkClick}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
+                    {item.submenu ? (
+                      <Collapsible
+                        open={payrollMenuOpen}
+                        onOpenChange={setPayrollMenuOpen}
+                        className="group/collapsible"
+                      >
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton className="w-full">
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                            <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {item.submenu.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton asChild isActive={isActive(subItem.url)}>
+                                  <Link to={subItem.url} onClick={handleLinkClick}>
+                                    <subItem.icon className="h-4 w-4" />
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ) : (
+                      <SidebarMenuButton asChild isActive={isActive(item.url!)}>
+                        <Link to={item.url!} className="flex items-center gap-2" onClick={handleLinkClick}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    )}
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>

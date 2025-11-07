@@ -301,6 +301,11 @@ const AppContent = () => {
                   <PayrollEventView />
                 </RouteErrorBoundary>
               } />
+              <Route path="/folha/mensal" element={
+                <RouteErrorBoundary routeName="Folha Mensal">
+                  {React.createElement(React.lazy(() => import('./pages/MonthlyPayrollPage')))}
+                </RouteErrorBoundary>
+              } />
               <Route path="/pagamentos-avulsos" element={
                 <RouteErrorBoundary routeName="Pagamentos Avulsos">
                   <PersonnelPaymentsPage />

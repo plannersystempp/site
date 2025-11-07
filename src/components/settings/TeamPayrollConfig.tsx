@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 interface TeamPayrollConfigData {
   threshold: number;
   convertEnabled: boolean;
+  monthlyPaymentDay: number;
 }
 
 export const TeamPayrollConfig: React.FC = () => {
@@ -20,7 +21,8 @@ export const TeamPayrollConfig: React.FC = () => {
   const { toast } = useToast();
   const [config, setConfig] = useState<TeamPayrollConfigData>({
     threshold: 8,
-    convertEnabled: false
+    convertEnabled: false,
+    monthlyPaymentDay: 5
   });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -33,7 +35,7 @@ export const TeamPayrollConfig: React.FC = () => {
         setFetching(true);
         const { data, error } = await supabase
           .from('teams')
-          .select('default_overtime_threshold_hours, default_convert_overtime_to_daily')
+          .select('default_overtime_threshold_hours, default_convert_overtime_to_daily, monthly_payment_day')
           .eq('id', activeTeam.id)
           .single();
 
@@ -42,7 +44,8 @@ export const TeamPayrollConfig: React.FC = () => {
         if (data) {
           setConfig({
             threshold: data.default_overtime_threshold_hours || 8,
-            convertEnabled: data.default_convert_overtime_to_daily || false
+            convertEnabled: data.default_convert_overtime_to_daily || false,
+            monthlyPaymentDay: data.monthly_payment_day || 5
           });
         }
       } catch (error) {
@@ -69,7 +72,8 @@ export const TeamPayrollConfig: React.FC = () => {
         .from('teams')
         .update({
           default_overtime_threshold_hours: config.threshold,
-          default_convert_overtime_to_daily: config.convertEnabled
+          default_convert_overtime_to_daily: config.convertEnabled,
+          monthly_payment_day: config.monthlyPaymentDay
         })
         .eq('id', activeTeam.id);
 
@@ -102,11 +106,12 @@ export const TeamPayrollConfig: React.FC = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Configurações de Horas Extras</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Configurações de Horas Extras</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
         {/* Switch principal */}
         <div className="flex items-center justify-between space-x-4">
           <div className="flex-1">
@@ -170,5 +175,41 @@ export const TeamPayrollConfig: React.FC = () => {
         </Button>
       </CardContent>
     </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Configurações de Folha Mensal (Fixos)</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="payment-day">Dia do Pagamento Mensal</Label>
+          <Input
+            id="payment-day"
+            type="number"
+            min="1"
+            max="28"
+            value={config.monthlyPaymentDay}
+            onChange={(e) => 
+              setConfig({ ...config, monthlyPaymentDay: Number(e.target.value) })
+            }
+          />
+          <p className="text-sm text-muted-foreground">
+            Dia do mês em que os funcionários fixos recebem (1-28)
+          </p>
+        </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Funcionários fixos recebem mensalmente: salário base + cachês de todos os eventos do mês + horas extras.
+          </AlertDescription>
+        </Alert>
+
+        <Button onClick={handleSave} disabled={loading || fetching}>
+          {loading ? 'Salvando...' : 'Salvar Configurações'}
+        </Button>
+      </CardContent>
+    </Card>
+    </div>
   );
 };

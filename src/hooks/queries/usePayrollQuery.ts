@@ -136,6 +136,12 @@ export const usePayrollQuery = (eventId: string) => {
       const person = personnel.find(p => p.id === personnelId);
       if (!person) return null;
 
+      // ✅ FILTRO: Funcionários fixos não aparecem na folha de eventos
+      // Eles são pagos mensalmente em data específica
+      if (person.type === 'fixo') {
+        return null;
+      }
+
       // Filtrar logs e ausências
       const personWorkLogs = eventData.workLogs.filter(log => log.employee_id === personnelId);
       const personAbsences = (eventData.absences as any[]).filter((absence: any) => 

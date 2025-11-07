@@ -143,7 +143,7 @@ export const PayrollEventView: React.FC = () => {
         
         <div className="space-y-1">
           <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold leading-tight`}>
-            Folha de Pagamento
+            Folha de Pagamento - Freelancers
           </h1>
           <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} text-muted-foreground`}>
             {selectedEvent.name}
@@ -156,6 +156,9 @@ export const PayrollEventView: React.FC = () => {
                 ` - ${formatDateBR(selectedEvent.end_date)}`}
             </span>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            * Funcionários fixos são pagos mensalmente e não aparecem nesta folha de evento
+          </p>
         </div>
       </div>
 
