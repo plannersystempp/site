@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTeam } from '@/contexts/TeamContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { SubscriptionStatusBadge } from '@/components/shared/SubscriptionStatusBadge';
 import { Loader2, ArrowLeft, CreditCard, Calendar, Users, FileText, Briefcase, Shield, AlertCircle, TrendingUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -83,16 +83,7 @@ export default function ManageSubscription() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const badges: Record<string, { variant: any; label: string }> = {
-      active: { variant: 'default', label: 'Ativa' },
-      trial: { variant: 'secondary', label: 'Trial' },
-      trial_expired: { variant: 'destructive', label: 'Trial Expirado' },
-      canceled: { variant: 'outline', label: 'Cancelada' }
-    };
-    const badge = badges[status] || { variant: 'outline', label: status };
-    return <Badge variant={badge.variant}>{badge.label}</Badge>;
-  };
+  // Exibição de status de assinatura padronizada
 
   const formatLimit = (value: number | null) => {
     return value === null ? 'Ilimitado' : value.toString();
@@ -171,7 +162,7 @@ export default function ManageSubscription() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-2xl font-bold">{subscription.plan_name}</p>
-                  <p className="text-sm text-muted-foreground">Status: {getStatusBadge(subscription.status)}</p>
+                  <p className="text-sm text-muted-foreground">Status: <SubscriptionStatusBadge status={subscription.status as any} /></p>
                 </div>
               </div>
 

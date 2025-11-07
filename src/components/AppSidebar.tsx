@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -74,6 +74,7 @@ export const AppSidebar = () => {
   const { userRole, activeTeam } = useTeam();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showErrorReportDialog, setShowErrorReportDialog] = useState(false);
+  const reportButtonRef = useRef<HTMLButtonElement>(null);
   const isMobile = useIsMobile();
   const { setTheme } = useTheme();
   const { setOpenMobile } = useSidebar();
@@ -101,7 +102,7 @@ export const AppSidebar = () => {
   };
 
   return (
-    <Sidebar>
+    <Sidebar aria-label="Barra lateral de navegação">
       <SidebarHeader className="p-4">
         <Link to="/app" className="block">
           <div className="flex items-center gap-2">
@@ -119,6 +120,7 @@ export const AppSidebar = () => {
       </SidebarHeader>
 
       <SidebarContent>
+        <nav aria-label="Navegação principal">
         <SidebarGroup>
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -206,6 +208,7 @@ export const AppSidebar = () => {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+        </nav>
       </SidebarContent>
 
       <SidebarFooter className="p-4 space-y-2">
@@ -214,6 +217,7 @@ export const AppSidebar = () => {
           size="sm"
           onClick={() => setShowErrorReportDialog(true)}
           className="w-full justify-start text-xs"
+          ref={reportButtonRef}
         >
           <Bug className="mr-2 h-3 w-3" />
           Reportar Erro
@@ -334,6 +338,7 @@ export const AppSidebar = () => {
         <ErrorReportDialog 
           isOpen={showErrorReportDialog} 
           onClose={() => setShowErrorReportDialog(false)} 
+          returnFocusTo={reportButtonRef}
         />
       </SidebarFooter>
     </Sidebar>

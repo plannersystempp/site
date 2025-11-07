@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Printer, Calendar } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { usePayrollData } from '@/components/payroll/usePayrollData';
+import { PayrollPrintTable } from '@/components/payroll/PayrollPrintTable';
 
 export const PayrollReportPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -298,70 +299,12 @@ export const PayrollReportPage: React.FC = () => {
       </div>
 
       {/* Conteúdo do relatório */}
-      <div className="payroll-report-page print-section p-8 max-w-[210mm] mx-auto">
-        {/* Cabeçalho */}
-        <div className="mb-8 text-center">
-          <h2 className="payroll-report-subtitle">Relatório de Folha de Pagamento</h2>
-          <div className="payroll-report-info">
-            <div style={{fontSize: '18px', fontWeight: 'bold', color: '#1e40af', marginBottom: '8px'}}>
-              {activeTeam?.name}
-            </div>
-            <div style={{fontSize: '16px', fontWeight: '600', color: '#059669', marginBottom: '4px'}}>
-              Evento: {selectedEvent?.name}
-            </div>
-            <div style={{fontSize: '14px', color: '#64748b'}}>
-              Data: {new Date().toLocaleDateString('pt-BR')}
-            </div>
-          </div>
-        </div>
-
-        {/* Tabela */}
-        <div className="payroll-table-container">
-          <table className="payroll-table">
-            <thead>
-              <tr>
-                <th className="payroll-th">Nome</th>
-                <th className="payroll-th text-right">Cachê</th>
-                <th className="payroll-th text-right">Hora Extra</th>
-                <th className="payroll-th text-right">Total</th>
-                {hasPartialPayments && (
-                  <th className="payroll-th text-right">Pago (parcial)</th>
-                )}
-                <th className="payroll-th text-right">Pendente</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payrollDetails.map((item, index) => (
-                <tr key={index} className={index % 2 === 0 ? 'payroll-row-even' : 'payroll-row-odd'}>
-                  <td className="payroll-td">
-                    <div className="payroll-person-name">{item.personName}</div>
-                    <div className="payroll-person-type">{item.personType}</div>
-                  </td>
-                  <td className="payroll-td text-right">{formatCurrency(item.cachePay)}</td>
-                  <td className="payroll-td text-right">{formatCurrency(item.overtimePay)}</td>
-                  <td className="payroll-td text-right">{formatCurrency(item.totalPay)}</td>
-                  {hasPartialPayments && (
-                    <td className="payroll-td text-right">{(item.paidAmount || 0) > 0 && (item.pendingAmount || 0) > 0 ? formatCurrency(item.paidAmount || 0) : ''}</td>
-                  )}
-                  <td className="payroll-td text-right">{formatCurrency(item.pendingAmount || 0)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="payroll-total-row">
-                <td className="payroll-td font-bold">TOTAL GERAL:</td>
-                <td className="payroll-td"></td>
-                <td className="payroll-td"></td>
-                <td className="payroll-td text-right font-bold">{formatCurrency(totalGeral)}</td>
-                {hasPartialPayments && (
-                  <td className="payroll-td text-right font-bold">{formatCurrency(totalPagoParcial)}</td>
-                )}
-                <td className="payroll-td text-right font-bold">{formatCurrency(totalPendente)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
+      <PayrollPrintTable
+        teamName={activeTeam?.name}
+        event={selectedEvent as any}
+        details={payrollDetails as any}
+        showPartialPaid={true}
+      />
     </div>
   );
 };

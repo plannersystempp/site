@@ -42,7 +42,9 @@ class ErrorReportingService {
   private sessionId: string;
   private errorQueue: ErrorReport[] = [];
   private maxQueueSize = 100;
-  private maxStorageSize = 500;
+  // Limite mais conservador para evitar QuotaExceeded em dev
+  private maxStorageSize = 200;
+  private pruneBatchSize = 20;
 
   private constructor() {
     this.sessionId = this.generateSessionId();
@@ -181,34 +183,56 @@ class ErrorReportingService {
   }
 
   private saveErrorToStorage(errorReport: ErrorReport) {
-    try {
-      const storageKey = `error_${errorReport.id}`;
-      localStorage.setItem(storageKey, JSON.stringify(errorReport));
+    const storageKey = `error_${errorReport.id}`;
+    const payload = this.safeStringify(errorReport);
 
-      // Limpar erros antigos se necessário
-      const errorKeys = Object.keys(localStorage).filter(key => 
-        key.startsWith('error_')
-      );
-
-      if (errorKeys.length > this.maxStorageSize) {
-        // Ordenar por timestamp e remover os mais antigos
+    const pruneOldest = (count: number) => {
+      try {
+        const errorKeys = Object.keys(localStorage).filter(key => key.startsWith('error_'));
         const errorEntries = errorKeys.map(key => {
           const data = localStorage.getItem(key);
           return data ? { key, data: JSON.parse(data) } : null;
-        }).filter(Boolean);
+        }).filter(Boolean) as Array<{ key: string; data: any }>;
 
-        errorEntries.sort((a, b) => 
-          new Date(a!.data.timestamp).getTime() - new Date(b!.data.timestamp).getTime()
-        );
-
-        // Remover os mais antigos
-        const toRemove = errorEntries.slice(0, errorEntries.length - this.maxStorageSize);
-        toRemove.forEach(entry => {
-          if (entry) localStorage.removeItem(entry.key);
-        });
+        errorEntries.sort((a, b) => new Date(a.data.timestamp).getTime() - new Date(b.data.timestamp).getTime());
+        const toRemove = errorEntries.slice(0, Math.min(count, errorEntries.length));
+        toRemove.forEach(entry => localStorage.removeItem(entry.key));
+      } catch (err) {
+        console.warn('Error while pruning old error entries:', err);
       }
-    } catch (error) {
-      console.error('Failed to save error to storage:', error);
+    };
+
+    try {
+      // Pre-prune se já está acima do limite
+      const errorKeys = Object.keys(localStorage).filter(key => key.startsWith('error_'));
+      if (errorKeys.length >= this.maxStorageSize) {
+        pruneOldest(this.pruneBatchSize);
+      }
+
+      localStorage.setItem(storageKey, payload);
+    } catch (error: any) {
+      const isQuotaError = typeof error === 'object' && error && (
+        (error.name && error.name.includes('QuotaExceeded')) ||
+        (error.message && error.message.includes('QuotaExceeded'))
+      );
+
+      if (isQuotaError) {
+        // Tenta liberar espaço e escrever novamente
+        pruneOldest(this.pruneBatchSize);
+        try {
+          localStorage.setItem(storageKey, payload);
+        } catch (retryError) {
+          // Fallback para sessionStorage para não perder o reporte durante a sessão
+          try {
+            sessionStorage.setItem(storageKey, payload);
+            console.warn('Quota exceeded on localStorage. Stored error in sessionStorage:', storageKey);
+          } catch (fallbackError) {
+            console.error('Failed to store error even in sessionStorage:', fallbackError);
+          }
+        }
+      } else {
+        console.error('Failed to save error to storage:', error);
+      }
     }
   }
 
@@ -351,7 +375,7 @@ class ErrorReportingService {
   public exportErrors(): string {
     try {
       const metrics = this.getErrorMetrics();
-      return JSON.stringify(metrics, null, 2);
+      return this.safeStringify(metrics);
     } catch (error) {
       console.error('Failed to export errors:', error);
       return '{}';
@@ -370,4 +394,26 @@ export const useErrorReporting = () => {
     clearErrors: errorReporting.clearAllErrors.bind(errorReporting),
     exportErrors: errorReporting.exportErrors.bind(errorReporting)
   };
+};
+
+// Helper: stringify seguro para evitar loops e tipos não serializáveis
+// Mantém erros como objetos simples com message/stack/name
+(ErrorReportingService as any).prototype.safeStringify = function(obj: any): string {
+  const cache = new WeakSet();
+  const replacer = (key: string, value: any) => {
+    if (typeof value === 'function' || typeof value === 'symbol') return undefined;
+    if (value instanceof Error) {
+      return { message: value.message, stack: value.stack, name: value.name };
+    }
+    if (typeof value === 'object' && value !== null) {
+      if (cache.has(value)) return '[Circular]';
+      cache.add(value);
+    }
+    return value;
+  };
+  try {
+    return JSON.stringify(obj, replacer, 2);
+  } catch {
+    return '{}';
+  }
 };

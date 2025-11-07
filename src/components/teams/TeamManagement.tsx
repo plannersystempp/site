@@ -3,6 +3,7 @@ import { useTeam } from '@/contexts/TeamContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ApprovalStatusBadge } from '@/components/shared/ApprovalStatusBadge';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User } from 'lucide-react';
@@ -321,18 +322,7 @@ export const TeamManagement: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge variant="default" className="bg-green-600 text-white">Aprovado</Badge>;
-      case 'pending':
-        return <Badge variant="secondary" className="bg-orange-600 text-white">Pendente</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Desaprovado</Badge>;
-      default:
-        return <Badge variant="outline">Desconhecido</Badge>;
-    }
-  };
+  const getStatusBadge = (status: string) => <ApprovalStatusBadge status={status as any} />;
 
   useEffect(() => {
     if (activeTeam) {

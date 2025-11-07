@@ -19,9 +19,10 @@ import { toast } from '@/hooks/use-toast';
 interface ErrorReportDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  returnFocusTo?: React.RefObject<HTMLElement>;
 }
 
-export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ isOpen, onClose }) => {
+export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ isOpen, onClose, returnFocusTo }) => {
   const { submitErrorReport, isSubmitting } = useErrorReporting();
   
   const [whatTrying, setWhatTrying] = useState('');
@@ -31,6 +32,13 @@ export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ isOpen, on
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [reportNumber, setReportNumber] = useState<string | null>(null);
+
+  const handleClose = () => {
+    onClose();
+    if (returnFocusTo?.current) {
+      returnFocusTo.current.focus();
+    }
+  };
 
   const handleScreenshot = async () => {
     const input = document.createElement('input');
@@ -96,27 +104,26 @@ export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ isOpen, on
         setScreenshot(null);
         setShowSuccess(false);
         setReportNumber(null);
-        onClose();
+        handleClose();
       }, 3000);
     }
   };
 
   if (showSuccess) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-md">
-          <div className="flex flex-col items-center justify-center py-6 space-y-4">
+          <DialogHeader>
+            <DialogTitle>Reporte enviado</DialogTitle>
+            <DialogDescription>
+              Obrigado por nos ajudar a melhorar. Número do relatório: {reportNumber}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-4 space-y-4">
             <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
               <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             
-            <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">Obrigado por nos ajudar a melhorar!</h3>
-              <p className="text-sm text-muted-foreground">
-                Seu reporte foi enviado com sucesso
-              </p>
-            </div>
-
             <Alert className="w-full">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -138,7 +145,7 @@ export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ isOpen, on
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>🐞 Reportar Erro</DialogTitle>
@@ -248,7 +255,7 @@ export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ isOpen, on
         <DialogFooter>
           <Button 
             variant="outline" 
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isSubmitting}
           >
             Cancelar

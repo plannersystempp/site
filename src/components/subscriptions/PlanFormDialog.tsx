@@ -34,9 +34,10 @@ interface PlanFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   plan?: Plan | null;
+  returnFocusTo?: React.RefObject<HTMLElement>;
 }
 
-export function PlanFormDialog({ open, onOpenChange, plan }: PlanFormDialogProps) {
+export function PlanFormDialog({ open, onOpenChange, plan, returnFocusTo }: PlanFormDialogProps) {
   const { createPlan, updatePlan } = usePlanMutations();
   const isEdit = !!plan;
 
@@ -131,10 +132,18 @@ export function PlanFormDialog({ open, onOpenChange, plan }: PlanFormDialogProps
       await createPlan.mutateAsync(formData);
     }
     onOpenChange(false);
+    if (returnFocusTo?.current) {
+      returnFocusTo.current.focus();
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => {
+      onOpenChange(v);
+      if (!v && returnFocusTo?.current) {
+        returnFocusTo.current.focus();
+      }
+    }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Editar Plano' : 'Criar Novo Plano'}</DialogTitle>
@@ -327,7 +336,12 @@ export function PlanFormDialog({ open, onOpenChange, plan }: PlanFormDialogProps
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => {
+            onOpenChange(false);
+            if (returnFocusTo?.current) {
+              returnFocusTo.current.focus();
+            }
+          }}>
             Cancelar
           </Button>
           <Button 

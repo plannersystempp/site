@@ -31,6 +31,7 @@ interface UserManagementDialogProps {
   currentTeamName: string | null;
   teams: Team[];
   actionType: 'approve' | 'role' | 'assign' | 'remove' | 'delete';
+  returnFocusTo?: React.RefObject<HTMLElement>;
 }
 
 export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
@@ -45,6 +46,7 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
   currentTeamName,
   teams,
   actionType,
+  returnFocusTo,
 }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -192,7 +194,7 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
       }
 
       onSuccess();
-      onClose();
+      handleClose();
     } catch (error: any) {
       console.error('Error in user management action:', error);
       toast({
@@ -206,7 +208,7 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{getDialogTitle()}</DialogTitle>
@@ -269,7 +271,7 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
         )}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancelar
           </Button>
           <Button
@@ -286,3 +288,9 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
     </Dialog>
   );
 };
+  const handleClose = () => {
+    onClose();
+    if (returnFocusTo?.current) {
+      returnFocusTo.current.focus();
+    }
+  };

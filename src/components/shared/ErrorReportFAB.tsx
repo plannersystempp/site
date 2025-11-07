@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ export const ErrorReportFAB: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const isMobile = useIsMobile();
+  const fabButtonRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>
@@ -26,6 +27,7 @@ export const ErrorReportFAB: React.FC = () => {
         variant="default"
         size="icon"
         aria-label="Reportar Erro"
+        ref={fabButtonRef}
       >
         <Bug className={cn("h-5 w-5", isHovered && !isMobile && "mr-2")} />
         {isHovered && !isMobile && (
@@ -38,6 +40,7 @@ export const ErrorReportFAB: React.FC = () => {
       <ErrorReportDialog 
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)} 
+        returnFocusTo={fabButtonRef}
       />
     </>
   );

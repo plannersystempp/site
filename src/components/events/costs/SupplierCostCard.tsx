@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Edit, Package } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { EventSupplierCost } from '@/contexts/data/types';
@@ -18,14 +19,16 @@ export const SupplierCostCard: React.FC<SupplierCostCardProps> = ({ cost, onEdit
   const isAdmin = user?.role === 'admin';
 
   const getStatusBadge = () => {
+    if (cost.payment_status === 'pending') {
+      return <StatusBadge status={'concluido_pagamento_pendente'} labelOverride="Pendente" />;
+    }
     const statusConfig = {
-      pending: { label: 'Pendente', variant: 'destructive' as const },
       partially_paid: { label: 'Parcial', variant: 'default' as const },
       paid: { label: 'Pago', variant: 'default' as const }
-    };
+    } as const;
 
-    const config = statusConfig[cost.payment_status];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = (statusConfig as any)[cost.payment_status];
+    return config ? <Badge variant={config.variant}>{config.label}</Badge> : <Badge variant="outline">{cost.payment_status}</Badge>;
   };
 
   return (

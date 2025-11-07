@@ -4,6 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar, User, DollarSign, MoreVertical, CheckCircle, XCircle, Edit, Trash } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -83,9 +84,13 @@ export const PersonnelPaymentCard = ({ payment }: PersonnelPaymentCardProps) => 
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span className="font-semibold">{payment.personnel?.name || 'N/A'}</span>
               </div>
-              <Badge className={statusConfig[payment.payment_status].class}>
-                {statusConfig[payment.payment_status].label}
-              </Badge>
+              {payment.payment_status === 'pending' ? (
+                <StatusBadge status={'concluido_pagamento_pendente'} labelOverride="Pendente" />
+              ) : (
+                <Badge className={statusConfig[payment.payment_status].class}>
+                  {statusConfig[payment.payment_status].label}
+                </Badge>
+              )}
             </div>
             {payment.payment_status === 'pending' && (
               <DropdownMenu>

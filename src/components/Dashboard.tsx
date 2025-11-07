@@ -1,12 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Calendar, Users, Briefcase, CheckCircle, Clock, AlertCircle, DollarSign, Package, AlertTriangle, UserCheck, Circle, TrendingUp } from 'lucide-react';
@@ -21,6 +22,15 @@ import { getCachedEventStatus } from './payroll/eventStatusCache';
 import { useSubscriptionGuard } from '@/hooks/useSubscriptionGuard';
 import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/utils/formatters';
+import { useEventsInProgress } from '@/hooks/dashboard/useEventsInProgress';
+import { useUpcomingPayments } from '@/hooks/dashboard/useUpcomingPayments';
+import { KpiCard } from '@/components/dashboard/KpiCard';
+import { KpiGroup } from '@/components/dashboard/KpiGroup';
+import { FilterChips } from '@/components/dashboard/FilterChips';
+import { filterByDateRange, sortByNearestDate, type DateRange } from '@/utils/dashboardFilters';
+import { countEventsByRanges } from '@/utils/dashboardFilterCounts';
+import { usePersistentFilter } from '@/hooks/usePersistentFilter';
+import { Separator } from '@/components/ui/separator';
 
 const Dashboard = () => {
   console.log('🏠 Dashboard: Iniciando renderização');
@@ -36,6 +46,22 @@ const Dashboard = () => {
   // All useState hooks must be at the top level
   const [superAdminPersonnelCount, setSuperAdminPersonnelCount] = useState<number | null>(null);
   const [eventsWithCompletePayments, setEventsWithCompletePayments] = useState<string[]>([]);
+  const { value: eventsRange, setValue: setEventsRange } = usePersistentFilter<DateRange>({
+    filterName: 'eventsRange',
+    defaultValue: '7dias',
+    userId: user?.id,
+    teamId: activeTeam?.id,
+  });
+  const { value: paymentsRange, setValue: setPaymentsRange } = usePersistentFilter<DateRange>({
+    filterName: 'paymentsRange',
+    defaultValue: '30dias',
+    userId: user?.id,
+    teamId: activeTeam?.id,
+  });
+
+  // Custom dashboard hooks MUST be called unconditionally before any conditional returns
+  const eventsInProgress = useEventsInProgress();
+  const upcomingPayments = useUpcomingPayments(eventsWithCompletePayments);
 
   // Check if user is superadmin - HOOK MUST BE CALLED UNCONDITIONALLY
   const { data: isSuperAdminCheck } = useQuery({
@@ -108,6 +134,26 @@ const Dashboard = () => {
     isSuperAdmin
   });
   
+  // Hooks e cálculos baseados em hooks DEVEM ser chamados antes de returns condicionais
+  // Data atual usada para filtrar próximos eventos
+  const currentDate = new Date();
+  const nowKey = currentDate.toDateString();
+
+  // Próximos eventos com ordenação e aplicação de filtro de intervalo
+  const upcomingEvents = sortByNearestDate(
+    filterByDateRange(events, eventsRange, currentDate),
+    currentDate
+  ).slice(0, 5);
+
+  // Contagens para chips (useMemo incondicionais)
+  const eventsCounts = useMemo(() => countEventsByRanges(events, currentDate), [events, nowKey]);
+  const paymentsIntervalCounts: Record<DateRange, number> = useMemo(() => ({
+    hoje: filterByDateRange(upcomingPayments, 'hoje', currentDate).length,
+    '7dias': filterByDateRange(upcomingPayments, '7dias', currentDate).length,
+    '30dias': filterByDateRange(upcomingPayments, '30dias', currentDate).length,
+    todos: upcomingPayments.length,
+  }), [upcomingPayments, nowKey]);
+  
   // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS HAVE BEEN CALLED
   if (!activeTeam && !isSuperAdmin) {
     return <NoTeamSelected />;
@@ -148,111 +194,34 @@ const Dashboard = () => {
     ? superAdminPersonnelCount 
     : personnel.length;
 
-  // Filtrar eventos em andamento e próximos
-  const currentDate = new Date();
-  const eventsInProgress = events.filter(event => {
-    const startDate = new Date(event.start_date);
-    const endDate = new Date(event.end_date);
-    return startDate <= currentDate && endDate >= currentDate;
-  });
+  // Filtrar eventos em andamento e próximos (via hook)
+  // já chamado no topo
 
-  const upcomingEvents = events.filter(event => {
-    const startDate = new Date(event.start_date);
-    return startDate > currentDate;
-  }).slice(0, 5);
+  // Contagens para chips já calculadas via useMemo acima
 
-  // Pagamentos próximos nos próximos 15 dias (D+0 a D+15) - excluindo eventos com pagamentos completos
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const fifteenDaysFromNow = new Date();
-  fifteenDaysFromNow.setDate(today.getDate() + 15);
-  fifteenDaysFromNow.setHours(23, 59, 59, 999);
+  // Pagamentos próximos (via hook)
+  // já chamado no topo
 
-  const upcomingPayments = events
-    .filter(event => {
-      // Excluir apenas eventos cancelados
-      if (event.status === 'cancelado') return false;
-      
-      // Excluir apenas eventos com pagamentos REALMENTE completos
-      if (eventsWithCompletePayments.includes(event.id)) return false;
-      
-      // Incluir eventos com status 'concluido_pagamento_pendente' sempre
-      if (event.status === 'concluido_pagamento_pendente') return true;
-      
-      // Para outros eventos (incluindo 'concluido'), verificar data de vencimento
-      const dueDate = event.payment_due_date 
-        ? new Date(event.payment_due_date + 'T12:00:00')
-        : event.end_date 
-          ? new Date(event.end_date + 'T12:00:00')
-          : null;
-      
-      // Se não tem data de vencimento nem data de término, excluir
-      if (!dueDate) return false;
-      
-      // Incluir se vencimento <= D+15 (sem limite no passado para incluir atrasados)
-      return dueDate <= fifteenDaysFromNow;
-    })
-    .sort((a, b) => {
-      // Eventos com status 'concluido_pagamento_pendente' aparecem primeiro
-      if (a.status === 'concluido_pagamento_pendente' && b.status !== 'concluido_pagamento_pendente') return -1;
-      if (b.status === 'concluido_pagamento_pendente' && a.status !== 'concluido_pagamento_pendente') return 1;
-      
-      // Depois ordenar por data de vencimento (atrasados e mais próximos primeiro)
-      const dateA = a.payment_due_date 
-        ? new Date(a.payment_due_date) 
-        : a.end_date 
-          ? new Date(a.end_date)
-          : new Date('9999-12-31');
-      const dateB = b.payment_due_date 
-        ? new Date(b.payment_due_date) 
-        : b.end_date 
-          ? new Date(b.end_date)
-          : new Date('9999-12-31');
-      return dateA.getTime() - dateB.getTime();
-    });
+  // StatusBadge já encapsula as cores e ícones para cada status
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'planejado':
-        return 'bg-blue-100 text-blue-800';
-      case 'em_andamento':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'concluido':
-        return 'bg-green-100 text-green-800';
-      case 'cancelado':
-        return 'bg-red-100 text-red-800';
-      case 'concluido_pagamento_pendente':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'planejado':
-        return <Clock className="h-4 w-4" />;
-      case 'em_andamento':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'concluido':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'cancelado':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'concluido_pagamento_pendente':
-        return <DollarSign className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
-  };
+  // Ícones e cores foram movidos para StatusBadge
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            {isSuperAdmin ? 'Visão Global (Super Admin)' : `Equipe: ${activeTeam?.name}`}
-          </p>
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="rounded-xl border bg-gradient-to-r from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 p-5 md:p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <TrendingUp className="h-6 w-6 text-primary" />
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                {isSuperAdmin ? 'Visão Global (Super Admin)' : `Equipe: ${activeTeam?.name || '—'}`}
+              </p>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2">
+            {/* Espaço reservado para ações rápidas do topo (ex.: filtros) */}
+          </div>
         </div>
       </div>
 
@@ -287,85 +256,72 @@ const Dashboard = () => {
 
       <QuickActions />
 
-      {/* Grid de KPIs com destaque para eventos em andamento - Otimizado para mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {/* KPI em destaque - Eventos em Andamento */}
-        <Card className="sm:col-span-2 md:col-span-1 border-yellow-200 bg-yellow-50/50 hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Eventos em Andamento</CardTitle>
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{eventsInProgress.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {eventsInProgress.length === 0 ? 'Nenhum evento ativo' : 'Em execução agora'}
-            </p>
-          </CardContent>
-        </Card>
+      {/* KPIs organizados por grupos: Atividade, Cadastro e Financeiro */}
+      <div className="space-y-6">
+        <KpiGroup title="Atividade" icon={<AlertCircle className="h-4 w-4 text-yellow-600" />}> 
+          <div className="sm:col-span-2 lg:col-span-1">
+            <KpiCard
+              title="Eventos em Andamento"
+              value={eventsInProgress.length}
+              icon={<AlertCircle className="h-4 w-4 text-yellow-600" />}
+              accentClassName="border-yellow-200 bg-yellow-50/50"
+              valueClassName="text-yellow-600"
+              size="sm"
+            />
+          </div>
+          <KpiCard
+            title="Próximos Eventos"
+            value={upcomingEvents.length}
+            icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+            size="sm"
+          />
+        </KpiGroup>
 
-        {/* Outros KPIs */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Eventos</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{events.length}</div>
-          </CardContent>
-        </Card>
+        <KpiGroup title="Cadastro" icon={<Users className="h-4 w-4 text-muted-foreground" />}> 
+          <KpiCard
+            title="Total de Eventos"
+            value={events.length}
+            icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
+            size="sm"
+          />
+          <KpiCard
+            title="Pessoal Cadastrado"
+            value={personnelCount}
+            icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            size="sm"
+          />
+          <KpiCard
+            title="Funções Criadas"
+            value={uniqueFunctionsCount}
+            icon={<Briefcase className="h-4 w-4 text-muted-foreground" />}
+            size="sm"
+          />
+        </KpiGroup>
 
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pessoal Cadastrado</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{personnelCount}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Funções Criadas</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{uniqueFunctionsCount}</div>
-          </CardContent>
-        </Card>
-
-        {/* Cards adicionais para telas maiores */}
-        <Card className="hover:shadow-md transition-shadow hidden lg:block">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próximos Eventos</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{upcomingEvents.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow hidden xl:block">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pagamentos Próximos</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{upcomingPayments.length}</div>
-          </CardContent>
-        </Card>
+        <KpiGroup title="Financeiro" icon={<DollarSign className="h-4 w-4 text-red-600" />}> 
+          <KpiCard
+            title="Pagamentos Próximos"
+            value={upcomingPayments.length}
+            icon={<DollarSign className="h-4 w-4 text-red-600" />}
+            accentClassName="border-red-200 bg-red-50/50"
+            valueClassName="text-red-600"
+            size="sm"
+          />
+        </KpiGroup>
       </div>
 
       {/* Estatísticas de Fornecedores (Fase 5) */}
       {!isSuperAdmin && (
-        <Card>
+        <Card className="bg-muted/30 dark:bg-muted/20">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Package className="h-4 w-4" />
               Fornecedores
             </CardTitle>
+            <CardDescription className="text-xs">Resumo dos fornecedores e custos do time ativo</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
+            <Separator className="my-2" />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               <div className="text-center">
                 <div className="text-lg font-bold">{suppliers.length}</div>
@@ -416,33 +372,34 @@ const Dashboard = () => {
         : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
       }`}>
         {!isSuperAdmin && (
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="bg-muted/30 dark:bg-muted/20 hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-yellow-600" />
                 Eventos em Andamento
               </CardTitle>
+              <CardDescription className="text-xs">Eventos que estão acontecendo neste momento</CardDescription>
             </CardHeader>
             <CardContent>
+              <Separator className="my-2" />
               {eventsInProgress.length === 0 ? (
                 <EmptyState
                   title="Nenhum evento em andamento"
                   description="Não há eventos acontecendo no momento."
+                  showActiveIcon
+                  activeVariant="outline"
                 />
               ) : (
-                <div className="space-y-2">
+            <div className="space-y-2">
                   {eventsInProgress.map(event => (
-                    <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-card">
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium truncate">{event.name}</h4>
                         <p className="text-sm text-muted-foreground">
                           {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
                         </p>
                       </div>
-                      <Badge className={getStatusColor(event.status)}>
-                        {getStatusIcon(event.status)}
-                        <span className="ml-1 hidden sm:inline">{event.status.replace('_', ' ')}</span>
-                      </Badge>
+                      <StatusBadge status={event.status as any} />
                     </div>
                   ))}
                 </div>
@@ -452,14 +409,28 @@ const Dashboard = () => {
         )}
 
         {!isSuperAdmin && (
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="bg-muted/30 dark:bg-muted/20 hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Próximos Eventos
               </CardTitle>
+              <CardDescription className="text-xs">Resumo de próximos eventos ({eventsRange})</CardDescription>
             </CardHeader>
             <CardContent>
+              <Separator className="my-2" />
+              <div className="mb-3">
+                <FilterChips
+                  label="Intervalo"
+                  options={['hoje','7dias','30dias','todos'] as const}
+                  value={eventsRange}
+                  onChange={setEventsRange}
+                  showCounts
+                  counts={eventsCounts}
+                  showActiveIcon
+                  activeVariant="outline"
+                />
+              </div>
               {upcomingEvents.length === 0 ? (
                 <EmptyState
                   title="Nenhum evento próximo"
@@ -470,7 +441,7 @@ const Dashboard = () => {
                   {upcomingEvents.map(event => (
                     <button 
                       key={event.id} 
-                      className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer bg-card"
                       onClick={() => navigate(`/app/eventos/${event.id}`)}
                     >
                       <div className="flex-1 min-w-0 text-left">
@@ -479,10 +450,7 @@ const Dashboard = () => {
                           {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
                         </p>
                       </div>
-                      <Badge className={getStatusColor(event.status)}>
-                        {getStatusIcon(event.status)}
-                        <span className="ml-1 hidden sm:inline">{event.status.replace('_', ' ')}</span>
-                      </Badge>
+                      <StatusBadge status={event.status as any} />
                     </button>
                   ))}
                 </div>
@@ -493,14 +461,28 @@ const Dashboard = () => {
 
         {/* Card de Pagamentos Próximos - apenas para não-superadmin */}
         {!isSuperAdmin && (
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="bg-muted/30 dark:bg-muted/20 hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-red-600" />
                 Pagamentos Próximos
               </CardTitle>
+              <CardDescription className="text-xs">Pagamentos próximos (intervalo: {paymentsRange})</CardDescription>
             </CardHeader>
             <CardContent>
+              <Separator className="my-2" />
+              <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                <FilterChips
+                  label="Intervalo"
+                  options={['hoje','7dias','30dias','todos'] as const}
+                  value={paymentsRange}
+                  onChange={setPaymentsRange}
+                  showCounts
+                  counts={paymentsIntervalCounts}
+                  showActiveIcon
+                  activeVariant="outline"
+                />
+              </div>
               {upcomingPayments.length === 0 ? (
                 <EmptyState
                   title="Nenhum pagamento próximo"
@@ -508,7 +490,10 @@ const Dashboard = () => {
                 />
               ) : (
                 <div className="space-y-2">
-                  {upcomingPayments.map(event => {
+                  {sortByNearestDate(
+                      filterByDateRange(upcomingPayments, paymentsRange, currentDate),
+                      currentDate
+                    ).map(event => {
                     const displayDate = event.payment_due_date 
                       ? formatDateShort(event.payment_due_date)
                       : event.end_date 
@@ -518,7 +503,7 @@ const Dashboard = () => {
                     return (
                       <button 
                         key={event.id} 
-                        className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors border-red-200 bg-red-50/30 cursor-pointer"
+                        className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-muted/40 transition-colors border-red-200 bg-red-50/30 dark:bg-muted/20 cursor-pointer"
                         onClick={() => navigate(`/app/folha/${event.id}`)}
                       >
                         <div className="flex-1 min-w-0 text-left">
@@ -527,7 +512,7 @@ const Dashboard = () => {
                             {`Vence: ${displayDate}`}
                           </p>
                         </div>
-                        <Badge className="bg-red-100 text-red-800">
+                        <Badge className="bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300">
                           <AlertCircle className="h-4 w-4" />
                           <span className="ml-1 hidden sm:inline">Pendente</span>
                         </Badge>

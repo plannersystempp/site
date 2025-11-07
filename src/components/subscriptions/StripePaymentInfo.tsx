@@ -1,6 +1,7 @@
 import { useStripePaymentInfo } from '@/hooks/useStripePaymentInfo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { SubscriptionStatusBadge } from '@/components/shared/SubscriptionStatusBadge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExternalLink, CreditCard, FileText, AlertCircle } from 'lucide-react';
@@ -49,18 +50,7 @@ export function StripePaymentInfo({ subscriptionId }: StripePaymentInfoProps) {
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
-      active: { variant: "default", label: "Ativa" },
-      trialing: { variant: "secondary", label: "Trial" },
-      past_due: { variant: "destructive", label: "Pagamento Atrasado" },
-      canceled: { variant: "outline", label: "Cancelada" },
-      unpaid: { variant: "destructive", label: "Não Paga" },
-    };
-
-    const config = variants[status] || { variant: "outline", label: status };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
+  // Status da assinatura exibido com componente compartilhado
 
   return (
     <div className="space-y-4">
@@ -86,7 +76,7 @@ export function StripePaymentInfo({ subscriptionId }: StripePaymentInfoProps) {
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status:</span>
-              {getStatusBadge(data.subscription.status)}
+              <SubscriptionStatusBadge status={data.subscription.status} />
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Período atual:</span>

@@ -23,6 +23,7 @@ interface ChangePlanDialogProps {
   currentPlanId: string;
   teamName: string;
   onSuccess?: () => void;
+  returnFocusTo?: React.RefObject<HTMLElement>;
 }
 
 interface Plan {
@@ -38,7 +39,8 @@ export function ChangePlanDialog({
   currentSubscriptionId,
   currentPlanId,
   teamName,
-  onSuccess
+  onSuccess,
+  returnFocusTo
 }: ChangePlanDialogProps) {
   const queryClient = useQueryClient();
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -117,7 +119,7 @@ export function ChangePlanDialog({
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
       queryClient.invalidateQueries({ queryKey: ['subscription-stats'] });
 
-      onOpenChange(false);
+      handleClose();
       onSuccess?.();
     } catch (error: any) {
       console.error('Erro ao mudar plano:', error);
@@ -132,7 +134,7 @@ export function ChangePlanDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Alterar Plano</DialogTitle>
@@ -197,7 +199,7 @@ export function ChangePlanDialog({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={handleClose}
             disabled={loading}
           >
             Cancelar
@@ -220,3 +222,9 @@ export function ChangePlanDialog({
     </Dialog>
   );
 }
+  const handleClose = () => {
+    onOpenChange(false);
+    if (returnFocusTo?.current) {
+      returnFocusTo.current.focus();
+    }
+  };

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { SubscriptionStatusBadge } from '@/components/shared/SubscriptionStatusBadge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -37,22 +37,7 @@ export function SubscriptionManagementTab() {
     pageSize: 10
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'trial':
-        return <Badge variant="default">Trial</Badge>;
-      case 'active':
-        return <Badge className="bg-green-500 hover:bg-green-600">Ativo</Badge>;
-      case 'past_due':
-        return <Badge className="bg-orange-500 hover:bg-orange-600">Vencido</Badge>;
-      case 'trial_expired':
-        return <Badge variant="destructive">Trial Expirado</Badge>;
-      case 'canceled':
-        return <Badge variant="secondary">Cancelado</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
+  const getStatusBadge = (status: string) => <SubscriptionStatusBadge status={status as any} />;
 
   return (
     <div className="space-y-6">

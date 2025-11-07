@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { IssueStatusBadge } from '@/components/shared/IssueStatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -60,16 +61,7 @@ export const ErrorReportsManagement: React.FC = () => {
     return <Badge className={variant.color}>{variant.label}</Badge>;
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      new: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400', label: 'Novo' },
-      in_progress: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400', label: 'Investigando' },
-      resolved: { color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400', label: 'Resolvido' },
-      closed: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400', label: 'Fechado' }
-    };
-    const variant = variants[status as keyof typeof variants] || variants.new;
-    return <Badge className={variant.color}>{variant.label}</Badge>;
-  };
+  const getStatusBadge = (status: string) => <IssueStatusBadge status={status as any} />;
 
   if (isLoading) return <LoadingSpinner />;
 
