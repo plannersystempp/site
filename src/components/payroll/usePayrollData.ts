@@ -137,6 +137,8 @@ export const usePayrollData = (selectedEventId: string) => {
     return Object.entries(groupedAllocations).map(([personnelId, allocations]) => {
       const person = personnel.find(p => p.id === personnelId);
       if (!person) return null;
+      // Skip fixed employees on event payroll
+      if (person.type === 'fixo') return null;
 
       // Filtrar logs de trabalho e ausências desta pessoa
       const personWorkLogs = eventData.workLogs.filter(log => 
