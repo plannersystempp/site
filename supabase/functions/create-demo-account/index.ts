@@ -90,36 +90,66 @@ Deno.serve(async (req) => {
     // 1. Deletar conta demo anterior se existir
     console.log('🗑️ Removendo conta demo anterior (dados completos)...');
     
-    // Buscar equipe demo existente
+    // Buscar equipe demo existente pelo CNPJ único
     const { data: oldTeams } = await supabaseAdmin
       .from('teams')
       .select('id')
-      .or(`name.eq.${DEMO_TEAM_NAME},cnpj.eq.${DEMO_CNPJ}`);
+      .eq('cnpj', DEMO_CNPJ);
     
     if (oldTeams && oldTeams.length > 0) {
-      console.log(`🗑️ Encontradas ${oldTeams.length} equipe(s) demo antigas. Deletando...`);
+      console.log(`🗑️ Encontradas ${oldTeams.length} equipe(s) demo antigas. Deletando em cascata...`);
+      
       for (const team of oldTeams) {
-        // Deletar manualmente dados relacionados para garantir limpeza
+        // Buscar IDs de fornecedores para deletar itens primeiro
+        const { data: suppliers } = await supabaseAdmin
+          .from('suppliers')
+          .select('id')
+          .eq('team_id', team.id);
+        
+        const supplierIds = suppliers?.map(s => s.id) || [];
+        
+        // Ordem de deleção: folhas para raízes (evitar violação de FK)
+        console.log(`🗑️ Limpando dados da equipe ${team.id}...`);
+        
+        // 1. Dados que dependem de eventos e pessoal
+        if (supplierIds.length > 0) {
+          await supabaseAdmin.from('supplier_items').delete().in('supplier_id', supplierIds);
+        }
+        await supabaseAdmin.from('supplier_ratings').delete().eq('team_id', team.id);
         await supabaseAdmin.from('personnel_payments').delete().eq('team_id', team.id);
         await supabaseAdmin.from('payroll_closings').delete().eq('team_id', team.id);
         await supabaseAdmin.from('absences').delete().eq('team_id', team.id);
         await supabaseAdmin.from('freelancer_ratings').delete().eq('team_id', team.id);
         await supabaseAdmin.from('event_supplier_costs').delete().eq('team_id', team.id);
+        
+        // 2. Alocações e divisões de eventos
         await supabaseAdmin.from('personnel_allocations').delete().eq('team_id', team.id);
         await supabaseAdmin.from('event_divisions').delete().eq('team_id', team.id);
+        
+        // 3. Eventos
         await supabaseAdmin.from('events').delete().eq('team_id', team.id);
-        await supabaseAdmin.from('supplier_items').delete().in('supplier_id', 
-          (await supabaseAdmin.from('suppliers').select('id').eq('team_id', team.id)).data?.map(s => s.id) || []
-        );
+        
+        // 4. Fornecedores
         await supabaseAdmin.from('suppliers').delete().eq('team_id', team.id);
+        
+        // 5. Pessoal e funções
         await supabaseAdmin.from('personnel_functions').delete().eq('team_id', team.id);
         await supabaseAdmin.from('personnel').delete().eq('team_id', team.id);
         await supabaseAdmin.from('functions').delete().eq('team_id', team.id);
+        
+        // 6. Assinaturas e membros
         await supabaseAdmin.from('team_subscriptions').delete().eq('team_id', team.id);
         await supabaseAdmin.from('team_members').delete().eq('team_id', team.id);
+        
+        // 7. Finalmente, a equipe
         await supabaseAdmin.from('teams').delete().eq('id', team.id);
+        
+        console.log(`✅ Equipe ${team.id} deletada com sucesso`);
       }
-      console.log('✅ Dados da conta demo anterior deletados completamente');
+      
+      console.log('✅ Todas as equipes demo anteriores foram removidas completamente');
+    } else {
+      console.log('ℹ️ Nenhuma equipe demo anterior encontrada');
     }
     
     // Não deletamos o usuário demo; reutilizaremos se já existir
@@ -366,40 +396,40 @@ Deno.serve(async (req) => {
       stats.supplier_items = items?.length || 0;
     }
 
-    // POPULAR EVENTOS (25 eventos)
+    // POPULAR EVENTOS (25 eventos com nomes únicos)
     console.log('📅 Criando eventos...');
     const now = new Date();
     const eventsData = [
       // Eventos passados concluídos (5)
-      { name: 'Show Rock Festival 2024', description: 'Festival de rock com 3 bandas', start_date: '2024-11-15', end_date: '2024-11-15', status: 'concluido', event_revenue: 85000 },
-      { name: 'Casamento Maria & João', description: 'Cerimônia e festa', start_date: '2024-11-20', end_date: '2024-11-20', status: 'concluido', event_revenue: 45000 },
-      { name: 'Conferência Tech Summit', description: 'Conferência de tecnologia', start_date: '2024-11-25', end_date: '2024-11-27', status: 'concluido', event_revenue: 120000 },
-      { name: 'Festa de Formatura Medicina', description: 'Formatura turma 2024', start_date: '2024-12-01', end_date: '2024-12-01', status: 'concluido', event_revenue: 65000 },
-      { name: 'Show Sertanejo Dupla XYZ', description: 'Show em casa de eventos', start_date: '2024-12-05', end_date: '2024-12-05', status: 'concluido', event_revenue: 55000 },
+      { name: 'Rock Festival 2024', description: 'Festival de rock com 3 bandas internacionais', start_date: '2024-11-15', end_date: '2024-11-15', status: 'concluido', event_revenue: 85000, location: 'Arena Central' },
+      { name: 'Casamento Maria & João Silva', description: 'Cerimônia e festa de casamento', start_date: '2024-11-20', end_date: '2024-11-20', status: 'concluido', event_revenue: 45000, location: 'Espaço Garden' },
+      { name: 'Tech Summit Conference 2024', description: 'Conferência de tecnologia e inovação', start_date: '2024-11-25', end_date: '2024-11-27', status: 'concluido', event_revenue: 120000, location: 'Centro de Convenções' },
+      { name: 'Formatura Medicina UFRJ 2024', description: 'Formatura turma 2024', start_date: '2024-12-01', end_date: '2024-12-01', status: 'concluido', event_revenue: 65000, location: 'Hotel Intercity' },
+      { name: 'Show Sertanejo - Dupla Raízes', description: 'Show em casa de eventos', start_date: '2024-12-05', end_date: '2024-12-05', status: 'concluido', event_revenue: 55000, location: 'Casa de Shows VIP' },
       
       // Eventos em andamento (5)
-      { name: 'Feira de Negócios 2025', description: 'Feira comercial', start_date: new Date(now.getTime() - 2*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 1*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 95000 },
-      { name: 'Workshop de Liderança', description: 'Treinamento corporativo', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 35000 },
-      { name: 'Festival Gastronômico', description: 'Festival de comida', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 3*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 72000 },
-      { name: 'Show Eletrônico DJ Set', description: 'Festa eletrônica', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: now.toISOString().split('T')[0], status: 'em_andamento', event_revenue: 48000 },
-      { name: 'Convenção Empresarial', description: 'Convenção anual', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 110000 },
+      { name: 'Feira de Negócios B2B 2025', description: 'Feira comercial e networking', start_date: new Date(now.getTime() - 2*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 1*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 95000, location: 'Expo Center' },
+      { name: 'Workshop Liderança Empresarial', description: 'Treinamento corporativo executivo', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 35000, location: 'Hotel Executivo' },
+      { name: 'Festival Gastronômico Internacional', description: 'Festival de comida mundial', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 3*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 72000, location: 'Parque da Cidade' },
+      { name: 'Noite Eletrônica - DJ Set Premium', description: 'Festa eletrônica com DJs internacionais', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: now.toISOString().split('T')[0], status: 'em_andamento', event_revenue: 48000, location: 'Club Paradise' },
+      { name: 'Convenção Anual Vendas 2025', description: 'Convenção anual de vendedores', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 110000, location: 'Resort Premium' },
       
       // Eventos futuros (15)
-      { name: 'Casamento Ana & Carlos', description: 'Casamento ao ar livre', start_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 52000 },
-      { name: 'Show MPB Cantor Famoso', description: 'Show acústico', start_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 78000 },
-      { name: 'Lançamento de Produto', description: 'Evento corporativo', start_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 42000 },
-      { name: 'Aniversário Empresa 20 Anos', description: 'Comemoração corporativa', start_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 68000 },
-      { name: 'Festival de Inverno', description: 'Festival cultural', start_date: new Date(now.getTime() + 30*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 32*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 135000 },
-      { name: 'Feira de Artesanato', description: 'Feira de artesãos', start_date: new Date(now.getTime() + 35*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 37*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 28000 },
-      { name: 'Baile de Gala Beneficente', description: 'Evento social', start_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 95000 },
-      { name: 'Seminário de Vendas', description: 'Treinamento comercial', start_date: new Date(now.getTime() + 45*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 46*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 38000 },
-      { name: 'Show Stand Up Comedy', description: 'Noite de comédia', start_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 32000 },
-      { name: 'Exposição de Arte', description: 'Vernissage', start_date: new Date(now.getTime() + 56*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 58*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 25000 },
-      { name: 'Corrida Beneficente 10K', description: 'Corrida de rua', start_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 45000 },
-      { name: 'Festival de Música Indie', description: 'Festival alternativo', start_date: new Date(now.getTime() + 70*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 72*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 88000 },
-      { name: 'Palestra Motivacional', description: 'Evento inspiracional', start_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 22000 },
-      { name: 'Jantar Dançante Premium', description: 'Evento social exclusivo', start_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 75000 },
-      { name: 'Workshop de Fotografia', description: 'Curso intensivo', start_date: new Date(now.getTime() + 90*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 92*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 18000 }
+      { name: 'Casamento Ana Paula & Carlos Eduardo', description: 'Casamento ao ar livre com vista para o mar', start_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 52000, location: 'Beach Club' },
+      { name: 'Show MPB - Artista Renomado', description: 'Show acústico intimista', start_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 78000, location: 'Teatro Municipal' },
+      { name: 'Lançamento Produto Tech XYZ', description: 'Evento corporativo de lançamento', start_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 42000, location: 'Auditório Corporativo' },
+      { name: 'Aniversário 20 Anos - TechCorp', description: 'Comemoração corporativa especial', start_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 68000, location: 'Sede da Empresa' },
+      { name: 'Festival de Inverno Cultural', description: 'Festival cultural com shows e exposições', start_date: new Date(now.getTime() + 30*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 32*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 135000, location: 'Centro Cultural' },
+      { name: 'Feira Artesanato Regional', description: 'Feira de artesãos locais', start_date: new Date(now.getTime() + 35*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 37*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 28000, location: 'Praça Principal' },
+      { name: 'Baile de Gala Beneficente AACD', description: 'Evento social beneficente', start_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 95000, location: 'Clube Privado' },
+      { name: 'Seminário Estratégias de Vendas', description: 'Treinamento comercial avançado', start_date: new Date(now.getTime() + 45*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 46*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 38000, location: 'Centro de Treinamento' },
+      { name: 'Stand Up Comedy Night', description: 'Noite de comédia com humoristas nacionais', start_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 32000, location: 'Teatro Comédia' },
+      { name: 'Exposição Arte Contemporânea', description: 'Vernissage com artistas locais', start_date: new Date(now.getTime() + 56*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 58*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 25000, location: 'Galeria de Arte' },
+      { name: 'Corrida Beneficente 10K GRAACC', description: 'Corrida de rua solidária', start_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 45000, location: 'Parque Ibirapuera' },
+      { name: 'Festival Música Indie Brasil', description: 'Festival alternativo com bandas nacionais', start_date: new Date(now.getTime() + 70*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 72*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 88000, location: 'Arena Open Air' },
+      { name: 'Palestra Motivacional com Guru', description: 'Evento inspiracional de desenvolvimento pessoal', start_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 22000, location: 'Auditório Grande' },
+      { name: 'Jantar Dançante Réveillon Antecipado', description: 'Evento social exclusivo de fim de ano', start_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 75000, location: 'Salão Nobre' },
+      { name: 'Workshop Fotografia Profissional', description: 'Curso intensivo de fotografia comercial', start_date: new Date(now.getTime() + 90*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 92*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 18000, location: 'Estúdio Fotográfico' }
     ];
 
     const { data: createdEvents } = await supabaseAdmin
