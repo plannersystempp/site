@@ -99,6 +99,19 @@ export const AppSidebar = () => {
   const { setTheme } = useTheme();
   const { setOpenMobile } = useSidebar();
 
+  // Mapeia papéis para rótulos em pt-br
+  const getRoleLabel = (role?: string) => {
+    if (!role) return '';
+    const map: Record<string, string> = {
+      coordinator: 'Coordenador',
+      admin: 'Administrador',
+      superadmin: 'Superadministrador',
+      financeiro: 'Financeiro',
+      user: 'Usuário',
+    };
+    return map[role] ?? role;
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -308,8 +321,8 @@ export const AppSidebar = () => {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     <div className="flex flex-col min-w-0 flex-1 text-left">
-                      <span className="text-sm font-medium truncate">{user?.name}</span>
-                      <span className="text-xs text-muted-foreground capitalize">{userRole}</span>
+                      <span className="text-sm font-medium whitespace-normal break-words leading-tight">{user?.name}</span>
+                      <span className="text-xs text-sidebar-foreground/80">{getRoleLabel(userRole)}</span>
                     </div>
                   </div>
                   <ChevronUp className="h-4 w-4" />
@@ -350,8 +363,8 @@ export const AppSidebar = () => {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       <div className="flex flex-col min-w-0 flex-1 text-left">
-                        <span className="text-sm font-medium truncate">{user?.name}</span>
-                        <span className="text-xs text-muted-foreground capitalize">{userRole}</span>
+                        <span className="text-sm font-medium whitespace-normal break-words leading-tight">{user?.name}</span>
+                        <span className="text-xs text-sidebar-foreground/80">{getRoleLabel(userRole)}</span>
                       </div>
                     </div>
                     <ChevronUp className="h-4 w-4" />
