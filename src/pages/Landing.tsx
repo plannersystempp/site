@@ -370,9 +370,11 @@ export const Landing: React.FC = () => {
             {/* Brand Column */}
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary via-primary to-chart-blue rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                  <span className="text-primary-foreground font-bold text-sm">S</span>
-                </div>
+                <img 
+                  src="/icons/plannersystem-logo.svg" 
+                  alt="PlannerSystem Logo" 
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                />
                 <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent">PlannerSystem</h1>
               </div>
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-sm">
