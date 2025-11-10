@@ -28,9 +28,11 @@ export const Landing: React.FC = () => {
       <header className="relative z-10 border-b border-border/50 bg-card/80 dark:bg-card/60 backdrop-blur-xl shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 flex justify-between items-center">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary via-primary to-chart-blue rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-primary-foreground font-bold text-xs sm:text-sm">S</span>
-            </div>
+            <img 
+              src="/icons/plannersystem-logo.svg" 
+              alt="PlannerSystem Logo" 
+              className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
+            />
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent tracking-tight">PlannerSystem</h1>
           </div>
           <div className="flex gap-2 sm:gap-3 lg:gap-4">
