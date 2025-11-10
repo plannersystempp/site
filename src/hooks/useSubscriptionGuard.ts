@@ -106,7 +106,7 @@ export function useSubscriptionGuard(teamId: string | undefined) {
       if (inactiveStatuses.includes(subscription.status)) {
         toast({
           title: 'Assinatura Inativa',
-          description: 'Sua assinatura expirou. Renove para continuar usando o SIGE.',
+          description: 'Sua assinatura expirou. Renove para continuar usando o PlannerSystem.',
           variant: 'destructive',
           duration: 5000
         });

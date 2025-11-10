@@ -370,7 +370,7 @@ export default function SuperAdmin() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Super Administração</h1>
-          <p className="text-muted-foreground">Gerenciamento global da plataforma SIGE</p>
+          <p className="text-muted-foreground">Gerenciamento global da plataforma PlannerSystem</p>
         </div>
         
         <Button

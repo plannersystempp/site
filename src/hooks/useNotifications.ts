@@ -284,7 +284,7 @@ export const useNotifications = () => {
       
       toast({
         title: 'Notificações Ativadas!',
-        description: 'Você receberá notificações importantes do SIGE',
+        description: 'Você receberá notificações importantes do PlannerSystem',
       });
       
       return true;
@@ -411,7 +411,7 @@ export const useNotifications = () => {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification('🎉 Teste de Notificação SIGE', {
+      await registration.showNotification('🎉 Teste de Notificação PlannerSystem', {
         body: 'Se você viu isso, as notificações estão funcionando!',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-192x192.png',

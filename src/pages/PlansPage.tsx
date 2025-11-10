@@ -35,7 +35,7 @@ export default function PlansPage() {
   // SEO: Update document metadata
   useEffect(() => {
     // Update page title
-    document.title = 'Planos e Preços - SIGE | Sistema de Gestão de Eventos';
+    document.title = 'Planos e Preços - PlannerSystem | Sistema de Gestão de Eventos';
     
     // Update or create meta tags
     const updateMetaTag = (name: string, content: string, isProperty = false) => {
@@ -49,14 +49,14 @@ export default function PlansPage() {
       meta.setAttribute('content', content);
     };
 
-    updateMetaTag('description', 'Escolha o plano ideal para sua equipe. Trial gratuito por 15 dias, sem necessidade de cartão de crédito. Gerencie eventos, equipes e folha de pagamento com o SIGE.');
-    updateMetaTag('keywords', 'planos sige, preços gestão eventos, trial gratuito, software gestão eventos, plataforma gestão equipes');
-    updateMetaTag('og:title', 'Planos e Preços - SIGE', true);
+    updateMetaTag('description', 'Escolha o plano ideal para sua equipe. Trial gratuito por 15 dias, sem necessidade de cartão de crédito. Gerencie eventos, equipes e folha de pagamento com o PlannerSystem.');
+    updateMetaTag('keywords', 'planos plannersystem, preços gestão eventos, trial gratuito, software gestão eventos, plataforma gestão equipes');
+    updateMetaTag('og:title', 'Planos e Preços - PlannerSystem', true);
     updateMetaTag('og:description', 'Planos flexíveis para gestão de eventos. Trial gratuito por 15 dias. Escolha entre Básico, Profissional ou Enterprise.', true);
     updateMetaTag('og:type', 'website', true);
     updateMetaTag('og:url', window.location.href, true);
     updateMetaTag('twitter:card', 'summary_large_image');
-    updateMetaTag('twitter:title', 'Planos e Preços - SIGE');
+    updateMetaTag('twitter:title', 'Planos e Preços - PlannerSystem');
     updateMetaTag('twitter:description', 'Planos flexíveis para gestão de eventos. Trial gratuito por 15 dias.');
 
     // Add canonical link
@@ -72,8 +72,8 @@ export default function PlansPage() {
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      "name": "Planos de Assinatura SIGE",
-      "description": "Planos de assinatura para o Sistema de Gestão de Eventos SIGE",
+      "name": "Planos de Assinatura PlannerSystem",
+      "description": "Planos de assinatura para o Sistema de Gestão de Eventos PlannerSystem",
       "itemListElement": []
     };
 
@@ -88,7 +88,7 @@ export default function PlansPage() {
 
     // Cleanup function
     return () => {
-      document.title = 'SIGE - Sistema de Gestão de Eventos';
+      document.title = 'PlannerSystem - Sistema de Gestão de Eventos';
       canonical?.remove();
     };
   }, []);

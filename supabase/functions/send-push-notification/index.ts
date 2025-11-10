@@ -109,7 +109,7 @@ serve(async (req) => {
 
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
-    const vapidEmail = Deno.env.get('VAPID_EMAIL') || 'mailto:admin@sige.app';
+    const vapidEmail = Deno.env.get('VAPID_EMAIL') || 'mailto:admin@plannersystem.app';
 
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.error('VAPID keys not configured');
@@ -126,7 +126,7 @@ serve(async (req) => {
       body,
       icon: icon || '/icons/icon-192x192.png',
       badge: badge || '/icons/icon-192x192.png',
-      tag: tag || 'sige-notification',
+      tag: tag || 'plannersystem-notification',
       data: data || {},
     });
 

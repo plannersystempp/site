@@ -170,7 +170,7 @@ export function SubscriptionManagementTab() {
                 </Card>
               ) : (
                 subscriptionsData?.data
-                  .filter(sub => !sub.teams.is_system) // Excluir times de sistema como SIGE
+                  .filter(sub => !sub.teams.is_system) // Excluir times de sistema como PlannerSystem
                   .map((sub) => (
                   <Card key={sub.id}>
                     <CardHeader>
@@ -309,7 +309,7 @@ export function SubscriptionManagementTab() {
                     </TableRow>
                   ) : (
                     subscriptionsData?.data
-                      .filter(sub => !sub.teams.is_system) // Excluir times de sistema como SIGE
+                      .filter(sub => !sub.teams.is_system) // Excluir times de sistema como PlannerSystem
                       .map((sub) => (
                       <TableRow key={sub.id}>
                         <TableCell className="font-medium">{sub.teams.name}</TableCell>

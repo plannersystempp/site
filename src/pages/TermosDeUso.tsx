@@ -21,7 +21,7 @@ export const TermosDeUso: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
               <FileText className="w-6 h-6" />
-              Termos de Uso do SIGE
+              Termos de Uso do PlannerSystem
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               Última Atualização: 04 de Agosto de 2025
@@ -29,12 +29,12 @@ export const TermosDeUso: React.FC = () => {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none space-y-6">
             <p>
-              Bem-vindo ao SIGE ("Plataforma", "Serviço"), uma plataforma de software como serviço (SaaS) 
+              Bem-vindo ao PlannerSystem ("Plataforma", "Serviço"), uma plataforma de software como serviço (SaaS) 
               desenvolvida e operada por nós ("nós").
             </p>
             <p>
               Estes Termos de Uso ("Termos") governam o seu acesso e uso da nossa plataforma e serviços. 
-              Ao se cadastrar ou usar o SIGE, você e a empresa que você representa ("Cliente", "você") 
+              Ao se cadastrar ou usar o PlannerSystem, você e a empresa que você representa ("Cliente", "você") 
               concordam em cumprir estes Termos.
             </p>
             <p className="font-bold text-foreground">
@@ -44,7 +44,7 @@ export const TermosDeUso: React.FC = () => {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">1. Descrição do Serviço</h2>
               <p>
-                O SIGE é uma plataforma online projetada para auxiliar empresas de eventos a gerenciar suas 
+                O PlannerSystem é uma plataforma online projetada para auxiliar empresas de eventos a gerenciar suas 
                 operações, incluindo o cadastro de pessoal (funcionários e freelancers), criação e gestão 
                 de eventos, alocação de equipes, controle de horas trabalhadas e extras, e geração de 
                 relatórios financeiros como a folha de pagamento.
@@ -55,7 +55,7 @@ export const TermosDeUso: React.FC = () => {
               <h2 className="text-xl font-semibold">2. Contas de Usuário e Responsabilidades</h2>
               
               <h3 className="text-lg font-medium">2.1. Tipos de Usuário:</h3>
-              <p>O acesso ao SIGE é concedido através de dois tipos de contas:</p>
+              <p>O acesso ao PlannerSystem é concedido através de dois tipos de contas:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>
                   <strong>Administrador ("Admin"):</strong> O usuário que cadastra a empresa na plataforma. 
@@ -98,9 +98,9 @@ export const TermosDeUso: React.FC = () => {
 
               <h3 className="text-lg font-medium">3.2. Nossa Propriedade Intelectual:</h3>
               <p>
-                Nós retemos todos os direitos, titularidade e interesse sobre a Plataforma SIGE, incluindo 
+                Nós retemos todos os direitos, titularidade e interesse sobre a Plataforma PlannerSystem, incluindo 
                 todo o software, design, marca e documentação. Estes Termos não concedem a você nenhuma 
-                licença para usar a marca SIGE ou qualquer um dos nossos ativos de propriedade intelectual, 
+                licença para usar a marca PlannerSystem ou qualquer um dos nossos ativos de propriedade intelectual, 
                 exceto para o uso da Plataforma conforme permitido aqui.
               </p>
             </div>
@@ -118,13 +118,13 @@ export const TermosDeUso: React.FC = () => {
               <h2 className="text-xl font-semibold">5. Disponibilidade do Serviço e Limitação de Responsabilidade</h2>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>
-                  Faremos todos os esforços comercialmente razoáveis para manter a Plataforma SIGE disponível 
+                  Faremos todos os esforços comercialmente razoáveis para manter a Plataforma PlannerSystem disponível 
                   24 horas por dia, 7 dias por semana. No entanto, não seremos responsáveis por qualquer 
                   indisponibilidade causada por circunstâncias fora do nosso controle razoável (força maior, 
                   falhas de provedores de internet, etc.).
                 </li>
                 <li>
-                  O SIGE É FORNECIDO "COMO ESTÁ". NA EXTENSÃO MÁXIMA PERMITIDA PELA LEI, NÓS NOS ISENTAMOS DE 
+                  O PLANNERSYSTEM É FORNECIDO "COMO ESTÁ". NA EXTENSÃO MÁXIMA PERMITIDA PELA LEI, NÓS NOS ISENTAMOS DE 
                   TODAS AS GARANTIAS, EXPRESSAS OU IMPLÍCITAS. NÃO GARANTIMOS QUE O SERVIÇO SERÁ ININTERRUPTO 
                   OU LIVRE DE ERROS.
                 </li>
@@ -156,7 +156,7 @@ export const TermosDeUso: React.FC = () => {
               <p>
                 Nós nos reservamos o direito de modificar estes Termos a qualquer momento. Se fizermos 
                 alterações, iremos notificá-lo por e-mail ou através de um aviso na própria Plataforma. 
-                O uso continuado do SIGE após a notificação constituirá a sua aceitação dos Termos revisados.
+                O uso continuado do PlannerSystem após a notificação constituirá a sua aceitação dos Termos revisados.
               </p>
             </div>
 

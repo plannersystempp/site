@@ -1,7 +1,7 @@
-# Configuração de Notificações Push - SIGE
+# Configuração de Notificações Push - PlannerSystem
 
 ## Visão Geral
-O sistema de notificações push do SIGE utiliza o protocolo Web Push com chaves VAPID para garantir segurança e privacidade.
+O sistema de notificações push do PlannerSystem utiliza o protocolo Web Push com chaves VAPID para garantir segurança e privacidade.
 
 ## Passo a Passo para Configuração
 

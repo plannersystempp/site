@@ -150,7 +150,7 @@ export const ErrorReportDialog: React.FC<ErrorReportDialogProps> = ({ isOpen, on
         <DialogHeader>
           <DialogTitle>🐞 Reportar Erro</DialogTitle>
           <DialogDescription>
-            Nos ajude a melhorar o SIGE! Descreva o problema que encontrou.
+            Nos ajude a melhorar o PlannerSystem! Descreva o problema que encontrou.
           </DialogDescription>
         </DialogHeader>
 

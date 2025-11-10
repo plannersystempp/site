@@ -137,7 +137,7 @@ export const PayrollReport: React.FC<PayrollReportProps> = ({ data }) => {
 
       {/* Observações */}
       <div className="mt-8 text-xs text-muted-foreground print:mt-4">
-        <p>* Este relatório foi gerado automaticamente pelo sistema SIGE.</p>
+        <p>* Este relatório foi gerado automaticamente pelo sistema PlannerSystem.</p>
         <p>* Valores calculados com base nas alocações e registros de horas do evento.</p>
       </div>
     </div>

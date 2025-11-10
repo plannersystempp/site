@@ -31,7 +31,7 @@ export const Landing: React.FC = () => {
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary via-primary to-chart-blue rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
               <span className="text-primary-foreground font-bold text-xs sm:text-sm">S</span>
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent tracking-tight">SIGE</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent tracking-tight">PlannerSystem</h1>
           </div>
           <div className="flex gap-2 sm:gap-3 lg:gap-4">
             <Link to="/plans">
@@ -371,7 +371,7 @@ export const Landing: React.FC = () => {
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary via-primary to-chart-blue rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
                   <span className="text-primary-foreground font-bold text-sm">S</span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent">SIGE</h1>
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent">PlannerSystem</h1>
               </div>
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-sm">
                 Sistema completo para gestão de eventos, equipes e pagamentos. Simplifique sua operação.

@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     // Constantes da conta demo
     const DEMO_EMAIL = 'euquero@plannersystem.com.br';
     const DEMO_PASSWORD = 'EuQuero@2025';
-    const DEMO_TEAM_NAME = 'DEMO - Sistema Completo SIGE';
+    const DEMO_TEAM_NAME = 'DEMO - Sistema Completo PlannerSystem';
     const DEMO_CNPJ = '12.345.678/0001-90';
 
     // 1. Deletar conta demo anterior se existir

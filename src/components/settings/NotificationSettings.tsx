@@ -51,7 +51,7 @@ export const NotificationSettings: React.FC = () => {
           <Alert>
             <Bell className="h-4 w-4" />
             <AlertDescription>
-              Permita que o SIGE envie notificações importantes para você
+              Permita que o PlannerSystem envie notificações importantes para você
             </AlertDescription>
           </Alert>
         )}

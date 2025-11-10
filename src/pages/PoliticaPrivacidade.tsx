@@ -21,7 +21,7 @@ export const PoliticaPrivacidade: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
               <Shield className="w-6 h-6" />
-              Política de Privacidade do SIGE
+              Política de Privacidade do PlannerSystem
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               Última Atualização: 04 de Agosto de 2025
@@ -29,7 +29,7 @@ export const PoliticaPrivacidade: React.FC = () => {
           </CardHeader>
           <CardContent className="prose prose-sm max-w-none space-y-6">
             <p>
-              Esta Política de Privacidade descreve como o SIGE ("nós", "nosso") coleta, usa, 
+              Esta Política de Privacidade descreve como o PlannerSystem ("nós", "nosso") coleta, usa, 
               compartilha e protege suas informações pessoais quando você usa nossa plataforma.
             </p>
 

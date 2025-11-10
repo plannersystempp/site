@@ -25,7 +25,7 @@ export const AllocationManager: React.FC<AllocationManagerProps> = ({ eventId })
   const { assignments, events, divisions, personnel, functions, workLogs, deleteAssignment } = useEnhancedData();
   
   // Persist allocation form state in sessionStorage
-  const allocationFormKey = `sige-allocation-form-open-${eventId}`;
+  const allocationFormKey = `plannersystem-allocation-form-open-${eventId}`;
   const getPersistedFormState = () => {
     try {
       const saved = sessionStorage.getItem(allocationFormKey);

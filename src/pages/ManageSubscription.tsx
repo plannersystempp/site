@@ -130,7 +130,7 @@ export default function ManageSubscription() {
         <div>
           <h1 className="text-2xl font-bold">Gerenciar Assinatura</h1>
           <p className="text-muted-foreground">
-            Visualize e gerencie sua assinatura do SIGE
+            Visualize e gerencie sua assinatura do PlannerSystem
           </p>
         </div>
       </div>

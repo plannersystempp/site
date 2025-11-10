@@ -47,7 +47,7 @@ export function UpgradePrompt({
             )}
             
             <p className="text-sm">
-              Faça upgrade para um plano superior e continue usando o SIGE sem limitações.
+              Faça upgrade para um plano superior e continue usando o PlannerSystem sem limitações.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
