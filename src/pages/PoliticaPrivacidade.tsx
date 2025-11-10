@@ -173,7 +173,6 @@ export const PoliticaPrivacidade: React.FC = () => {
                     suporte@plannersystem.com.br
                   </a>
                 </li>
-                <li>Telefone: (21) 96523-2224</li>
                 <li>
                   WhatsApp: 
                   <a 

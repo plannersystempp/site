@@ -403,7 +403,6 @@ export const Landing: React.FC = () => {
               <h4 className="text-base sm:text-lg font-bold">Contato</h4>
               <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-muted-foreground">
                 <p>suporte@plannersystem.com.br</p>
-                <p>(21) 96523-2224</p>
                 <div className="flex items-center gap-2">
                   <span>WhatsApp:</span>
                   <a 
