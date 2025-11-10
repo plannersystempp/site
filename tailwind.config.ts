@@ -61,6 +61,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				success: 'hsl(var(--success))',
+				warning: 'hsl(var(--warning))',
+				info: 'hsl(var(--info))',
+				chart: {
+					blue: 'hsl(var(--chart-blue))',
+					green: 'hsl(var(--chart-green))',
+					orange: 'hsl(var(--chart-orange))',
+					purple: 'hsl(var(--chart-purple))'
 				}
 			},
 			borderRadius: {
