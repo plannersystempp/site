@@ -447,4 +447,4 @@ Para funcionalidades não implementadas:
 ---
 
 **Última atualização:** 2025-01-02  
-**Versão do Sistema:** SIGE v1.0
+**Versão do Sistema:** PlannerSystem v1.0

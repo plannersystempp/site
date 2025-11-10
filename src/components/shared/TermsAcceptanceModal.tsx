@@ -78,7 +78,7 @@ export const TermsAcceptanceModal: React.FC = () => {
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Atualizamos nossos Termos de Uso e Política de Privacidade. Para continuar 
-            usando o SIGE, você precisa aceitar os novos termos.
+            usando o PlannerSystem, você precisa aceitar os novos termos.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,7 +88,7 @@ export const TermsAcceptanceModal: React.FC = () => {
                 <h3 className="font-medium">Termos de Uso</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                Definem as regras e responsabilidades para o uso da plataforma SIGE.
+                Definem as regras e responsabilidades para o uso da plataforma PlannerSystem.
               </p>
               <Button 
                 variant="outline" 
@@ -144,7 +144,7 @@ export const TermsAcceptanceModal: React.FC = () => {
                 >
                   Política de Privacidade
                 </button>
-                {' '}do SIGE.
+                {' '}do PlannerSystem.
               </Label>
             </div>
 

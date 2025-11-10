@@ -546,7 +546,7 @@ export const LoginScreen: React.FC = () => {
                   >
                     Política de Privacidade
                   </a>
-                  {' '}do SIGE.
+                  {' '}do PlannerSystem.
                 </Label>
               </div>
             )}

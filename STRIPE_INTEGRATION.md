@@ -1,4 +1,4 @@
-# 🎯 Integração Stripe - SIGE
+# 🎯 Integração Stripe - PlannerSystem
 
 ## ✅ Status da Implementação
 
@@ -45,7 +45,7 @@ Acesse: https://dashboard.stripe.com/test/products
 
 1. Clique em "Adicionar produto"
 2. Preencha:
-   - Nome: "SIGE - Plano Básico" (ou outro)
+   - Nome: "PlannerSystem - Plano Básico" (ou outro)
    - Descrição
    - Preço: R$ 97,00/mês (ou valor desejado)
    - Recorrência: Mensal
@@ -240,4 +240,4 @@ Para ativar pagamentos reais:
 
 - **Stripe Docs**: https://stripe.com/docs/billing/subscriptions/overview
 - **Supabase Functions**: https://supabase.com/docs/guides/functions
-- **SIGE Support**: Contate o administrador do sistema
+- **PlannerSystem Support**: Contate o administrador do sistema

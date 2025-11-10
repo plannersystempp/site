@@ -17,7 +17,7 @@ export const useAllocationFormPersistence = (
   open: boolean,
   excludeFields?: string[]
 ) => {
-  const storageKey = `sige-allocation-form-state-${eventId}`;
+  const storageKey = `plannersystem-allocation-form-state-${eventId}`;
 
   // Save to sessionStorage whenever form state changes
   useEffect(() => {

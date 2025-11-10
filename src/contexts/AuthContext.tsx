@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Clear any session storage items related to the app
         try {
           Object.keys(sessionStorage)
-            .filter(k => k.startsWith('sige-'))
+            .filter(k => k.startsWith('plannersystem-'))
             .forEach(k => sessionStorage.removeItem(k));
         } catch (e) {
           console.error('[AuthContext] Error clearing sessionStorage:', e);

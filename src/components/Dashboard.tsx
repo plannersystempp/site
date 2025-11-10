@@ -252,8 +252,8 @@ const Dashboard = () => {
                 </h3>
                 <p className="text-sm text-orange-800 mt-1">
                   {subscription.status === 'trial' 
-                    ? `Seu período de trial expira em ${subscription.daysUntilExpiration} dia(s). Assine um plano para continuar usando o SIGE.`
-                    : `Sua assinatura ${subscription.planName} expira em ${subscription.daysUntilExpiration} dia(s). Renove agora para continuar usando o SIGE sem interrupções.`
+                    ? `Seu período de trial expira em ${subscription.daysUntilExpiration} dia(s). Assine um plano para continuar usando o PlannerSystem.`
+                    : `Sua assinatura ${subscription.planName} expira em ${subscription.daysUntilExpiration} dia(s). Renove agora para continuar usando o PlannerSystem sem interrupções.`
                   }
                 </p>
                 <Button 

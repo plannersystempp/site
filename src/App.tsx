@@ -374,7 +374,7 @@ const AppContent = () => {
 };
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="sige-theme">
+    <ThemeProvider defaultTheme="system" storageKey="plannersystem-theme">
       <AuthProvider>
         <Router>
           <Routes>

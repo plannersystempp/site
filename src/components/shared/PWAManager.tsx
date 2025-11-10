@@ -21,7 +21,7 @@ export const PWAManager = () => {
       await promptInstall();
       toast({
         title: "App instalado com sucesso!",
-        description: "O SIGE agora está disponível na sua tela inicial.",
+        description: "O PlannerSystem agora está disponível na sua tela inicial.",
       });
     } catch (error) {
       toast({
@@ -57,9 +57,9 @@ export const PWAManager = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Instalar SIGE</DialogTitle>
+              <DialogTitle>Instalar PlannerSystem</DialogTitle>
               <DialogDescription>
-                Instale o SIGE na sua tela inicial para acesso rápido e uma melhor experiência de uso.
+                Instale o PlannerSystem na sua tela inicial para acesso rápido e uma melhor experiência de uso.
                 O app funcionará mesmo offline para algumas funcionalidades.
               </DialogDescription>
             </DialogHeader>
@@ -85,7 +85,7 @@ export const PWAManager = () => {
               <span className="font-medium">Nova versão disponível!</span>
             </div>
             <p className="text-sm mb-3">
-              Uma atualização do SIGE está pronta para ser instalada.
+              Uma atualização do PlannerSystem está pronta para ser instalada.
             </p>
             <Button 
               onClick={handleUpdate}

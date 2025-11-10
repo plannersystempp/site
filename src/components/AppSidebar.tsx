@@ -144,11 +144,11 @@ export const AppSidebar = () => {
           <div className="flex items-center gap-2">
             <img 
               src="/icons/icon-192x192.png" 
-              alt="SIGE Logo" 
+              alt="PlannerSystem Logo" 
               className="w-8 h-8 rounded-lg object-cover"
             />
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">SIGE</span>
+              <span className="truncate font-semibold">PlannerSystem</span>
               <span className="truncate text-xs">Sistema de Gestão</span>
             </div>
           </div>

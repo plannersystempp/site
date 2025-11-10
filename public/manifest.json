@@ -1,6 +1,6 @@
 {
-  "short_name": "Planner",
-  "name": "Planner System",
+  "short_name": "PlannerSystem",
+  "name": "PlannerSystem - Gestão de Eventos",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -15,9 +15,9 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "https://betasige.fgoa.com.br/auth",
+  "start_url": "https://plannersystem.com.br/auth",
   "display": "standalone",
   "theme_color": "#0979FF",
   "background_color": "#0979FF",
-  "description": " "
+  "description": "Sistema completo para gestão de eventos, equipes e folha de pagamento"
 }

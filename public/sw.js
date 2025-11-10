@@ -1,6 +1,6 @@
 // FASE 6: PWA com Cache Otimizado
-const CACHE_NAME = 'sige-v2.5.0-optimized';
-const API_CACHE_NAME = 'sige-api-cache-v1';
+const CACHE_NAME = 'plannersystem-v2.6.0-optimized';
+const API_CACHE_NAME = 'plannersystem-api-cache-v1';
 const API_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 const urlsToCache = [
@@ -118,11 +118,11 @@ self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);
   
   let notificationData = {
-    title: 'SIGE',
+    title: 'PlannerSystem',
     body: 'Nova notificação',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
-    tag: 'sige-notification',
+    tag: 'plannersystem-notification',
     data: {}
   };
 

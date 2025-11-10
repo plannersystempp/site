@@ -33,7 +33,7 @@ class NotificationService {
         body: notification.body,
         icon: notification.icon || '/icons/icon-192x192.png',
         badge: notification.badge || '/icons/icon-192x192.png',
-        tag: notification.tag || 'sige-notification',
+        tag: notification.tag || 'plannersystem-notification',
         data: notification.data || {},
       });
     } catch (error) {

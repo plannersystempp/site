@@ -15,8 +15,8 @@
     <path d="M0 -36 L42 0 L0 36 L-42 0 Z" fill="#42D2FF"/>
     <path d="M0 -36 L42 0 L0 0 L-42 0 Z" fill="#5AE0FF" opacity="0.7"/>
   </g>
-  <!-- Texto SIGE -->
-  <g fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="64" text-anchor="middle">
-    <text x="128" y="178">SIGE</text>
+  <!-- Texto PS (PlannerSystem) -->
+  <g fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="72" text-anchor="middle">
+    <text x="128" y="190">PS</text>
   </g>
 </svg>

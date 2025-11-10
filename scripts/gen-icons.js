@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 async function run() {
-  const svgPath = resolve('public/icons/sige-logo.svg');
+  const svgPath = resolve('public/icons/plannersystem-logo.svg');
   const svg = await readFile(svgPath);
 
   const outputs = [

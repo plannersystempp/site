@@ -420,7 +420,7 @@ export const SettingsPage: React.FC = () => {
 
       {/* Version display */}
       <div className="absolute bottom-4 right-4 text-xs text-muted-foreground">
-        SIGE v{APP_VERSION}
+        PlannerSystem v{APP_VERSION}
       </div>
     </div>
   );

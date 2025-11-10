@@ -12,7 +12,7 @@ import { Settings, Save, Shield, Bell, Database } from 'lucide-react';
 export const AdminSettings: React.FC = () => {
   const { toast } = useToast();
   const [settings, setSettings] = useState({
-    systemName: 'SIGE Event Control',
+    systemName: 'PlannerSystem Event Control',
     maintenanceMode: false,
     allowRegistrations: true,
     emailNotifications: true,
