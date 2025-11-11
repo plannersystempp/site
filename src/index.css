@@ -296,7 +296,7 @@
   }
 }
 
-/* Design system for SIGE - Sistema de Gestão de Eventos */
+/* Design system PlannerSystem - Sistema de Gestão de Eventos */
 
 @layer base {
   :root {
@@ -339,7 +339,7 @@
     --sidebar-border: 237 72% 50%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Custom SIGE colors */
+    /* Cores personalizadas PlannerSystem */
     --success: 142 76% 36%;
     --warning: 45 93% 47%;
     --info: 221 83% 53%;

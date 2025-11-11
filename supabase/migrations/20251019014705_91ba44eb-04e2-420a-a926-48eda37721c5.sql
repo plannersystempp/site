@@ -1,8 +1,8 @@
--- Adicionar coluna is_system à tabela teams para marcar times de sistema (como SIGE)
+-- Adicionar coluna is_system à tabela teams para marcar times de sistema (ex.: PlannerSystem)
 ALTER TABLE public.teams 
 ADD COLUMN is_system BOOLEAN NOT NULL DEFAULT false;
 
--- Marcar o time SIGE (SuperAdmin master) como time de sistema
+-- Marcar o time PlannerSystem (SuperAdmin master) como time de sistema
 UPDATE public.teams 
 SET is_system = true 
 WHERE id = '02b5053f-ecc2-41fe-ad0e-7ba2525661ff';

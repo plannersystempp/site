@@ -137,7 +137,7 @@ serve(async (req) => {
         metadata: {
           team_id: teamId,
           user_id: user.id,
-          sige_team_name: team.name
+          planner_team_name: team.name
         }
       });
       customerId = customer.id;
