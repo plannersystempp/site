@@ -58,9 +58,8 @@ import { ErrorReportDialog } from '@/components/shared/ErrorReportDialog';
 
 const menuItems = [
   { title: 'Dashboard', url: '/app', icon: Home },
-  { title: 'Funções', url: '/app/funcoes', icon: Briefcase },
-  { title: 'Pessoal', url: '/app/pessoal', icon: Users },
   { title: 'Eventos', url: '/app/eventos', icon: Calendar },
+  { title: 'Pessoal', url: '/app/pessoal', icon: Users },
   { title: 'Fornecedores', url: '/app/fornecedores', icon: Package },
 ];
 
@@ -79,6 +78,7 @@ const financialItems = [
 
 const adminItems = [
   { title: 'Gerenciar Equipe', url: '/app/equipe', icon: Users },
+  { title: 'Funções', url: '/app/funcoes', icon: Briefcase },
 ];
 
 const platformItems = [
