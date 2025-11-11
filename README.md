@@ -1,73 +1,64 @@
-# Welcome to your Lovable project
+# PlannerSystem — Sistema de Gestão de Eventos
 
-## Project info
+PlannerSystem é um sistema web para gestão de eventos, equipes e custos, com foco em performance, UX e recursos PWA. Este repositório usa Vite + React + TypeScript + Tailwind.
 
-**URL**: https://lovable.dev/projects/5ae3b8bf-10f4-4b9a-afa2-0351971f99ed
+## Requisitos
 
-## How can I edit this code?
+- Node.js 18+
+- npm 9+
 
-There are several ways of editing your application.
+## Instalação
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/5ae3b8bf-10f4-4b9a-afa2-0351971f99ed) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+npm install
 ```
 
-**Edit a file directly in GitHub**
+## Desenvolvimento
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Servidor local na porta `8080` (preferência):
+  ```bash
+  npm run dev -- --port 8080 --strictPort
+  ```
+- Acesse `http://localhost:8080/app`.
 
-**Use GitHub Codespaces**
+## Build e Preview
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run build
+npm run preview
+```
 
-## What technologies are used for this project?
+## PWA e Ícones
 
-This project is built with:
+- Manifestos atualizados em `public/manifest.json` e `public/site.webmanifest`.
+- Ícones maskable e padrão gerados a partir de `public/icons/plannersystem-logo.svg`.
+- Ícone pinned (Safari) em `public/safari-pinned-tab.svg` com cor definida em `index.html` (`<link rel="mask-icon" color="#0979FF">`).
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Para regenerar favicons e ícones:
+```bash
+npm run icons:gen
+```
 
-## How can I deploy this project?
+## Estrutura do Projeto (resumo)
 
-Simply open [Lovable](https://lovable.dev/projects/5ae3b8bf-10f4-4b9a-afa2-0351971f99ed) and click on Share -> Publish.
+- `src/` — aplicação (componentes, páginas, serviços, hooks, utils).
+- `public/` — assets estáticos, SW, manifestos e ícones.
+- `supabase/` — configurações, migrations e funções Edge.
 
-## Can I connect a custom domain to my Lovable project?
+## Scripts úteis
 
-Yes, you can!
+- `npm run dev` — servidor de desenvolvimento.
+- `npm run build` — build de produção.
+- `npm run preview` — preview do build (porta padrão do Vite).
+- `npm run icons:gen` — gerar favicons e ícones a partir do SVG.
+- `npm run test` — executar testes.
+- `npm run lint` — lint do projeto.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Convenções
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Commits Semânticos: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`.
+- Idioma padrão: pt-BR (código, comentários e documentação).
+
+## Deploy
+
+- Pode ser publicado na Vercel. Ajuste configurações em `vercel.json` conforme necessário.
