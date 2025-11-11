@@ -74,6 +74,7 @@ const financialItems = [
     ]
   },
   { title: 'Pagamentos Avulsos', url: '/app/pagamentos-avulsos', icon: CalendarClock },
+  { title: 'Previsão de Pagamentos', url: '/app/previsao-pagamentos', icon: CalendarClock },
 ];
 
 const adminItems = [

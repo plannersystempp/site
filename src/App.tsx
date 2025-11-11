@@ -46,6 +46,7 @@ import PlansPage from './pages/PlansPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import ManageSubscription from './pages/ManageSubscription';
 import MonthlyPayrollPage from './pages/MonthlyPayrollPage';
+import PaymentForecastPage from './pages/PaymentForecastPage';
 import { useRealtimeSync } from './hooks/queries/useRealtimeSync';
 import { SetDemoRoleAdmin } from './pages/SetDemoRoleAdmin';
 
@@ -311,6 +312,11 @@ const AppContent = () => {
               <Route path="/pagamentos-avulsos" element={
                 <RouteErrorBoundary routeName="Pagamentos Avulsos">
                   <PersonnelPaymentsPage />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/previsao-pagamentos" element={
+                <RouteErrorBoundary routeName="Previsão de Pagamentos">
+                  <PaymentForecastPage />
                 </RouteErrorBoundary>
               } />
               <Route path="/equipe" element={
