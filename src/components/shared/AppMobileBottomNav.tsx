@@ -23,19 +23,19 @@ export function AppMobileBottomNav() {
 
   // Rotas principais (abas fixas)
   const tabs = useMemo(() => ([
-    { path: '/app', label: 'Home', icon: LayoutDashboard },
-    { path: '/app/pessoal', label: 'Pessoal', icon: Users },
+    { path: '/app', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/app/eventos', label: 'Eventos', icon: CalendarDays },
-    { path: '/app/folha', label: 'Folha', icon: Wallet },
+    { path: '/app/pessoal', label: 'Pessoal', icon: Users },
+    { path: '/app/fornecedores', label: 'Fornecedores', icon: Package },
   ]), []);
 
   // Mais opções (sheet)
   const moreTabs = useMemo(() => ([
     { path: '/app/configuracoes', label: 'Configurações', icon: SettingsIcon },
-    { path: '/app/fornecedores', label: 'Fornecedores', icon: Package },
     { path: '/app/funcoes', label: 'Funções', icon: Wrench },
     { path: '/app/pagamentos-avulsos', label: 'Avulsos', icon: BadgeDollarSign },
     { path: '/app/custos', label: 'Custos', icon: Calculator },
+    { path: '/app/folha', label: 'Folha', icon: Wallet },
     { path: '/app/equipe', label: 'Equipe', icon: Users },
   ]), []);
 
