@@ -8,16 +8,33 @@ export type { WeekForecast, ForecastItem };
 
 // Busca eventos com payment_due_date no intervalo e seus saldos pendentes via event_payroll
 export async function fetchEventForecast(teamId: string, startDate: string, endDate: string): Promise<ForecastItem[]> {
-  const { data: events, error } = await supabase
+  // Busca eventos com payment_due_date dentro do intervalo
+  const { data: eventsDueDate, error } = await supabase
     .from('events')
-    .select('id, name, location, payment_due_date, status')
+    .select('id, name, location, payment_due_date, end_date, status')
     .eq('team_id', teamId)
     .gte('payment_due_date', startDate)
     .lte('payment_due_date', endDate);
 
   if (error) throw error;
 
-  const eventIds = (events || []).map((e: any) => e.id);
+  // Fallback: incluir eventos SEM payment_due_date cujo end_date implica vencimento no intervalo (end_date + 7 dias)
+  const toDate = (iso: string) => new Date(`${iso}T12:00:00`);
+  const toIso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const startMinus7 = (() => { const d = toDate(startDate); d.setDate(d.getDate() - 7); return toIso(d); })();
+  const endMinus7 = (() => { const d = toDate(endDate); d.setDate(d.getDate() - 7); return toIso(d); })();
+
+  const { data: eventsNoDue } = await supabase
+    .from('events')
+    .select('id, name, location, payment_due_date, end_date, status')
+    .eq('team_id', teamId)
+    .is('payment_due_date', null)
+    .gte('end_date', startMinus7)
+    .lte('end_date', endMinus7);
+
+  const allEvents = ([...(eventsDueDate || []), ...(eventsNoDue || [])]) as any[];
+
+  const eventIds = allEvents.map((e: any) => e.id);
   let payrollRows: any[] = [];
   let closingRows: any[] = [];
   if (eventIds.length > 0) {
@@ -68,9 +85,14 @@ export async function fetchEventForecast(teamId: string, startDate: string, endD
     closingsCountByEvent[key] = (closingsCountByEvent[key] || 0) + 1;
   });
 
-  const items: ForecastItem[] = (events || [])
+  const items: ForecastItem[] = (allEvents || [])
     .map((e: any) => {
-      const due = e.payment_due_date as string | null;
+      let due: string | null = (e.payment_due_date as string | null) ?? null;
+      if (!due && e.end_date) {
+        const d = new Date(`${e.end_date}T12:00:00`);
+        d.setDate(d.getDate() + 7);
+        due = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
       const amount = remainingByEvent[e.id] ?? 0;
       if (!due) return null;
 
