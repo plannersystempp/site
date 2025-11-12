@@ -1,7 +1,9 @@
 // Idioma: pt-BR
+// Idioma: pt-BR
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { usePaymentForecastQuery } from '@/hooks/queries/usePaymentForecastQuery';
 import { formatCurrency } from '@/utils/formatters';
 import { formatDateShort } from '@/utils/dateUtils';
@@ -32,14 +34,14 @@ export const PaymentForecastPage: React.FC = () => {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 print:p-0 print:bg-white print:text-black">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Previsão de Pagamentos (Próximas Semanas)</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 print:hidden">
           <label htmlFor="weeks" className="text-sm text-muted-foreground">Semanas à frente</label>
           <select
             id="weeks"
-            className="border rounded px-2 py-1 text-sm"
+            className="border rounded px-2 py-1 text-sm bg-background dark:bg-slate-900"
             value={weeksAhead}
             onChange={(e) => setWeeksAhead(Number(e.target.value))}
           >
@@ -47,6 +49,14 @@ export const PaymentForecastPage: React.FC = () => {
             <option value={3}>3</option>
             <option value={4}>4</option>
           </select>
+          <Button
+            aria-label="Imprimir previsão"
+            variant="secondary"
+            className="ml-2"
+            onClick={() => window.print()}
+          >
+            Imprimir
+          </Button>
         </div>
       </div>
 
@@ -79,7 +89,10 @@ export const PaymentForecastPage: React.FC = () => {
         return (
           <Card key={`${week.weekStart}_${week.weekEnd}`}>
             <CardContent className="p-0">
-              <div className={`px-4 py-3 flex items-center justify-between ${isTopWeek ? 'bg-amber-100' : 'bg-muted'}`}>
+              <div
+                className={`px-4 py-3 flex items-center justify-between border-b
+                ${isTopWeek ? 'bg-amber-100 dark:bg-amber-300/20' : 'bg-slate-100 dark:bg-slate-800/60'}`}
+              >
                 <div className="font-medium">
                   Pagamento de Freelas - Semana de {formatDateShort(week.weekStart)} a {formatDateShort(week.weekEnd)}
                 </div>
@@ -89,7 +102,7 @@ export const PaymentForecastPage: React.FC = () => {
               {/* Seção de Eventos */}
               {eventos.length > 0 && (
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-slate-50 dark:bg-slate-900">
                     <TableRow>
                       <TableHead colSpan={6} className="text-left">Eventos</TableHead>
                     </TableRow>
@@ -98,19 +111,23 @@ export const PaymentForecastPage: React.FC = () => {
                       <TableHead>Evento</TableHead>
                       <TableHead className="w-[200px]">Local</TableHead>
                       <TableHead className="w-[120px]">Vencimento</TableHead>
-                      <TableHead className="w-[160px]">Total a Pagar</TableHead>
+                      <TableHead className="w-[160px] text-right">Total a Pagar</TableHead>
                       <TableHead>Obs.</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {eventosSorted.map((item) => (
                       <TableRow key={`${item.kind}_${item.id}`}>
-                        <TableCell className="capitalize">{item.kind}</TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                            {item.kind}
+                          </span>
+                        </TableCell>
                         <TableCell>{item.name}</TableCell>
                         <TableCell>{item.location || '-'}</TableCell>
                         <TableCell>{formatDateShort(item.dueDate)}</TableCell>
-                        <TableCell className="font-medium">{formatCurrency(item.amount)}</TableCell>
-                        <TableCell>{item.notes || ''}</TableCell>
+                        <TableCell className="font-medium text-right">{formatCurrency(item.amount)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{item.notes || ''}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -120,7 +137,7 @@ export const PaymentForecastPage: React.FC = () => {
               {/* Seção de Pagamentos Avulsos */}
               {avulsos.length > 0 && (
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-slate-50 dark:bg-slate-900">
                     <TableRow>
                       <TableHead colSpan={6} className="text-left">Pagamentos Avulsos</TableHead>
                     </TableRow>
@@ -129,14 +146,18 @@ export const PaymentForecastPage: React.FC = () => {
                       <TableHead>Descrição</TableHead>
                       <TableHead className="w-[200px]">Local</TableHead>
                       <TableHead className="w-[120px]">Vencimento</TableHead>
-                      <TableHead className="w-[160px]">Total a Pagar</TableHead>
+                      <TableHead className="w-[160px] text-right">Total a Pagar</TableHead>
                       <TableHead>Obs.</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {avulsosSorted.map((item) => (
                       <TableRow key={`${item.kind}_${item.id}`}>
-                        <TableCell className="capitalize">{item.kind}</TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                            {item.kind}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           {item.name}
                           {item.personnelName ? (
@@ -145,13 +166,13 @@ export const PaymentForecastPage: React.FC = () => {
                         </TableCell>
                         <TableCell>{item.location || '-'}</TableCell>
                         <TableCell>{formatDateShort(item.dueDate)}</TableCell>
-                        <TableCell className="font-medium">{formatCurrency(item.amount)}</TableCell>
-                        <TableCell>{item.notes || ''}</TableCell>
+                        <TableCell className="font-medium text-right">{formatCurrency(item.amount)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{item.notes || ''}</TableCell>
                       </TableRow>
                     ))}
                     <TableRow>
                       <TableCell colSpan={4} className="text-right font-semibold">Total da Semana</TableCell>
-                      <TableCell className="font-semibold">{formatCurrency(week.totalAmount)}</TableCell>
+                      <TableCell className="font-semibold text-right">{formatCurrency(week.totalAmount)}</TableCell>
                       <TableCell></TableCell>
                     </TableRow>
                   </TableBody>
