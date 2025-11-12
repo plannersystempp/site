@@ -399,37 +399,45 @@ Deno.serve(async (req) => {
     // POPULAR EVENTOS (25 eventos com nomes únicos)
     console.log('📅 Criando eventos...');
     const now = new Date();
+    
+    // Helper para calcular payment_due_date (end_date + 7 dias)
+    const getPaymentDueDate = (endDate: string): string => {
+      const date = new Date(endDate);
+      date.setDate(date.getDate() + 7);
+      return date.toISOString().split('T')[0];
+    };
+    
     const eventsData = [
-      // Eventos passados concluídos (5)
-      { name: 'Rock Festival 2024', description: 'Festival de rock com 3 bandas internacionais', start_date: '2024-11-15', end_date: '2024-11-15', status: 'concluido', event_revenue: 85000, location: 'Arena Central' },
-      { name: 'Casamento Maria & João Silva', description: 'Cerimônia e festa de casamento', start_date: '2024-11-20', end_date: '2024-11-20', status: 'concluido', event_revenue: 45000, location: 'Espaço Garden' },
-      { name: 'Tech Summit Conference 2024', description: 'Conferência de tecnologia e inovação', start_date: '2024-11-25', end_date: '2024-11-27', status: 'concluido', event_revenue: 120000, location: 'Centro de Convenções' },
-      { name: 'Formatura Medicina UFRJ 2024', description: 'Formatura turma 2024', start_date: '2024-12-01', end_date: '2024-12-01', status: 'concluido', event_revenue: 65000, location: 'Hotel Intercity' },
-      { name: 'Show Sertanejo - Dupla Raízes', description: 'Show em casa de eventos', start_date: '2024-12-05', end_date: '2024-12-05', status: 'concluido', event_revenue: 55000, location: 'Casa de Shows VIP' },
+      // Eventos passados concluídos (5) - alguns com pagamento pendente
+      { name: 'Rock Festival 2024', description: 'Festival de rock com 3 bandas internacionais', start_date: '2024-11-15', end_date: '2024-11-15', payment_due_date: getPaymentDueDate('2024-11-15'), status: 'concluido_pagamento_pendente', event_revenue: 85000, location: 'Arena Central' },
+      { name: 'Casamento Maria & João Silva', description: 'Cerimônia e festa de casamento', start_date: '2024-11-20', end_date: '2024-11-20', payment_due_date: getPaymentDueDate('2024-11-20'), status: 'concluido_pagamento_pendente', event_revenue: 45000, location: 'Espaço Garden' },
+      { name: 'Tech Summit Conference 2024', description: 'Conferência de tecnologia e inovação', start_date: '2024-11-25', end_date: '2024-11-27', payment_due_date: getPaymentDueDate('2024-11-27'), status: 'concluido', event_revenue: 120000, location: 'Centro de Convenções' },
+      { name: 'Formatura Medicina UFRJ 2024', description: 'Formatura turma 2024', start_date: '2024-12-01', end_date: '2024-12-01', payment_due_date: getPaymentDueDate('2024-12-01'), status: 'concluido_pagamento_pendente', event_revenue: 65000, location: 'Hotel Intercity' },
+      { name: 'Show Sertanejo - Dupla Raízes', description: 'Show em casa de eventos', start_date: '2024-12-05', end_date: '2024-12-05', payment_due_date: getPaymentDueDate('2024-12-05'), status: 'concluido', event_revenue: 55000, location: 'Casa de Shows VIP' },
       
       // Eventos em andamento (5)
-      { name: 'Feira de Negócios B2B 2025', description: 'Feira comercial e networking', start_date: new Date(now.getTime() - 2*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 1*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 95000, location: 'Expo Center' },
-      { name: 'Workshop Liderança Empresarial', description: 'Treinamento corporativo executivo', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 35000, location: 'Hotel Executivo' },
-      { name: 'Festival Gastronômico Internacional', description: 'Festival de comida mundial', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 3*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 72000, location: 'Parque da Cidade' },
-      { name: 'Noite Eletrônica - DJ Set Premium', description: 'Festa eletrônica com DJs internacionais', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: now.toISOString().split('T')[0], status: 'em_andamento', event_revenue: 48000, location: 'Club Paradise' },
-      { name: 'Convenção Anual Vendas 2025', description: 'Convenção anual de vendedores', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], status: 'em_andamento', event_revenue: 110000, location: 'Resort Premium' },
+      { name: 'Feira de Negócios B2B 2025', description: 'Feira comercial e networking', start_date: new Date(now.getTime() - 2*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 1*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 1*24*60*60*1000).toISOString().split('T')[0]), status: 'em_andamento', event_revenue: 95000, location: 'Expo Center' },
+      { name: 'Workshop Liderança Empresarial', description: 'Treinamento corporativo executivo', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0]), status: 'em_andamento', event_revenue: 35000, location: 'Hotel Executivo' },
+      { name: 'Festival Gastronômico Internacional', description: 'Festival de comida mundial', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 3*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 3*24*60*60*1000).toISOString().split('T')[0]), status: 'em_andamento', event_revenue: 72000, location: 'Parque da Cidade' },
+      { name: 'Noite Eletrônica - DJ Set Premium', description: 'Festa eletrônica com DJs internacionais', start_date: new Date(now.getTime() - 1*24*60*60*1000).toISOString().split('T')[0], end_date: now.toISOString().split('T')[0], payment_due_date: getPaymentDueDate(now.toISOString().split('T')[0]), status: 'em_andamento', event_revenue: 48000, location: 'Club Paradise' },
+      { name: 'Convenção Anual Vendas 2025', description: 'Convenção anual de vendedores', start_date: now.toISOString().split('T')[0], end_date: new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0]), status: 'em_andamento', event_revenue: 110000, location: 'Resort Premium' },
       
       // Eventos futuros (15)
-      { name: 'Casamento Ana Paula & Carlos Eduardo', description: 'Casamento ao ar livre com vista para o mar', start_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 52000, location: 'Beach Club' },
-      { name: 'Show MPB - Artista Renomado', description: 'Show acústico intimista', start_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 78000, location: 'Teatro Municipal' },
-      { name: 'Lançamento Produto Tech XYZ', description: 'Evento corporativo de lançamento', start_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 42000, location: 'Auditório Corporativo' },
-      { name: 'Aniversário 20 Anos - TechCorp', description: 'Comemoração corporativa especial', start_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 68000, location: 'Sede da Empresa' },
-      { name: 'Festival de Inverno Cultural', description: 'Festival cultural com shows e exposições', start_date: new Date(now.getTime() + 30*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 32*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 135000, location: 'Centro Cultural' },
-      { name: 'Feira Artesanato Regional', description: 'Feira de artesãos locais', start_date: new Date(now.getTime() + 35*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 37*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 28000, location: 'Praça Principal' },
-      { name: 'Baile de Gala Beneficente AACD', description: 'Evento social beneficente', start_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 95000, location: 'Clube Privado' },
-      { name: 'Seminário Estratégias de Vendas', description: 'Treinamento comercial avançado', start_date: new Date(now.getTime() + 45*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 46*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 38000, location: 'Centro de Treinamento' },
-      { name: 'Stand Up Comedy Night', description: 'Noite de comédia com humoristas nacionais', start_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 32000, location: 'Teatro Comédia' },
-      { name: 'Exposição Arte Contemporânea', description: 'Vernissage com artistas locais', start_date: new Date(now.getTime() + 56*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 58*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 25000, location: 'Galeria de Arte' },
-      { name: 'Corrida Beneficente 10K GRAACC', description: 'Corrida de rua solidária', start_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 45000, location: 'Parque Ibirapuera' },
-      { name: 'Festival Música Indie Brasil', description: 'Festival alternativo com bandas nacionais', start_date: new Date(now.getTime() + 70*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 72*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 88000, location: 'Arena Open Air' },
-      { name: 'Palestra Motivacional com Guru', description: 'Evento inspiracional de desenvolvimento pessoal', start_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 22000, location: 'Auditório Grande' },
-      { name: 'Jantar Dançante Réveillon Antecipado', description: 'Evento social exclusivo de fim de ano', start_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 75000, location: 'Salão Nobre' },
-      { name: 'Workshop Fotografia Profissional', description: 'Curso intensivo de fotografia comercial', start_date: new Date(now.getTime() + 90*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 92*24*60*60*1000).toISOString().split('T')[0], status: 'planejado', event_revenue: 18000, location: 'Estúdio Fotográfico' }
+      { name: 'Casamento Ana Paula & Carlos Eduardo', description: 'Casamento ao ar livre com vista para o mar', start_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 7*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 52000, location: 'Beach Club' },
+      { name: 'Show MPB - Artista Renomado', description: 'Show acústico intimista', start_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 10*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 78000, location: 'Teatro Municipal' },
+      { name: 'Lançamento Produto Tech XYZ', description: 'Evento corporativo de lançamento', start_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 14*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 42000, location: 'Auditório Corporativo' },
+      { name: 'Aniversário 20 Anos - TechCorp', description: 'Comemoração corporativa especial', start_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 21*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 68000, location: 'Sede da Empresa' },
+      { name: 'Festival de Inverno Cultural', description: 'Festival cultural com shows e exposições', start_date: new Date(now.getTime() + 30*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 32*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 32*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 135000, location: 'Centro Cultural' },
+      { name: 'Feira Artesanato Regional', description: 'Feira de artesãos locais', start_date: new Date(now.getTime() + 35*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 37*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 37*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 28000, location: 'Praça Principal' },
+      { name: 'Baile de Gala Beneficente AACD', description: 'Evento social beneficente', start_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 42*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 95000, location: 'Clube Privado' },
+      { name: 'Seminário Estratégias de Vendas', description: 'Treinamento comercial avançado', start_date: new Date(now.getTime() + 45*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 46*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 46*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 38000, location: 'Centro de Treinamento' },
+      { name: 'Stand Up Comedy Night', description: 'Noite de comédia com humoristas nacionais', start_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 49*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 32000, location: 'Teatro Comédia' },
+      { name: 'Exposição Arte Contemporânea', description: 'Vernissage com artistas locais', start_date: new Date(now.getTime() + 56*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 58*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 58*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 25000, location: 'Galeria de Arte' },
+      { name: 'Corrida Beneficente 10K GRAACC', description: 'Corrida de rua solidária', start_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 60*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 45000, location: 'Parque Ibirapuera' },
+      { name: 'Festival Música Indie Brasil', description: 'Festival alternativo com bandas nacionais', start_date: new Date(now.getTime() + 70*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 72*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 72*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 88000, location: 'Arena Open Air' },
+      { name: 'Palestra Motivacional com Guru', description: 'Evento inspiracional de desenvolvimento pessoal', start_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 77*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 22000, location: 'Auditório Grande' },
+      { name: 'Jantar Dançante Réveillon Antecipado', description: 'Evento social exclusivo de fim de ano', start_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 84*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 75000, location: 'Salão Nobre' },
+      { name: 'Workshop Fotografia Profissional', description: 'Curso intensivo de fotografia comercial', start_date: new Date(now.getTime() + 90*24*60*60*1000).toISOString().split('T')[0], end_date: new Date(now.getTime() + 92*24*60*60*1000).toISOString().split('T')[0], payment_due_date: getPaymentDueDate(new Date(now.getTime() + 92*24*60*60*1000).toISOString().split('T')[0]), status: 'planejado', event_revenue: 18000, location: 'Estúdio Fotográfico' }
     ];
 
     const { data: createdEvents } = await supabaseAdmin
@@ -495,6 +503,37 @@ Deno.serve(async (req) => {
 
           if (allocations) {
             stats.allocations += allocations.length;
+          }
+          
+          // Criar event_payroll para eventos concluídos/em andamento com saldo pendente
+          if ((event.status === 'concluido' || event.status === 'concluido_pagamento_pendente' || event.status === 'em_andamento') && selectedPeople.length > 0) {
+            console.log(`💰 Criando event_payroll para evento: ${event.name}`);
+            
+            const payrollRecords = selectedPeople.slice(0, 3).map(person => {
+              const totalGross = 2000 + Math.random() * 8000; // R$ 2.000 - R$ 10.000
+              const paidPercentage = event.status === 'concluido' ? 0 : (Math.random() * 0.4); // 0-40% pago
+              const totalPaid = totalGross * paidPercentage;
+              const remainingBalance = totalGross - totalPaid;
+              
+              return {
+                team_id: teamId,
+                event_id: event.id,
+                personnel_id: person.id,
+                person_name: person.name,
+                person_type: person.type,
+                work_days: allocationsData.find(a => a.personnel_id === person.id)?.work_days.length || 1,
+                cache_rate: person.event_cache || 0,
+                overtime_rate: person.overtime_rate || 0,
+                cache_pay: person.event_cache || 0,
+                total_gross: totalGross,
+                total_paid: totalPaid,
+                remaining_balance: remainingBalance,
+                payment_status: totalPaid >= totalGross ? 'paid' : (totalPaid > 0 ? 'partially_paid' : 'pending'),
+                is_finalized: false
+              };
+            });
+            
+            await supabaseAdmin.from('event_payroll').insert(payrollRecords);
           }
         }
       }

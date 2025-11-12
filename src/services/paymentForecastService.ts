@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import type { ForecastItem, WeekForecast } from './paymentForecastUtils';
 import { groupItemsByWeek } from './paymentForecastUtils';
 
+export type { WeekForecast, ForecastItem };
+
 // Busca eventos com payment_due_date no intervalo e seus saldos pendentes via event_payroll
 export async function fetchEventForecast(teamId: string, startDate: string, endDate: string): Promise<ForecastItem[]> {
   const { data: events, error } = await supabase
