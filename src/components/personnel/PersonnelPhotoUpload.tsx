@@ -292,17 +292,11 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
     }
   };
 
-  // FASE 3: Detectar se há mudanças não salvas
-  const hasUnsavedPhoto = previewUrl !== currentPhotoUrl;
-
+  
+      
   return (
     <div className="space-y-4">
-      {/* FASE 3: Badge de foto não salva */}
-      {hasUnsavedPhoto && (
-        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20">
-          ⚠️ Foto alterada - clique em "Salvar" abaixo para confirmar
-        </Badge>
-      )}
+      
       
       <div className="flex items-center gap-4">
         {/* Avatar Preview */}

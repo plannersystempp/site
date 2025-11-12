@@ -394,6 +394,16 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
     }
   };
 
+  // Fechamento com confirmação quando houver alterações não salvas
+  const handleCloseRequest = () => {
+    if (loading) return;
+    if (isDirty) {
+      const confirmClose = window.confirm('Existem alterações não salvas. Deseja descartar?');
+      if (!confirmClose) return;
+    }
+    onClose();
+  };
+
   const handlePixKeyUpdate = async (personnelId: string, pixKey: string) => {
     try {
       const { error } = await supabase.functions.invoke('pix-key/set', {
@@ -426,7 +436,6 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
         if (e.target === e.currentTarget && !loading) {
           if (isDirty) {
             const confirmClose = window.confirm('Existem alterações não salvas. Deseja descartar?');
-            console.log('[PersonnelForm] Tentativa de fechar com alterações. Confirmado?', confirmClose);
             if (!confirmClose) return;
           }
           onClose();
@@ -434,7 +443,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
       }}
     >
       <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <PersonnelFormHeader personnel={personnel} onClose={onClose} />
+        <PersonnelFormHeader personnel={personnel} onClose={handleCloseRequest} />
         <CardContent>
           <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} autoComplete="off">
             <PersonnelFormFields
@@ -447,7 +456,7 @@ export const PersonnelForm: React.FC<PersonnelFormProps> = ({ personnel, onClose
             
             <PersonnelFormActions
               loading={loading}
-              onCancel={onClose}
+              onCancel={handleCloseRequest}
               hasUnsavedPhoto={formData.photo_url !== (personnel?.photo_url || '')}
             />
           </form>
