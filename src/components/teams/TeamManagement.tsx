@@ -393,27 +393,28 @@ export const TeamManagement: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6 pb-24 sm:pb-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
+        <div className="w-full sm:w-auto">
           <h1 className="text-2xl font-bold">Gerenciar Equipe</h1>
           <p className="text-muted-foreground">{activeTeam.name}</p>
-          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm font-medium text-blue-800">Código de Convite:</p>
-            <code className="text-lg font-mono font-bold text-blue-900">
+          <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Código de Convite:</p>
+            <code className="text-lg font-mono font-bold text-blue-900 dark:text-blue-100 break-all">
               {(activeTeam as any).invite_code || 'Carregando...'}
             </code>
-            <p className="text-xs text-blue-600 mt-1">
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
               Compartilhe este código com novos membros para que possam solicitar acesso à equipe
             </p>
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={fetchMembers}
             disabled={loading}
+            className="flex-1 sm:flex-none"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Atualizar Lista
@@ -421,7 +422,7 @@ export const TeamManagement: React.FC = () => {
           
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="flex-1 sm:flex-none">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Cadastrar Usuário
               </Button>
@@ -432,9 +433,9 @@ export const TeamManagement: React.FC = () => {
 
       {/* Seção de Solicitações Pendentes */}
       {pendingRequests.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50/50">
+        <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-700">
+            <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
               <Clock className="w-5 h-5" />
               Solicitações Pendentes ({pendingRequests.length})
             </CardTitle>
@@ -444,15 +445,15 @@ export const TeamManagement: React.FC = () => {
               {pendingRequests.map((request) => (
                 <div
                   key={request.user_id}
-                  className="flex items-center justify-between p-4 border border-orange-200 rounded-lg bg-white"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-orange-200 dark:border-orange-800 rounded-lg bg-white dark:bg-card"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <Mail className="w-5 h-5 text-orange-600" />
                     </div>
-                    <div>
-                      <p className="font-medium">{request.user_profiles?.name || 'Nome não disponível'}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{request.user_profiles?.name || 'Nome não disponível'}</p>
+                      <p className="text-sm text-muted-foreground truncate">
                         {request.user_profiles?.email || 'Email não disponível'}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -461,15 +462,15 @@ export const TeamManagement: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       size="sm"
                       onClick={() => handleApproveRequest(request.user_id, request.user_profiles?.name || 'usuário')}
                       disabled={loadingPending}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      <Check className="w-4 h-4 mr-1" />
-                      Aprovar
+                      <Check className="w-4 h-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Aprovar</span>
                     </Button>
                     <Button
                       size="sm"
@@ -478,8 +479,8 @@ export const TeamManagement: React.FC = () => {
                       disabled={loadingPending}
                       className="text-red-600 border-red-600 hover:bg-red-50"
                     >
-                      <X className="w-4 h-4 mr-1" />
-                      Rejeitar
+                      <X className="w-4 h-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Rejeitar</span>
                     </Button>
                   </div>
                 </div>
@@ -491,9 +492,9 @@ export const TeamManagement: React.FC = () => {
 
       {/* Seção de Membros Desaprovados */}
       {rejectedMembers.length > 0 && (
-        <Card className="border-red-200 bg-red-50/50">
+        <Card className="border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
               <UserMinus className="w-5 h-5" />
               Membros Desaprovados ({rejectedMembers.length})
             </CardTitle>
@@ -503,15 +504,15 @@ export const TeamManagement: React.FC = () => {
               {rejectedMembers.map((member) => (
                 <div
                   key={member.user_id}
-                  className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-white"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-red-200 dark:border-red-800 rounded-lg bg-white dark:bg-card"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
                       <UserMinus className="w-5 h-5 text-red-600" />
                     </div>
-                    <div>
-                      <p className="font-medium">{member.user_profiles?.name || 'Nome não disponível'}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{member.user_profiles?.name || 'Nome não disponível'}</p>
+                      <p className="text-sm text-muted-foreground truncate">
                         {member.user_profiles?.email || 'Email não disponível'}
                       </p>
                       <div className="mt-1">
@@ -520,14 +521,14 @@ export const TeamManagement: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       size="sm"
                       onClick={() => handleApproveRequest(member.user_id, member.user_profiles?.name || 'usuário')}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      <Check className="w-4 h-4 mr-1" />
-                      Reaprovar
+                      <Check className="w-4 h-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Reaprovar</span>
                     </Button>
                     <Button
                       size="sm"
@@ -535,8 +536,8 @@ export const TeamManagement: React.FC = () => {
                       onClick={() => handleRemoveUser(member.user_id, member.user_profiles?.name || 'usuário')}
                       className="text-red-600 border-red-600 hover:bg-red-50"
                     >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Remover
+                      <Trash2 className="w-4 h-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Remover</span>
                     </Button>
                   </div>
                 </div>
@@ -577,15 +578,15 @@ export const TeamManagement: React.FC = () => {
                 return (
                   <div
                     key={member.user_id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                         <Mail className="w-5 h-5 text-primary" />
                       </div>
-                      <div>
-                        <p className="font-medium">{member.user_profiles?.name || 'Nome não disponível'}</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{member.user_profiles?.name || 'Nome não disponível'}</p>
+                        <p className="text-sm text-muted-foreground truncate">
                           {member.user_profiles?.email || 'Email não disponível'}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -594,8 +595,8 @@ export const TeamManagement: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <Badge variant={badgeProps.variant} className="flex items-center gap-1">
+                    <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-center">
+                      <Badge variant={badgeProps.variant} className="flex items-center gap-1 whitespace-nowrap">
                         <BadgeIcon className="w-3 h-3" />
                         {badgeProps.label}
                       </Badge>
@@ -603,7 +604,7 @@ export const TeamManagement: React.FC = () => {
                       {member.role !== 'admin' && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="ghost">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
