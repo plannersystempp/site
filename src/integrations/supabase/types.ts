@@ -1602,6 +1602,7 @@ export type Database = {
           current_period_ends_at: string
           current_period_starts_at: string
           gateway_customer_id: string | null
+          gateway_payment_intent_id: string | null
           gateway_subscription_id: string | null
           id: string
           plan_id: string
@@ -1616,6 +1617,7 @@ export type Database = {
           current_period_ends_at: string
           current_period_starts_at?: string
           gateway_customer_id?: string | null
+          gateway_payment_intent_id?: string | null
           gateway_subscription_id?: string | null
           id?: string
           plan_id: string
@@ -1630,6 +1632,7 @@ export type Database = {
           current_period_ends_at?: string
           current_period_starts_at?: string
           gateway_customer_id?: string | null
+          gateway_payment_intent_id?: string | null
           gateway_subscription_id?: string | null
           id?: string
           plan_id?: string
@@ -1905,6 +1908,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_team_member_with_role: {
+        Args: { p_role: string; p_team_id: string; p_user_id: string }
+        Returns: Json
+      }
       auto_fix_simple_orphans: { Args: never; Returns: Json }
       check_and_report_orphan_users: { Args: never; Returns: Json }
       check_event_status_consistency: {

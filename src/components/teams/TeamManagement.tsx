@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ApprovalStatusBadge } from '@/components/shared/ApprovalStatusBadge';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { NoTeamSelected } from '@/components/shared/NoTeamSelected';
@@ -41,6 +43,11 @@ export const TeamManagement: React.FC = () => {
   const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
   const [limitCheckResult, setLimitCheckResult] = useState<any>(null);
   const checkLimits = useCheckSubscriptionLimits();
+  
+  // Estados para aprovação com seleção de role
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [userToApprove, setUserToApprove] = useState<{userId: string, userName: string} | null>(null);
+  const [selectedRoleForApproval, setSelectedRoleForApproval] = useState<'admin' | 'coordinator' | 'financeiro'>('coordinator');
 
   const fetchMembers = async () => {
     if (!activeTeam) return;
@@ -248,26 +255,53 @@ export const TeamManagement: React.FC = () => {
         return;
       }
 
+      // Abrir dialog para escolher role
+      setUserToApprove({ userId, userName });
+      setSelectedRoleForApproval('coordinator'); // Default
+      setApprovalDialogOpen(true);
+    } catch (error) {
+      console.error('Error checking limits:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao verificar limites da assinatura",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const confirmApproval = async () => {
+    if (!activeTeam || !userToApprove) return;
+
+    try {
       setLoadingPending(true);
-      const { error } = await supabase
-        .from('team_members')
-        .update({ status: 'approved' })
-        .eq('team_id', activeTeam.id)
-        .eq('user_id', userId);
+
+      const { data, error } = await supabase.rpc('approve_team_member_with_role', {
+        p_team_id: activeTeam.id,
+        p_user_id: userToApprove.userId,
+        p_role: selectedRoleForApproval
+      });
 
       if (error) throw error;
 
+      const roleLabels = {
+        admin: 'Administrador',
+        coordinator: 'Coordenador',
+        financeiro: 'Financeiro'
+      };
+
       toast({
-        title: "Solicitação aprovada!",
-        description: `${userName} agora tem acesso à equipe.`
+        title: "Acesso aprovado!",
+        description: `${userToApprove.userName} foi aprovado como ${roleLabels[selectedRoleForApproval]} e agora tem acesso à equipe.`
       });
 
+      setApprovalDialogOpen(false);
+      setUserToApprove(null);
       fetchMembers();
     } catch (error) {
-      console.error('Error approving request:', error);
+      console.error('Error approving user:', error);
       toast({
         title: "Erro",
-        description: "Falha ao aprovar solicitação",
+        description: "Falha ao aprovar usuário",
         variant: "destructive"
       });
     } finally {
@@ -658,6 +692,70 @@ export const TeamManagement: React.FC = () => {
               </div>
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Aprovação com Seleção de Role */}
+      <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
+        <DialogContent onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Aprovar Acesso</DialogTitle>
+            <DialogDescription>
+              Escolha o nível de acesso para <strong>{userToApprove?.userName}</strong> na equipe:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="approval-role">Nível de Acesso</Label>
+              <Select 
+                value={selectedRoleForApproval} 
+                onValueChange={(value: 'admin' | 'coordinator' | 'financeiro') => setSelectedRoleForApproval(value)}
+              >
+                <SelectTrigger id="approval-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="coordinator">
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">Coordenador</span>
+                      <span className="text-xs text-muted-foreground">Pode gerenciar eventos e alocações</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="financeiro">
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">Financeiro</span>
+                      <span className="text-xs text-muted-foreground">Acesso a relatórios financeiros e folha de pagamento</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">Administrador</span>
+                      <span className="text-xs text-muted-foreground">Acesso total à equipe (gerenciar membros, deletar dados, etc)</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedRoleForApproval === 'admin' && (
+              <div className="rounded-md bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 p-3">
+                <p className="text-sm text-orange-800 dark:text-orange-200">
+                  <strong>⚠️ Atenção:</strong> Administradores têm acesso TOTAL à equipe, incluindo dados sensíveis e capacidade de deletar informações.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmApproval} disabled={loadingPending}>
+              {loadingPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Aprovar Acesso
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
