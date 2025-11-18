@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Calendar, Users, DollarSign, BarChart3, Clock, FileText, LogIn, Monitor, Smartphone, Tablet, Play, Star, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Logo } from '@/components/shared/Logo';
 
 export const Landing: React.FC = () => {
   const [dashboardPreviewLoaded, setDashboardPreviewLoaded] = useState(false);
@@ -29,7 +28,11 @@ export const Landing: React.FC = () => {
       <header className="fixed top-0 inset-x-0 z-30 bg-primary dark:bg-card border-b border-border/50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 flex justify-between items-center">
           <div className="flex items-center">
-            <Logo width={140} height={32} />
+            <img
+              src="/icons/logo_plannersystem.png"
+              alt="PlannerSystem"
+              className="h-7 w-auto sm:h-8 object-contain"
+            />
           </div>
           <div className="flex gap-2 sm:gap-3 lg:gap-4">
             <Link to="/plans">
