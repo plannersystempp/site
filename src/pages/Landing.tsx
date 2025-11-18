@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Calendar, Users, DollarSign, BarChart3, Clock, FileText, LogIn, Monitor, Smartphone, Tablet, Play, Star, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Logo } from '@/components/shared/Logo';
 
 export const Landing: React.FC = () => {
   const [dashboardPreviewLoaded, setDashboardPreviewLoaded] = useState(false);
@@ -25,24 +26,22 @@ export const Landing: React.FC = () => {
       <div className="absolute bottom-1/3 left-1/4 w-72 h-72 bg-chart-orange/8 rounded-full blur-3xl animate-pulse delay-700" />
 
       {/* Header */}
-      <header className="relative z-10 border-b border-border/50 bg-card/80 dark:bg-card/60 backdrop-blur-xl shadow-sm">
+      <header className="fixed top-0 inset-x-0 z-30 bg-primary dark:bg-card border-b border-border/50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 flex justify-between items-center">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <img 
-              src="/icons/plannersystem-logo.svg" 
-              alt="PlannerSystem Logo" 
-              className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
-            />
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent tracking-tight">PlannerSystem</h1>
+          <div className="flex items-center">
+            <Logo width={140} height={32} />
           </div>
           <div className="flex gap-2 sm:gap-3 lg:gap-4">
             <Link to="/plans">
-              <Button variant="outline" size="sm" className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-2 hover:bg-primary/5 transition-all duration-300 touch-manipulation">
+                                                                                                                              <Button variant="outline" size="sm" className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-2 transition-all duration-300 touch-manipulation 
+                bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary 
+                dark:bg-transparent dark:text-muted-foreground dark:border-input dark:hover:bg-accent dark:hover:text-accent-foreground">
+
                 Ver Planos
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="sm" className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 touch-manipulation">
+              <Button variant="secondary" size="sm" className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 touch-manipulation">
                 <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" aria-hidden="true" />
                 Login
               </Button>
@@ -50,6 +49,8 @@ export const Landing: React.FC = () => {
           </div>
         </div>
       </header>
+      {/* Spacer para compensar a altura do header fixo e evitar sobreposição */}
+      <div className="h-14 sm:h-16 lg:h-20" />
 
       {/* Hero Section */}
       <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
@@ -369,13 +370,12 @@ export const Landing: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 max-w-6xl mx-auto">
             {/* Brand Column */}
             <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <img 
-                  src="/icons/plannersystem-logo.svg" 
-                  alt="PlannerSystem Logo" 
-                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+              <div className="flex items-center">
+                <img
+                  src="/icons/logo_plannersystem.png"
+                  alt="PlannerSystem"
+                  className="h-7 w-auto sm:h-8 object-contain"
                 />
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-chart-blue bg-clip-text text-transparent">PlannerSystem</h1>
               </div>
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-sm">
                 Sistema completo para gestão de eventos, equipes e pagamentos. Simplifique sua operação.
