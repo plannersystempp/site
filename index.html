@@ -32,7 +32,9 @@
         #splash { background: linear-gradient(135deg, #0B1F36 0%, #0A4FCC 100%); }
       }
       .splash-inner { display:flex; flex-direction:column; align-items:center; gap:14px; }
-      .splash-logo { width:160px; height:auto; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.25)); }
+      .splash-logo { width:140px; height:auto; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.25)); }
+      .splash-logo-light { display:block; }
+      .splash-logo-dark { display:none; }
       .splash-text { font-size:18px; font-weight:600; letter-spacing:0.4px; }
       .splash-spinner { width:28px; height:28px; border-radius:9999px; border:3px solid rgba(255,255,255,0.35); border-top-color:#fff; animation: spin 0.9s linear infinite; }
       .splash-progress { display:none; width:240px; height:8px; background: rgba(255,255,255,0.28); border-radius:9999px; overflow:hidden; }
@@ -51,26 +53,29 @@
 
       /* Tablets */
       @media (min-width: 768px) {
-        .splash-logo { width:200px; }
+        .splash-logo { width:180px; }
         .splash-text { font-size:20px; }
         .splash-spinner { display:none; }
         .splash-progress { display:block; width:320px; height:10px; }
       }
       /* Desktops */
       @media (min-width: 1024px) {
-        .splash-logo { width:240px; }
+        .splash-logo { width:210px; }
         .splash-text { font-size:22px; }
         .splash-progress { width:420px; height:12px; }
         .splash-progress-bar { animation-duration: 1s; }
       }
+      @media (prefers-color-scheme: dark) {
+        .splash-logo-light { display:none; }
+        .splash-logo-dark { display:block; }
+      }
     </style>
     
     <!-- Favicons -->
-    <link rel="icon" href="/icons/plannersystem-logo.svg" type="image/svg+xml">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#0979FF">
+    <link rel="icon" type="image/svg+xml" href="/icons/plannersystem-logo.svg">
+    <link rel="shortcut icon" href="/icons/plannersystem-logo.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="mask-icon" href="/icons/plannersystem-logo.svg" color="#0979FF">
     
     <meta name="theme-color" content="#0979FF">
     <title>PlannerSystem - Sistema de Gestão de Eventos</title>
@@ -80,7 +85,7 @@
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="PlannerSystem - Sistema de Gestão de Eventos" />
     <meta property="og:description" content="Sistema completo para gestão de eventos, pessoal e custos." />
-    <meta property="og:image" content="/icons/icon-512x512.png" />
+    <meta property="og:image" content="/icons/android-chrome-512x512.png" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="PlannerSystem" />
 
@@ -92,7 +97,8 @@
     <!-- Splash screen -->
     <div id="splash" aria-live="polite" aria-busy="true">
       <div class="splash-inner">
-        <img src="/icons/plannersystem-logo.svg" alt="PlannerSystem" class="splash-logo" />
+        <img src="/icons/plannersystem-logo-wide-light.svg" alt="PlannerSystem" class="splash-logo splash-logo-light" />
+        <img src="/icons/plannersystem-logo-wide-dark.svg" alt="PlannerSystem" class="splash-logo splash-logo-dark" />
         <div class="splash-text">Carregando PlannerSystem…</div>
         <div class="splash-spinner" aria-label="Carregando"></div>
         <div class="splash-progress" aria-hidden="true"><div class="splash-progress-bar"></div></div>
@@ -100,5 +106,68 @@
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Script de teste do sistema de atualização automática -->
+    <script>
+      // Limpar Service Worker problemático antes de carregar o app
+      (function() {
+        console.log('🧹 Limpando Service Worker problemático...');
+        
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            console.log(`📋 Encontrados ${registrations.length} Service Workers`);
+            
+            registrations.forEach(function(registration) {
+              console.log(`🗑️ Removendo Service Worker: ${registration.scope}`);
+              registration.unregister().then(function(boolean) {
+                if (boolean) {
+                  console.log(`✅ Service Worker removido com sucesso: ${registration.scope}`);
+                }
+              });
+            });
+          }).then(() => {
+            console.log('🔄 Service Worker limpo. Iniciando aplicação...');
+          });
+        }
+        
+        // Limpar caches também
+        if ('caches' in window) {
+          caches.keys().then(function(cacheNames) {
+            console.log(`📦 Encontrados ${cacheNames.length} caches`);
+            
+            cacheNames.forEach(function(cacheName) {
+              console.log(`🗑️ Removendo cache: ${cacheName}`);
+              caches.delete(cacheName);
+            });
+          });
+        }
+      })();
+      
+      // Teste rápido do sistema de atualização automática
+      setTimeout(() => {
+        console.log('🧪 Teste do Sistema de Atualização Automática Iniciado!');
+        console.log('💡 Dica: Abra o console (F12) e vá para a página de folha de pagamento para ver as atualizações automáticas.');
+        
+        let updateCount = 0;
+        const originalLog = console.log;
+        
+        // Monitorar atualizações automáticas
+        console.log = function(...args) {
+          originalLog.apply(console, args);
+          
+          // Detectar atualizações automáticas
+          if (args[0]?.includes?.('[AutoRefresh] ✅ Dados atualizados')) {
+            updateCount++;
+            console.log(`🔄 Atualização #${updateCount} detectada às ${new Date().toLocaleTimeString('pt-BR')}`);
+          }
+          
+          if (args[0]?.includes?.('[PayrollEventView] ✅ Folha de pagamento atualizada')) {
+            console.log('🎯 Sistema de folha de pagamento atualizado com sucesso!');
+          }
+        };
+        
+        console.log('✅ Monitoramento de atualizações automáticas ativado!');
+      }, 2000);
+    </script>
   </body>
 </html>

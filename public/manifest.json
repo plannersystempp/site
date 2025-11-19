@@ -3,13 +3,13 @@
   "name": "PlannerSystem - Gestão de Eventos",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icons/android-chrome-192x192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icons/android-chrome-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
@@ -27,8 +27,14 @@
       "purpose": "maskable"
     },
     {
-      "src": "/icons/plannersystem-logo.svg",
+      "src": "/icons/plannersystem-logo-wide-light.svg",
       "type": "image/svg+xml",
+      "sizes": "800x200",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/logo_plannersystem.png",
+      "type": "image/png",
       "sizes": "any",
       "purpose": "any"
     }
