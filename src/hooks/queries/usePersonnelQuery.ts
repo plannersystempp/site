@@ -159,10 +159,8 @@ export const usePersonnelQuery = () => {
       }));
     },
     enabled: !!user && !!activeTeam?.id,
-    staleTime: 30000,
+    staleTime: 10000, // ⚡ OTIMIZADO: 10 segundos
     gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnMount: 'always', // Garantir dados frescos ao abrir modals
-    refetchOnWindowFocus: false,
   });
 };
 

@@ -24,11 +24,21 @@ export const usePersonnelPaymentsRealtime = () => {
         (payload) => {
           console.log('🔄 [Personnel Payments Realtime]', payload.eventType, payload.new);
           
-          // Invalidar E refazer as queries imediatamente
+          // ⚡ FASE 2 OTIMIZADO: Invalidar queries em vez de setQueryData
+          console.log('♻️ [Personnel Payments Realtime] Invalidating queries');
+          
           queryClient.invalidateQueries({ 
             queryKey: personnelPaymentsKeys.all,
             refetchType: 'active' // Refetch queries ativas imediatamente
           });
+
+          // Também invalidar queries inativas para próxima montagem
+          queryClient.invalidateQueries({ 
+            queryKey: personnelPaymentsKeys.all,
+            refetchType: 'none' // Apenas marcar como stale sem refetch
+          });
+          
+          console.log('✅ [Personnel Payments Realtime] Cache invalidated successfully');
         }
       )
       .subscribe();

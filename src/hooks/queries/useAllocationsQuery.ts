@@ -4,7 +4,13 @@ import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Assignment } from '@/contexts/EnhancedDataContext';
-import { allocationsKeys } from './useAllocationsRealtime';
+
+// Query keys for consistent caching
+export const allocationsKeys = {
+  all: ['allocations'] as const,
+  list: (teamId?: string) => ['allocations', 'list', teamId] as const,
+  byEvent: (eventId?: string) => ['allocations', 'event', eventId] as const,
+};
 
 // Fetch allocations for a team
 const fetchAllocations = async (teamId: string): Promise<Assignment[]> => {

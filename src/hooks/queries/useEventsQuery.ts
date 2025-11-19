@@ -50,7 +50,7 @@ export const useEventsQuery = () => {
     queryKey: eventKeys.list(activeTeam?.id),
     queryFn: () => fetchEvents(activeTeam!.id),
     enabled: !!user && !!activeTeam?.id,
-    staleTime: 3 * 60 * 1000, // 3 minutos
+    staleTime: 10000, // ⚡ OTIMIZADO: 10 segundos
     gcTime: 10 * 60 * 1000, // 10 minutos
   });
 };

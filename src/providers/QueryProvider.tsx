@@ -6,7 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30000, // 30 segundos - consistente com usePersonnelQuery
+      staleTime: 5000, // ⚡ OTIMIZADO: 5 segundos para dados sempre frescos
       gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors (client errors)
@@ -15,8 +15,9 @@ const queryClient = new QueryClient({
         }
         return failureCount < 3;
       },
-      refetchOnWindowFocus: false, // Desabilitar refetch automático global
+      refetchOnWindowFocus: true, // ✅ ATIVADO: Refetch ao voltar para a aba
       refetchOnReconnect: true,
+      refetchOnMount: true, // ✅ ATIVADO: Sempre refetch ao montar componente
     },
     mutations: {
       retry: (failureCount, error: any) => {

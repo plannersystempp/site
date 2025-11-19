@@ -4,7 +4,13 @@ import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Division } from '@/contexts/EnhancedDataContext';
-import { divisionsKeys } from './useDivisionsRealtime';
+
+// Query keys for consistent caching
+export const divisionsKeys = {
+  all: ['divisions'] as const,
+  list: (teamId?: string) => ['divisions', 'list', teamId] as const,
+  byEvent: (eventId?: string) => ['divisions', 'event', eventId] as const,
+};
 
 // Fetch divisions for a team
 const fetchDivisions = async (teamId: string): Promise<Division[]> => {

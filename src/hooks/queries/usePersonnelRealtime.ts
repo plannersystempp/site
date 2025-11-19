@@ -35,8 +35,9 @@ const fetchPersonnelFunctions = async (personnelId: string, teamId: string) => {
 };
 
 /**
+ * FASE 2: Sistema Realtime Otimizado com Invalidação
  * Hook para sincronização em tempo real de dados de pessoal
- * Atualiza o cache do React Query quando houver mudanças no banco
+ * ✅ Usa invalidateQueries para garantir atualização consistente
  */
 export const usePersonnelRealtime = () => {
   const queryClient = useQueryClient();
@@ -46,6 +47,7 @@ export const usePersonnelRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
+    console.log('🔌 [Realtime Personnel] Connecting for team:', activeTeam.id);
 
     const channel = supabase
       .channel('schema-db-changes')
@@ -58,131 +60,48 @@ export const usePersonnelRealtime = () => {
           filter: `team_id=eq.${activeTeam.id}`
         },
         async (payload) => {
-          logger.realtime.change(payload.eventType, { id: (payload.new as any)?.id || (payload.old as any)?.id });
+          const personnelId = (payload.new as any)?.id || (payload.old as any)?.id;
+          
+          console.log('🔄 [Realtime Personnel] Change detected:', {
+            type: payload.eventType,
+            personnelId,
+            timestamp: new Date().toISOString(),
+          });
+          
+          logger.realtime.change(payload.eventType, { id: personnelId });
 
-          const queryKey = personnelKeys.list(activeTeam.id);
-          const currentData = queryClient.getQueryData<Personnel[]>(queryKey);
+          // ⚡ OTIMIZADO: Invalidar queries em vez de manipular cache manualmente
+          // Isso garante dados sempre frescos e evita problemas de sincronização
+          console.log('♻️ [Realtime Personnel] Invalidating personnel queries');
+          
+          queryClient.invalidateQueries({ 
+            queryKey: personnelKeys.all,
+            refetchType: 'active' // Refetch queries ativas imediatamente
+          });
 
-          if (!currentData) return;
+          // Também invalidar queries inativas para próxima montagem
+          queryClient.invalidateQueries({ 
+            queryKey: personnelKeys.all,
+            refetchType: 'none' // Apenas marcar como stale sem refetch
+          });
 
-          switch (payload.eventType) {
-            case 'INSERT': {
-              const newPersonnel = payload.new as any;
-              
-              try {
-                // CORREÇÃO DEFINITIVA: Verificar se já existe no cache (evitar duplicação)
-                const existingIndex = currentData.findIndex(p => p.id === newPersonnel.id);
-                if (existingIndex !== -1) {
-                  console.log('[Realtime] Personnel already in cache, updating instead:', newPersonnel.id);
-                  // Buscar funções atualizadas e atualizar o registro existente
-                  const functions = await fetchPersonnelFunctions(newPersonnel.id, activeTeam.id);
-                  queryClient.setQueryData<Personnel[]>(
-                    queryKey,
-                    currentData.map(p => 
-                      p.id === newPersonnel.id 
-                        ? {
-                            ...newPersonnel,
-                            functions: functions,
-                            type: newPersonnel.type || 'freelancer',
-                          }
-                        : p
-                    )
-                  );
-                  break;
-                }
-                
-                // Remover placeholders temporários relacionados ao mesmo registro
-                const cpfCleaned = removeNonNumeric(newPersonnel.cpf);
-                const filteredData = currentData.filter(p => {
-                  // Manter registros reais
-                  if (!p.id.startsWith('temp-')) return true;
-                  
-                  // Remover temp- com mesmo CPF (se CPF existir)
-                  if (cpfCleaned && removeNonNumeric(p.cpf) === cpfCleaned) {
-                    console.log('[Realtime] Removing temp placeholder by CPF:', p.id);
-                    return false;
-                  }
-                  
-                  // Remover temp- com mesmo nome exato (fallback)
-                  if (p.name === newPersonnel.name) {
-                    console.log('[Realtime] Removing temp placeholder by name:', p.id);
-                    return false;
-                  }
-                  
-                  return true;
-                });
-                
-                // Buscar funções do banco de dados
-                const functions = await fetchPersonnelFunctions(newPersonnel.id, activeTeam.id);
-                
-                // Adicionar novo registro real com funções
-                const personnelToAdd: Personnel = {
-                  ...newPersonnel,
-                  functions: functions,
-                  type: newPersonnel.type || 'freelancer',
-                };
-                
-                const finalData = [...filteredData, personnelToAdd];
-                
-                queryClient.setQueryData<Personnel[]>(
-                  queryKey,
-                  finalData
-                );
-                
-                console.log('[Realtime] Personnel added/updated:', newPersonnel.id);
-              } catch (error) {
-                // FALLBACK: Se falhar ao sincronizar via realtime, invalidar cache
-                console.error('[Realtime] Error syncing INSERT, invalidating cache:', error);
-                queryClient.invalidateQueries({ queryKey });
-              }
-              break;
-            }
-
-            case 'UPDATE': {
-              const updatedPersonnel = payload.new as any;
-              
-              // Buscar funções atualizadas do banco de dados
-              const functions = await fetchPersonnelFunctions(updatedPersonnel.id, activeTeam.id);
-              
-              // Atualizar registro existente com funções atualizadas
-              queryClient.setQueryData<Personnel[]>(
-                queryKey,
-                currentData.map(p => 
-                  p.id === updatedPersonnel.id
-                    ? {
-                        ...updatedPersonnel,
-                        functions: functions,
-                        type: updatedPersonnel.type || 'freelancer',
-                      }
-                    : p
-                )
-              );
-              console.log('[Realtime] Personnel updated in cache:', updatedPersonnel.id);
-              console.log('[Realtime] Functions reloaded:', functions.length);
-              break;
-            }
-
-            case 'DELETE': {
-              const deletedId = payload.old.id;
-              // Remover do cache
-              queryClient.setQueryData<Personnel[]>(
-                queryKey,
-                currentData.filter(p => p.id !== deletedId)
-              );
-              console.log('[Realtime] Personnel removed from cache:', deletedId);
-              break;
-            }
-          }
-
-          // Realtime: update cache only; no background invalidation
+          console.log('✅ [Realtime Personnel] Cache invalidated successfully');
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] Subscription status:', status);
+        console.log('📡 [Realtime Personnel] Subscription status:', status);
+        
+        if (status === 'SUBSCRIBED') {
+          logger.realtime.info('✅ [Realtime Personnel] Successfully subscribed');
+        } else if (status === 'CHANNEL_ERROR') {
+          logger.realtime.error('❌ [Realtime Personnel] Channel error');
+        } else if (status === 'TIMED_OUT') {
+          logger.realtime.error('⏱️ [Realtime Personnel] Subscription timed out');
+        }
       });
 
     return () => {
-      console.log('[Realtime] Unsubscribing from personnel changes');
+      console.log('🔌 [Realtime Personnel] Unsubscribing from personnel changes');
       supabase.removeChannel(channel);
     };
   }, [activeTeam?.id, queryClient]);
