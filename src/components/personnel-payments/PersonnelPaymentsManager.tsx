@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePersonnelPaymentsQuery, usePersonnelPaymentStatsQuery } from '@/hooks/queries/usePersonnelPaymentsQuery';
 import { usePersonnelPaymentsRealtime } from '@/hooks/queries/usePersonnelPaymentsRealtime';
@@ -10,6 +11,7 @@ import { OverduePaymentsAlert } from './OverduePaymentsAlert';
 import { PaymentStatsCards } from './PaymentStatsCards';
 
 export const PersonnelPaymentsManager = () => {
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [filters, setFilters] = useState<{
     status?: 'pending' | 'paid' | 'cancelled';
@@ -21,6 +23,14 @@ export const PersonnelPaymentsManager = () => {
   
   usePersonnelPaymentsRealtime();
 
+  const handlePrintReport = () => {
+    const params = new URLSearchParams();
+    if (filters.status) {
+      params.set('status', filters.status);
+    }
+    navigate(`/app/pagamentos-avulsos/relatorio?${params.toString()}`);
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -30,10 +40,16 @@ export const PersonnelPaymentsManager = () => {
             Gerencie pagamentos a pessoal sem vínculo direto com eventos específicos
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)} size="lg">
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Pagamento
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handlePrintReport} variant="outline" size="lg">
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimir Relatório
+          </Button>
+          <Button onClick={() => setShowForm(true)} size="lg">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Pagamento
+          </Button>
+        </div>
       </div>
 
       {stats && stats.overdue > 0 && <OverduePaymentsAlert count={stats.overdue} amount={stats.totalOverdueAmount} />}
