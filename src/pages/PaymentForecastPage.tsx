@@ -115,34 +115,34 @@ export const PaymentForecastPage: React.FC = () => {
 
               {/* Seção de Eventos */}
               {eventos.length > 0 && (
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[700px]">
+                <div className="overflow-x-auto -mx-4 px-4 scrollbar-thin">
+                  <Table className="min-w-[400px]">
                     <TableHeader className="bg-muted/50">
                       <TableRow>
                         <TableHead colSpan={6} className="text-left font-semibold text-xs md:text-sm">Eventos</TableHead>
                       </TableRow>
                       <TableRow>
-                        <TableHead className="w-[80px] text-xs">Tipo</TableHead>
-                        <TableHead className="min-w-[140px] text-xs">Evento</TableHead>
-                        <TableHead className="min-w-[120px] text-xs">Local</TableHead>
-                        <TableHead className="w-[90px] text-xs">Vencimento</TableHead>
-                        <TableHead className="w-[110px] text-right text-xs">Total a Pagar</TableHead>
-                        <TableHead className="min-w-[120px] text-xs">Obs.</TableHead>
+                        <TableHead className="w-[60px] md:w-[80px] text-xs">Tipo</TableHead>
+                        <TableHead className="min-w-[120px] text-xs">Evento</TableHead>
+                        <TableHead className="hidden md:table-cell min-w-[100px] text-xs">Local</TableHead>
+                        <TableHead className="w-[80px] text-xs">Venc.</TableHead>
+                        <TableHead className="min-w-[90px] text-right text-xs"><span className="md:hidden">Total</span><span className="hidden md:inline">Total a Pagar</span></TableHead>
+                        <TableHead className="hidden md:table-cell min-w-[100px] text-xs">Obs.</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {eventosSorted.map((item) => (
                         <TableRow key={`${item.kind}_${item.id}`}>
-                          <TableCell className="text-xs">
-                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-foreground whitespace-nowrap">
+                          <TableCell className="px-2 py-1.5 text-xs">
+                            <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] md:text-xs font-medium bg-muted text-foreground whitespace-nowrap">
                               {item.kind}
                             </span>
                           </TableCell>
-                          <TableCell className="font-medium text-xs md:text-sm">{item.name}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{item.location || '-'}</TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{formatDateShort(item.dueDate)}</TableCell>
-                          <TableCell className="font-semibold text-right text-primary text-xs md:text-sm whitespace-nowrap">{formatCurrency(item.amount)}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{item.notes || '-'}</TableCell>
+                          <TableCell className="px-2 py-1.5 font-medium text-xs">{item.name}</TableCell>
+                          <TableCell className="hidden md:table-cell px-2 py-1.5 text-xs text-muted-foreground">{item.location || '-'}</TableCell>
+                          <TableCell className="px-2 py-1.5 text-xs whitespace-nowrap">{formatDateShort(item.dueDate)}</TableCell>
+                          <TableCell className="px-2 py-1.5 font-semibold text-right text-primary text-xs whitespace-nowrap">{formatCurrency(item.amount)}</TableCell>
+                          <TableCell className="hidden md:table-cell px-2 py-1.5 text-xs text-muted-foreground">{item.notes || '-'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -152,45 +152,46 @@ export const PaymentForecastPage: React.FC = () => {
 
               {/* Seção de Pagamentos Avulsos */}
               {avulsos.length > 0 && (
-                <div className="overflow-x-auto">
-                  <Table className="min-w-[700px]">
+                <div className="overflow-x-auto -mx-4 px-4 scrollbar-thin">
+                  <Table className="min-w-[400px]">
                     <TableHeader className="bg-muted/50">
                       <TableRow>
                         <TableHead colSpan={6} className="text-left font-semibold text-xs md:text-sm">Pagamentos Avulsos</TableHead>
                       </TableRow>
                       <TableRow>
-                        <TableHead className="w-[80px] text-xs">Tipo</TableHead>
-                        <TableHead className="min-w-[140px] text-xs">Descrição</TableHead>
-                        <TableHead className="min-w-[120px] text-xs">Local</TableHead>
-                        <TableHead className="w-[90px] text-xs">Vencimento</TableHead>
-                        <TableHead className="w-[110px] text-right text-xs">Total a Pagar</TableHead>
-                        <TableHead className="min-w-[120px] text-xs">Obs.</TableHead>
+                        <TableHead className="w-[60px] md:w-[80px] text-xs">Tipo</TableHead>
+                        <TableHead className="min-w-[120px] text-xs">Descrição</TableHead>
+                        <TableHead className="hidden md:table-cell min-w-[100px] text-xs">Local</TableHead>
+                        <TableHead className="w-[80px] text-xs">Venc.</TableHead>
+                        <TableHead className="min-w-[90px] text-right text-xs"><span className="md:hidden">Total</span><span className="hidden md:inline">Total a Pagar</span></TableHead>
+                        <TableHead className="hidden md:table-cell min-w-[100px] text-xs">Obs.</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {avulsosSorted.map((item) => (
                         <TableRow key={`${item.kind}_${item.id}`}>
-                          <TableCell className="text-xs">
-                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-muted text-foreground whitespace-nowrap">
+                          <TableCell className="px-2 py-1.5 text-xs">
+                            <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] md:text-xs font-medium bg-muted text-foreground whitespace-nowrap">
                               {item.kind}
                             </span>
                           </TableCell>
-                          <TableCell className="font-medium text-xs md:text-sm">
+                          <TableCell className="px-2 py-1.5 font-medium text-xs">
                             <div>{item.name}</div>
                             {item.personnelName ? (
-                              <span className="block text-xs text-muted-foreground mt-1">{item.personnelName}</span>
+                              <span className="block text-[10px] text-muted-foreground mt-0.5">{item.personnelName}</span>
                             ) : null}
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{item.location || '-'}</TableCell>
-                          <TableCell className="text-xs whitespace-nowrap">{formatDateShort(item.dueDate)}</TableCell>
-                          <TableCell className="font-semibold text-right text-primary text-xs md:text-sm whitespace-nowrap">{formatCurrency(item.amount)}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{item.notes || '-'}</TableCell>
+                          <TableCell className="hidden md:table-cell px-2 py-1.5 text-xs text-muted-foreground">{item.location || '-'}</TableCell>
+                          <TableCell className="px-2 py-1.5 text-xs whitespace-nowrap">{formatDateShort(item.dueDate)}</TableCell>
+                          <TableCell className="px-2 py-1.5 font-semibold text-right text-primary text-xs whitespace-nowrap">{formatCurrency(item.amount)}</TableCell>
+                          <TableCell className="hidden md:table-cell px-2 py-1.5 text-xs text-muted-foreground">{item.notes || '-'}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50">
-                        <TableCell colSpan={4} className="text-right font-semibold text-xs md:text-sm">Total da Semana</TableCell>
-                        <TableCell className="text-right font-bold text-primary text-sm md:text-base whitespace-nowrap">{formatCurrency(week.totalAmount)}</TableCell>
-                        <TableCell />
+                        <TableCell colSpan={3} className="md:hidden px-2 py-2 text-right font-semibold text-xs">Total da Semana</TableCell>
+                        <TableCell colSpan={4} className="hidden md:table-cell text-right font-semibold text-xs md:text-sm">Total da Semana</TableCell>
+                        <TableCell className="px-2 py-2 text-right font-bold text-primary text-xs whitespace-nowrap">{formatCurrency(week.totalAmount)}</TableCell>
+                        <TableCell className="hidden md:table-cell" />
                       </TableRow>
                     </TableBody>
                   </Table>
