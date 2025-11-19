@@ -33,8 +33,6 @@
       }
       .splash-inner { display:flex; flex-direction:column; align-items:center; gap:14px; }
       .splash-logo { width:140px; height:auto; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.25)); }
-      .splash-logo-light { display:block; }
-      .splash-logo-dark { display:none; }
       .splash-text { font-size:18px; font-weight:600; letter-spacing:0.4px; }
       .splash-spinner { width:28px; height:28px; border-radius:9999px; border:3px solid rgba(255,255,255,0.35); border-top-color:#fff; animation: spin 0.9s linear infinite; }
       .splash-progress { display:none; width:240px; height:8px; background: rgba(255,255,255,0.28); border-radius:9999px; overflow:hidden; }
@@ -65,10 +63,6 @@
         .splash-progress { width:420px; height:12px; }
         .splash-progress-bar { animation-duration: 1s; }
       }
-      @media (prefers-color-scheme: dark) {
-        .splash-logo-light { display:none; }
-        .splash-logo-dark { display:block; }
-      }
     </style>
     
     <!-- Favicons -->
@@ -97,8 +91,7 @@
     <!-- Splash screen -->
     <div id="splash" aria-live="polite" aria-busy="true">
       <div class="splash-inner">
-        <img src="/icons/plannersystem-logo-wide-light.svg" alt="PlannerSystem" class="splash-logo splash-logo-light" />
-        <img src="/icons/plannersystem-logo-wide-dark.svg" alt="PlannerSystem" class="splash-logo splash-logo-dark" />
+        <img src="/icons/plannersystem-logo.svg" alt="PlannerSystem" class="splash-logo" />
         <div class="splash-text">Carregando PlannerSystem…</div>
         <div class="splash-spinner" aria-label="Carregando"></div>
         <div class="splash-progress" aria-hidden="true"><div class="splash-progress-bar"></div></div>
