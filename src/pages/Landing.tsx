@@ -30,7 +30,7 @@ export const Landing: React.FC = () => {
           <div className="flex items-center">
             <img
               src="/icons/logo_plannersystem.png"
-              alt="PlannerSystem"
+              alt="PlannerSystem - Sistema de Gestão de Eventos"
               className="h-5 w-auto sm:h-6 md:h-7 object-contain transition-all"
             />
           </div>
@@ -61,13 +61,13 @@ export const Landing: React.FC = () => {
           {/* Content Column */}
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <div className="space-y-4 sm:space-y-6">
-              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
                 <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
-                  Gerencie seus eventos
+                  Sistema Completo de Gestão de Eventos
                 </span>
                 <br />
-                <span className="text-foreground">com eficiência total</span>
-              </h2>
+                <span className="text-foreground">Eficiência Total em Eventos e Equipes</span>
+              </h1>
               <p className="text-base sm:text-lg lg:text-2xl text-muted-foreground leading-relaxed max-w-2xl">
                 Controle completo de pessoal, custos e folha de pagamento para seus eventos em 
                 <span className="text-primary font-semibold"> uma única plataforma</span>
@@ -115,89 +115,101 @@ export const Landing: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
           {/* Feature Cards */}
-          <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-primary/40 bg-card/80 backdrop-blur-md shadow-lg">
-            <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-primary/10">
-                <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
-              </div>
-              <CardTitle className="text-lg sm:text-xl font-bold leading-tight">Gestão de Eventos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                Crie e gerencie eventos com datas precisas, controle de status e organização completa para máxima eficiência.
-              </p>
-            </CardContent>
-          </Card>
+          <div itemScope itemType="https://schema.org/Thing">
+            <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-primary/40 bg-card/80 backdrop-blur-md shadow-lg">
+              <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-primary/10">
+                  <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
+                </div>
+                <CardTitle itemProp="name" className="text-lg sm:text-xl font-bold leading-tight">Gestão de Eventos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p itemProp="description" className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Crie e gerencie eventos com datas precisas, controle de status e organização completa para máxima eficiência.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-purple/40 bg-card/80 backdrop-blur-md shadow-lg">
-            <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-purple/20 to-chart-purple/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-purple/10">
-                <Users className="w-6 h-6 sm:w-7 sm:h-7 text-chart-purple" />
-              </div>
-              <CardTitle className="text-lg sm:text-xl font-bold leading-tight">Controle de Pessoal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                Cadastre funcionários fixos e freelancers, defina funções e gerencie alocações por divisão com facilidade.
-              </p>
-            </CardContent>
-          </Card>
+          <div itemScope itemType="https://schema.org/Thing">
+            <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-purple/40 bg-card/80 backdrop-blur-md shadow-lg">
+              <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-purple/20 to-chart-purple/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-purple/10">
+                  <Users className="w-6 h-6 sm:w-7 sm:h-7 text-chart-purple" />
+                </div>
+                <CardTitle itemProp="name" className="text-lg sm:text-xl font-bold leading-tight">Controle de Pessoal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p itemProp="description" className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Cadastre funcionários fixos e freelancers, defina funções e gerencie alocações por divisão com facilidade.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-orange/40 bg-card/80 backdrop-blur-md shadow-lg">
-            <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-orange/20 to-chart-orange/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-orange/10">
-                <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-chart-orange" />
-              </div>
-              <CardTitle className="text-lg sm:text-xl font-bold leading-tight">Lançamento de Horas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                Registre horas trabalhadas com regras claras de HE: limiar diário gera 1 cachê não cumulativo automaticamente.
-              </p>
-            </CardContent>
-          </Card>
+          <div itemScope itemType="https://schema.org/Thing">
+            <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-orange/40 bg-card/80 backdrop-blur-md shadow-lg">
+              <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-orange/20 to-chart-orange/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-orange/10">
+                  <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-chart-orange" />
+                </div>
+                <CardTitle itemProp="name" className="text-lg sm:text-xl font-bold leading-tight">Lançamento de Horas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p itemProp="description" className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Registre horas trabalhadas com regras claras de HE: limiar diário gera 1 cachê não cumulativo automaticamente.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-success/40 bg-card/80 backdrop-blur-md shadow-lg">
-            <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-success/20 to-success/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-success/10">
-                <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 text-success" />
-              </div>
-              <CardTitle className="text-lg sm:text-xl font-bold leading-tight">Folha de Pagamento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                Calcule automaticamente pagamentos baseados em cachês diários e horas extras com precisão total.
-              </p>
-            </CardContent>
-          </Card>
+          <div itemScope itemType="https://schema.org/Thing">
+            <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-success/40 bg-card/80 backdrop-blur-md shadow-lg">
+              <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-success/20 to-success/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-success/10">
+                  <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 text-success" />
+                </div>
+                <CardTitle itemProp="name" className="text-lg sm:text-xl font-bold leading-tight">Folha de Pagamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p itemProp="description" className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Calcule automaticamente pagamentos baseados em cachês diários e horas extras com precisão total.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-blue/40 bg-card/80 backdrop-blur-md shadow-lg">
-            <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-blue/20 to-chart-blue/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-blue/10">
-                <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-chart-blue" />
-              </div>
-              <CardTitle className="text-lg sm:text-xl font-bold leading-tight">Estimativa de Custos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                Visualize custos estimados por evento e acompanhe o orçamento em tempo real com dashboards intuitivos.
-              </p>
-            </CardContent>
-          </Card>
+          <div itemScope itemType="https://schema.org/Thing">
+            <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-blue/40 bg-card/80 backdrop-blur-md shadow-lg">
+              <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-blue/20 to-chart-blue/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-blue/10">
+                  <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-chart-blue" />
+                </div>
+                <CardTitle itemProp="name" className="text-lg sm:text-xl font-bold leading-tight">Estimativa de Custos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p itemProp="description" className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Visualize custos estimados por evento e acompanhe o orçamento em tempo real com dashboards intuitivos.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-purple/40 bg-card/80 backdrop-blur-md shadow-lg">
-            <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-purple/20 to-chart-purple/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-purple/10">
-                <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-chart-purple" />
-              </div>
-              <CardTitle className="text-lg sm:text-xl font-bold leading-tight">Relatórios Detalhados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                Gere relatórios completos de pagamentos com filtros avançados por período e profissional.
-              </p>
-            </CardContent>
-          </Card>
+          <div itemScope itemType="https://schema.org/Thing">
+            <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-chart-purple/40 bg-card/80 backdrop-blur-md shadow-lg">
+              <CardHeader className="pb-3 sm:pb-4 space-y-3 sm:space-y-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-chart-purple/20 to-chart-purple/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-purple/10">
+                  <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-chart-purple" />
+                </div>
+                <CardTitle itemProp="name" className="text-lg sm:text-xl font-bold leading-tight">Relatórios Detalhados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p itemProp="description" className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Gere relatórios completos de pagamentos com filtros avançados por período e profissional.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
@@ -207,9 +219,12 @@ export const Landing: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
             <div className="space-y-6 sm:space-y-8">
               <div className="space-y-4 sm:space-y-6">
-                <Badge variant="outline" className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border-primary/30 text-primary">
-                  Vantagens
-                </Badge>
+              <Badge variant="outline" className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border-primary/30 text-primary">
+                Vantagens
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+                Por que escolher o PlannerSystem?
+              </h2>
                 <h3 className="text-2xl sm:text-3xl lg:text-5xl font-bold leading-tight">
                   <span className="text-foreground">Por que escolher</span>
                   <br />
@@ -271,7 +286,7 @@ export const Landing: React.FC = () => {
             <div className="bg-gradient-to-br from-primary/15 via-primary/8 to-transparent rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-primary/30 backdrop-blur-md shadow-xl shadow-primary/5">
               <div className="space-y-6 sm:space-y-8">
                 <div className="space-y-3 sm:space-y-4">
-                  <h4 className="text-xl sm:text-2xl font-bold">Como funciona?</h4>
+                  <h2 className="text-2xl sm:text-3xl font-bold">Como funciona?</h2>
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     Processo simples e intuitivo em 5 passos
                   </p>
@@ -322,11 +337,9 @@ export const Landing: React.FC = () => {
             <Badge variant="outline" className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border-primary/30 text-primary">
               Comece Agora
             </Badge>
-            <h3 className="text-2xl sm:text-3xl lg:text-5xl font-bold leading-tight">
-              <span className="text-foreground">Pronto para</span>
-              <br />
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">transformar seus eventos?</span>
-            </h3>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+              Pronto para transformar seus eventos?
+            </h2>
             <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4">
               Transforme a gestão dos seus eventos hoje mesmo e tenha controle total sobre custos, equipe e resultados.
             </p>
