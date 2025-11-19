@@ -3,12 +3,13 @@ import { useTeam } from '@/contexts/TeamContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { ApprovalStatusBadge } from '@/components/shared/ApprovalStatusBadge';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User, Loader2 } from 'lucide-react';
+import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User, Loader2, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { NoTeamSelected } from '@/components/shared/NoTeamSelected';
@@ -30,7 +31,7 @@ interface TeamMemberWithProfile {
 }
 
 export const TeamManagement: React.FC = () => {
-  const { activeTeam, userRole, updateMemberRole, updateMemberStatus, getTeamMembers } = useTeam();
+  const { activeTeam, userRole, updateMemberRole, updateMemberStatus, getTeamMembers, refreshTeams } = useTeam();
   const [members, setMembers] = useState<TeamMemberWithProfile[]>([]);
   const [pendingRequests, setPendingRequests] = useState<TeamMemberWithProfile[]>([]);
   const [rejectedMembers, setRejectedMembers] = useState<TeamMemberWithProfile[]>([]);
@@ -48,6 +49,46 @@ export const TeamManagement: React.FC = () => {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [userToApprove, setUserToApprove] = useState<{userId: string, userName: string} | null>(null);
   const [selectedRoleForApproval, setSelectedRoleForApproval] = useState<'admin' | 'coordinator' | 'financeiro'>('coordinator');
+  
+  // Estado para controle de acesso de coordenadores ao módulo de fornecedores
+  const [allowCoordinatorsSuppliers, setAllowCoordinatorsSuppliers] = useState(activeTeam?.allow_coordinators_suppliers || false);
+  
+  // Sincronizar estado quando activeTeam mudar
+  useEffect(() => {
+    if (activeTeam) {
+      setAllowCoordinatorsSuppliers(activeTeam.allow_coordinators_suppliers || false);
+    }
+  }, [activeTeam]);
+
+  const handleToggleSuppliersAccess = async (enabled: boolean) => {
+    if (!activeTeam) return;
+    
+    try {
+      const { error } = await supabase
+        .from('teams')
+        .update({ allow_coordinators_suppliers: enabled })
+        .eq('id', activeTeam.id);
+      
+      if (error) throw error;
+      
+      setAllowCoordinatorsSuppliers(enabled);
+      await refreshTeams(); // Atualizar contexto
+      
+      toast({
+        title: enabled ? "Acesso liberado" : "Acesso restrito",
+        description: enabled 
+          ? "Coordenadores agora podem acessar o módulo de Fornecedores" 
+          : "Coordenadores não podem mais acessar o módulo de Fornecedores"
+      });
+    } catch (error) {
+      console.error('Error updating suppliers access:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar permissões",
+        variant: "destructive"
+      });
+    }
+  };
 
   const fetchMembers = async () => {
     if (!activeTeam) return;
@@ -430,6 +471,38 @@ export const TeamManagement: React.FC = () => {
           </Dialog>
         </div>
       </div>
+
+      {/* Seção de Configurações da Equipe */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Configurações da Equipe
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <Package className="w-5 h-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="suppliers-access" className="text-base font-medium">
+                  Acesso de Coordenadores ao Módulo de Fornecedores
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Permite que coordenadores visualizem e gerenciem fornecedores da equipe
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="suppliers-access"
+              checked={allowCoordinatorsSuppliers}
+              onCheckedChange={handleToggleSuppliersAccess}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Seção de Solicitações Pendentes */}
       {pendingRequests.length > 0 && (

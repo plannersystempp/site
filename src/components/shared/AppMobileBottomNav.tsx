@@ -14,30 +14,56 @@ import {
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { useTeam } from '@/contexts/TeamContext';
 
 // Menu inferior móvel com as principais rotas do app
 export function AppMobileBottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [moreSheetOpen, setMoreSheetOpen] = useState(false);
+  const { userRole, activeTeam } = useTeam();
 
   // Rotas principais (abas fixas)
-  const tabs = useMemo(() => ([
-    { path: '/app', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/app/eventos', label: 'Eventos', icon: CalendarDays },
-    { path: '/app/pessoal', label: 'Pessoal', icon: Users },
-    { path: '/app/fornecedores', label: 'Fornecedores', icon: Package },
-  ]), []);
+  const tabs = useMemo(() => {
+    const allTabs = [
+      { path: '/app', label: 'Dashboard', icon: LayoutDashboard },
+      { path: '/app/eventos', label: 'Eventos', icon: CalendarDays },
+      { path: '/app/pessoal', label: 'Pessoal', icon: Users },
+      { path: '/app/fornecedores', label: 'Fornecedores', icon: Package },
+    ];
+    
+    return allTabs.filter(tab => {
+      // Coordenadores só veem fornecedores se a equipe permitir
+      if (userRole === 'coordinator' && tab.path === '/app/fornecedores') {
+        return activeTeam?.allow_coordinators_suppliers === true;
+      }
+      return true;
+    });
+  }, [userRole, activeTeam]);
 
   // Mais opções (sheet)
-  const moreTabs = useMemo(() => ([
-    { path: '/app/configuracoes', label: 'Configurações', icon: SettingsIcon },
-    { path: '/app/funcoes', label: 'Funções', icon: Wrench },
-    { path: '/app/pagamentos-avulsos', label: 'Avulsos', icon: BadgeDollarSign },
-    { path: '/app/custos', label: 'Custos', icon: Calculator },
-    { path: '/app/folha', label: 'Folha', icon: Wallet },
-    { path: '/app/equipe', label: 'Equipe', icon: Users },
-  ]), []);
+  const moreTabs = useMemo(() => {
+    const allMoreTabs = [
+      { path: '/app/configuracoes', label: 'Configurações', icon: SettingsIcon },
+      { path: '/app/funcoes', label: 'Funções', icon: Wrench },
+      { path: '/app/pagamentos-avulsos', label: 'Avulsos', icon: BadgeDollarSign },
+      { path: '/app/custos', label: 'Custos', icon: Calculator },
+      { path: '/app/folha', label: 'Folha', icon: Wallet },
+      { path: '/app/equipe', label: 'Equipe', icon: Users },
+    ];
+    
+    return allMoreTabs.filter(tab => {
+      // Coordenadores não veem módulos financeiros
+      if (userRole === 'coordinator') {
+        const financialPaths = ['/app/pagamentos-avulsos', '/app/custos', '/app/folha'];
+        if (financialPaths.includes(tab.path)) return false;
+        
+        // Coordenadores não veem Funções e Equipe
+        if (tab.path === '/app/funcoes' || tab.path === '/app/equipe') return false;
+      }
+      return true;
+    });
+  }, [userRole]);
 
   const currentPath = location.pathname;
 
@@ -46,7 +72,11 @@ export function AppMobileBottomNav() {
     return currentPath === path || currentPath.startsWith(path + '/');
   };
 
-  const isMoreActive = moreTabs.some(tab => isActive(tab.path));
+  // Verifica se alguma aba do "Mais" está ativa
+  const isMoreActive = useMemo(() => 
+    moreTabs.some(tab => isActive(tab.path)), 
+    [moreTabs, currentPath]
+  );
 
   const handleNavigate = (path: string) => {
     navigate(path);

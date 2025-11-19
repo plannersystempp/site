@@ -1695,6 +1695,7 @@ export type Database = {
       }
       teams: {
         Row: {
+          allow_coordinators_suppliers: boolean
           cnpj: string | null
           created_at: string | null
           default_convert_overtime_to_daily: boolean | null
@@ -1708,6 +1709,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          allow_coordinators_suppliers?: boolean
           cnpj?: string | null
           created_at?: string | null
           default_convert_overtime_to_daily?: boolean | null
@@ -1721,6 +1723,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          allow_coordinators_suppliers?: boolean
           cnpj?: string | null
           created_at?: string | null
           default_convert_overtime_to_daily?: boolean | null

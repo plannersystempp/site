@@ -6,6 +6,7 @@ export interface Team {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  allow_coordinators_suppliers?: boolean;
 }
 
 export interface TeamMember {
