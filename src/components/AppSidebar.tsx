@@ -168,7 +168,12 @@ export const AppSidebar = () => {
                     return item.title !== 'Pessoal' && item.title !== 'Eventos' && item.title !== 'Funções' && item.title !== 'Fornecedores';
                   }
                   if (userRole === 'coordinator') {
-                    return item.title !== 'Funções';
+                    // Coordenadores não veem Funções
+                    if (item.title === 'Funções') return false;
+                    // Fornecedores: só se a equipe permitir
+                    if (item.title === 'Fornecedores') {
+                      return activeTeam?.allow_coordinators_suppliers === true;
+                    }
                   }
                   return true;
                 })
