@@ -1,16 +1,23 @@
 // Idioma: pt-BR
 // Idioma: pt-BR
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 import { usePaymentForecastQuery } from '@/hooks/queries/usePaymentForecastQuery';
 import { formatCurrency } from '@/utils/formatters';
 import { formatDateShort } from '@/utils/dateUtils';
 
 export const PaymentForecastPage: React.FC = () => {
+  const navigate = useNavigate();
   const [weeksAhead, setWeeksAhead] = useState(3);
   const { data, isLoading, error } = usePaymentForecastQuery({ weeksAhead });
+
+  const handlePrintReport = () => {
+    navigate(`/app/previsao-pagamentos/relatorio?weeks=${weeksAhead}`);
+  };
 
   const totalAllWeeks = useMemo(() => {
     return (data || []).reduce((acc, w) => acc + w.totalAmount, 0);
@@ -50,12 +57,13 @@ export const PaymentForecastPage: React.FC = () => {
             <option value={4}>4</option>
           </select>
           <Button
-            aria-label="Imprimir previsão"
+            aria-label="Imprimir relatório"
             variant="secondary"
             className="ml-2"
-            onClick={() => window.print()}
+            onClick={handlePrintReport}
           >
-            Imprimir
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimir Relatório
           </Button>
         </div>
       </div>
