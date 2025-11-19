@@ -25,6 +25,7 @@ import { PayrollEventView } from './components/payroll/PayrollEventView';
 import { PayrollReportPage } from './pages/PayrollReportPage';
 import PersonnelPaymentsPage from './pages/PersonnelPayments';
 import PersonnelPaymentsReportPage from './pages/PersonnelPaymentsReportPage';
+import PaymentForecastReportPage from './pages/PaymentForecastReportPage';
 import { Settings } from './components/admin/Settings';
 import { SettingsPage } from './components/SettingsPage';
 import { TeamManagement } from './components/teams/TeamManagement';
@@ -323,6 +324,11 @@ const AppContent = () => {
               <Route path="/previsao-pagamentos" element={
                 <RouteErrorBoundary routeName="Previsão de Pagamentos">
                   <PaymentForecastPage />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/previsao-pagamentos/relatorio" element={
+                <RouteErrorBoundary routeName="Relatório de Previsão de Pagamentos">
+                  <PaymentForecastReportPage />
                 </RouteErrorBoundary>
               } />
               <Route path="/equipe" element={
