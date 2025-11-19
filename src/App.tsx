@@ -229,8 +229,13 @@ const AppContent = () => {
 
   if (isLoading || teamApprovalStatus.loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+        <img
+          src="/icons/logo_plannersystem.png"
+          alt="PlannerSystem"
+          className="h-12 w-auto sm:h-16 md:h-20 object-contain mb-8 animate-pulse"
+        />
+        <div className="animate-spin rounded-full h-16 w-16 sm:h-20 sm:w-20 border-b-2 border-primary"></div>
       </div>
     );
   }
