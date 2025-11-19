@@ -4,7 +4,13 @@ import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { WorkRecord } from '@/contexts/EnhancedDataContext';
-import { workLogsKeys } from './useWorkLogsRealtime';
+
+// Query keys for consistent caching
+export const workLogsKeys = {
+  all: ['workLogs'] as const,
+  list: (teamId?: string) => ['workLogs', 'list', teamId] as const,
+  byEvent: (eventId?: string) => ['workLogs', 'event', eventId] as const,
+};
 
 // Fetch work logs for a team
 const fetchWorkLogs = async (teamId: string): Promise<WorkRecord[]> => {

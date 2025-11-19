@@ -3,12 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTeam } from '@/contexts/TeamContext';
 import { logger } from '@/utils/logger';
-import type { Event } from '@/contexts/EnhancedDataContext';
 import { eventKeys } from './useEventsQuery';
 
 /**
+ * FASE 2: Sistema Realtime Otimizado com Invalidação
  * Hook para sincronização em tempo real de eventos
- * Atualiza o cache do React Query quando houver mudanças no banco
+ * ✅ Usa invalidateQueries para garantir atualização mesmo em queries inativas
  */
 export const useEventsRealtime = () => {
   const queryClient = useQueryClient();
@@ -18,6 +18,7 @@ export const useEventsRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
+    console.log('🔌 [Realtime Events] Connecting to events channel for team:', activeTeam.id);
 
     const channel = supabase
       .channel('events-changes')
@@ -30,70 +31,48 @@ export const useEventsRealtime = () => {
           filter: `team_id=eq.${activeTeam.id}`
         },
         async (payload) => {
-          logger.realtime.change(payload.eventType, { id: (payload.new as any)?.id || (payload.old as any)?.id });
+          const eventId = (payload.new as any)?.id || (payload.old as any)?.id;
+          
+          console.log('🔄 [Realtime Events] Change detected:', {
+            type: payload.eventType,
+            eventId,
+            timestamp: new Date().toISOString(),
+          });
+          
+          logger.realtime.change(payload.eventType, { id: eventId });
 
-          const queryKey = eventKeys.list(activeTeam.id);
-          const currentData = queryClient.getQueryData<Event[]>(queryKey);
+          // ⚡ OTIMIZADO: Invalidar queries em vez de setQueryData
+          // Isso garante que tanto queries ativas quanto inativas sejam marcadas como stale
+          console.log('♻️ [Realtime Events] Invalidating queries for team:', activeTeam.id);
+          
+          queryClient.invalidateQueries({ 
+            queryKey: eventKeys.all,
+            refetchType: 'active' // Refetch apenas queries ativas imediatamente
+          });
 
-          if (!currentData) return;
+          // Também invalidar queries inativas para próxima montagem
+          queryClient.invalidateQueries({ 
+            queryKey: eventKeys.all,
+            refetchType: 'none' // Apenas marcar como stale sem refetch
+          });
 
-          switch (payload.eventType) {
-            case 'INSERT': {
-              const newEvent = payload.new as Event;
-              
-              // Verificar se já existe no cache (evitar duplicação)
-              const existingIndex = currentData.findIndex(e => e.id === newEvent.id);
-              if (existingIndex !== -1) {
-                console.log('[Realtime Events] Event already in cache, updating instead:', newEvent.id);
-                queryClient.setQueryData<Event[]>(
-                  queryKey,
-                  currentData.map(e => e.id === newEvent.id ? newEvent : e)
-                );
-                break;
-              }
-              
-              // Adicionar novo evento
-              queryClient.setQueryData<Event[]>(
-                queryKey,
-                [...currentData, newEvent]
-              );
-              
-              console.log('[Realtime Events] Event added to cache:', newEvent.id);
-              break;
-            }
-
-            case 'UPDATE': {
-              const updatedEvent = payload.new as Event;
-              
-              queryClient.setQueryData<Event[]>(
-                queryKey,
-                currentData.map(e => 
-                  e.id === updatedEvent.id ? updatedEvent : e
-                )
-              );
-              console.log('[Realtime Events] Event updated in cache:', updatedEvent.id);
-              break;
-            }
-
-            case 'DELETE': {
-              const deletedId = payload.old.id;
-              
-              queryClient.setQueryData<Event[]>(
-                queryKey,
-                currentData.filter(e => e.id !== deletedId)
-              );
-              console.log('[Realtime Events] Event removed from cache:', deletedId);
-              break;
-            }
-          }
+          console.log('✅ [Realtime Events] Cache invalidated successfully');
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime Events] Subscription status:', status);
+        console.log('📡 [Realtime Events] Subscription status:', status);
+        
+        if (status === 'SUBSCRIBED') {
+          logger.realtime.info('✅ [Realtime Events] Successfully subscribed to events changes');
+        } else if (status === 'CHANNEL_ERROR') {
+          logger.realtime.error('❌ [Realtime Events] Channel error');
+        } else if (status === 'TIMED_OUT') {
+          logger.realtime.error('⏱️ [Realtime Events] Subscription timed out');
+        }
       });
 
     return () => {
-      console.log('[Realtime Events] Unsubscribing from events changes');
+      console.log('🔌 [Realtime Events] Unsubscribing from events changes');
       supabase.removeChannel(channel);
     };
   }, [activeTeam?.id, queryClient]);
