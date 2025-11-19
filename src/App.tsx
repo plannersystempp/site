@@ -24,6 +24,7 @@ import { PayrollManager } from './components/payroll/PayrollManager';
 import { PayrollEventView } from './components/payroll/PayrollEventView';
 import { PayrollReportPage } from './pages/PayrollReportPage';
 import PersonnelPaymentsPage from './pages/PersonnelPayments';
+import PersonnelPaymentsReportPage from './pages/PersonnelPaymentsReportPage';
 import { Settings } from './components/admin/Settings';
 import { SettingsPage } from './components/SettingsPage';
 import { TeamManagement } from './components/teams/TeamManagement';
@@ -312,6 +313,11 @@ const AppContent = () => {
               <Route path="/pagamentos-avulsos" element={
                 <RouteErrorBoundary routeName="Pagamentos Avulsos">
                   <PersonnelPaymentsPage />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/pagamentos-avulsos/relatorio" element={
+                <RouteErrorBoundary routeName="Relatório de Pagamentos Avulsos">
+                  <PersonnelPaymentsReportPage />
                 </RouteErrorBoundary>
               } />
               <Route path="/previsao-pagamentos" element={
