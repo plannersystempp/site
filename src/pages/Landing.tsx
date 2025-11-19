@@ -31,7 +31,7 @@ export const Landing: React.FC = () => {
             <img
               src="/icons/logo_plannersystem.png"
               alt="PlannerSystem"
-              className="h-7 w-auto sm:h-8 object-contain"
+              className="h-5 w-auto sm:h-6 md:h-7 object-contain transition-all"
             />
           </div>
           <div className="flex gap-2 sm:gap-3 lg:gap-4">
