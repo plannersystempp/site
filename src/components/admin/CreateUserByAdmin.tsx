@@ -119,7 +119,12 @@ export const CreateUserByAdmin: React.FC<CreateUserByAdminProps> = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      console.log('User creation response:', data);
 
       // Check response to determine what happened
       const isOrphanUser = data?.isOrphanUser === true;
@@ -159,8 +164,9 @@ export const CreateUserByAdmin: React.FC<CreateUserByAdminProps> = ({
       }
 
       toast({
-        title: "Sucesso",
+        title: "✅ Usuário criado com sucesso",
         description: successMessage,
+        className: "bg-success/10 border-success text-success-foreground"
       });
 
       setFormData({
@@ -174,9 +180,20 @@ export const CreateUserByAdmin: React.FC<CreateUserByAdminProps> = ({
       onClose();
     } catch (error: any) {
       console.error('Erro ao criar usuário:', error);
+      
+      let errorMessage = "Falha ao criar usuário";
+      
+      if (error.message?.includes('already exists')) {
+        errorMessage = "Este email já está cadastrado no sistema";
+      } else if (error.message?.includes('Invalid email')) {
+        errorMessage = "Email inválido";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Erro",
-        description: error.message || "Falha ao criar usuário",
+        title: "❌ Erro ao criar usuário",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
