@@ -25,6 +25,13 @@ export function AppMobileBottomNav() {
 
   // Rotas principais (abas fixas)
   const tabs = useMemo(() => {
+    // SuperAdmin tem navegação especial
+    if (userRole === 'superadmin') {
+      return [
+        { path: '/superadmin', label: 'SuperAdmin', icon: LayoutDashboard },
+      ];
+    }
+
     const allTabs = [
       { path: '/app', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/app/eventos', label: 'Eventos', icon: CalendarDays },
@@ -43,6 +50,11 @@ export function AppMobileBottomNav() {
 
   // Mais opções (sheet)
   const moreTabs = useMemo(() => {
+    // SuperAdmin não tem "mais opções"
+    if (userRole === 'superadmin') {
+      return [];
+    }
+
     const allMoreTabs = [
       { path: '/app/configuracoes', label: 'Configurações', icon: SettingsIcon },
       { path: '/app/funcoes', label: 'Funções', icon: Wrench },
@@ -87,10 +99,15 @@ export function AppMobileBottomNav() {
     setMoreSheetOpen(false);
   };
 
+  // SuperAdmin não precisa de navegação mobile (usa apenas desktop)
+  if (userRole === 'superadmin') {
+    return null;
+  }
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 safe-area-inset-bottom" aria-label="Navegação principal móvel">
-      <div className="grid grid-cols-4 h-16">
-        {tabs.slice(0, 3).map((tab) => {
+      <div className={`grid ${moreTabs.length > 0 ? 'grid-cols-4' : 'grid-cols-3'} h-16`}>
+        {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = isActive(tab.path);
           return (
@@ -112,6 +129,7 @@ export function AppMobileBottomNav() {
           );
         })}
 
+        {moreTabs.length > 0 && (
         <Sheet open={moreSheetOpen} onOpenChange={setMoreSheetOpen}>
           <SheetTrigger asChild>
             <button
@@ -159,6 +177,7 @@ export function AppMobileBottomNav() {
             </div>
           </SheetContent>
         </Sheet>
+        )}
       </div>
     </nav>
   );

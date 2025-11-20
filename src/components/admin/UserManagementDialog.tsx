@@ -105,8 +105,9 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
 
           const result = data as { success: boolean; message: string };
           toast({
-            title: 'Sucesso',
+            title: '✅ Usuário aprovado',
             description: result.message,
+            className: "bg-success/10 border-success text-success-foreground"
           });
           break;
         }
@@ -121,8 +122,9 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
 
           const result = data as { success: boolean; message: string };
           toast({
-            title: 'Sucesso',
+            title: '✅ Papel atualizado',
             description: result.message,
+            className: "bg-success/10 border-success text-success-foreground"
           });
           break;
         }
@@ -147,8 +149,9 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
 
           const result = data as { success: boolean; message: string };
           toast({
-            title: 'Sucesso',
+            title: '✅ Usuário adicionado',
             description: result.message,
+            className: "bg-success/10 border-success text-success-foreground"
           });
           break;
         }
@@ -172,8 +175,9 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
 
           const result = data as { success: boolean; message: string };
           toast({
-            title: 'Sucesso',
+            title: '✅ Usuário removido',
             description: result.message,
+            className: "bg-success/10 border-success text-success-foreground"
           });
           break;
         }
@@ -186,8 +190,9 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
           if (error) throw error;
 
           toast({
-            title: 'Sucesso',
-            description: 'Usuário excluído com sucesso',
+            title: '✅ Usuário deletado',
+            description: `${userName} foi permanentemente removido do sistema`,
+            className: "bg-success/10 border-success text-success-foreground"
           });
           break;
         }
@@ -197,9 +202,20 @@ export const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
       handleClose();
     } catch (error: any) {
       console.error('Error in user management action:', error);
+      
+      let errorMessage = 'Falha ao executar ação';
+      
+      if (error.message?.includes('permission')) {
+        errorMessage = 'Você não tem permissão para realizar esta ação';
+      } else if (error.message?.includes('not found')) {
+        errorMessage = 'Usuário ou equipe não encontrado';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: 'Erro',
-        description: error.message || 'Falha ao executar ação',
+        title: '❌ Erro',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
