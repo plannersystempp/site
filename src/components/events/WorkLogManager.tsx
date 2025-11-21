@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useTeam } from '@/contexts/TeamContext';
+import { useWorkLogsQuery, useCreateWorkLogMutation, useUpdateWorkLogMutation, useDeleteWorkLogMutation } from '@/hooks/queries/useWorkLogsQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,10 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
   onOpenChange
 }) => {
   const { user } = useAuth();
-  const { workLogs: globalWorkLogs, addWorkLog, updateWorkLog, deleteWorkLog } = useEnhancedData();
+  const { data: globalWorkLogs = [] } = useWorkLogsQuery();
+  const createWorkLog = useCreateWorkLogMutation();
+  const updateWorkLog = useUpdateWorkLogMutation();
+  const deleteWorkLog = useDeleteWorkLogMutation();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
   const [workLogs, setWorkLogs] = useState<WorkRecord[]>([]);
@@ -91,34 +94,28 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
         hours 
       });
 
-      // Verificar se jÃ¡ existe um registro para esta data
+      // Verificar se já existe um registro para esta data
       const existingLog = workLogs.find(log => log.work_date === date);
 
       if (existingLog) {
-        // Atualizar registro existente usando o mÃ©todo do contexto
-        const updatedLog: WorkRecord = { 
+        // Atualizar registro existente
+        await updateWorkLog.mutateAsync({ 
           ...existingLog,
           overtime_hours: hours,
-          total_pay: 0, // Recalcular se necessÃ¡rio
-          team_id: existingLog.team_id || '' // Garantir que team_id estÃ¡ presente
-        };
-
-        await updateWorkLog(updatedLog);
-        console.log('Registro atualizado com sucesso via contexto');
+          total_pay: 0,
+        });
+        console.log('Registro atualizado com sucesso');
       } else {
-        // Criar novo registro usando o mÃ©todo do contexto
-        const newRecord = {
+        // Criar novo registro
+        await createWorkLog.mutateAsync({
           employee_id: assignment.personnel_id,
           event_id: assignment.event_id,
           work_date: date,
           overtime_hours: hours,
-          hours_worked: 8, // PadrÃ£o de 8 horas
-          total_pay: 0,
-        };
-
-        console.log('Criando novo registro:', newRecord);
-        await addWorkLog(newRecord);
-        console.log('Novo registro criado com sucesso via contexto');
+          hours_worked: 8,
+          total_pay: 0
+        });
+        console.log('Novo registro criado com sucesso');
       }
 
       setEditingDate(null);
@@ -151,7 +148,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
       const existingLog = workLogs.find(log => log.work_date === date);
       
       if (existingLog) {
-        await deleteWorkLog(existingLog.id);
+        await deleteWorkLog.mutateAsync(existingLog.id);
 
         setOvertimeHours(prev => {
           const newHours = { ...prev };

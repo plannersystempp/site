@@ -1,3 +1,17 @@
+/**
+ * ⚠️ FASE 4: DEPRECATED - Este contexto está obsoleto
+ * 
+ * Use React Query hooks em vez deste contexto:
+ * - usePersonnelQuery() / useCreatePersonnelMutation()
+ * - useEventsQuery() / useCreateEventMutation()
+ * - useAllocationsQuery() / useCreateAllocationMutation()
+ * - useDivisionsQuery() / useCreateDivisionMutation()
+ * - useWorkLogsQuery() / useCreateWorkLogMutation()
+ * - useFunctionsQuery() / useCreateFunctionMutation()
+ * 
+ * Este contexto será removido em versões futuras.
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
@@ -5,6 +19,9 @@ import { useTeam } from './TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { fetchPersonnelByRole, type PersonnelRedacted } from '@/services/personnelService';
 import { sanitizePersonnelData } from '@/utils/dataTransform';
+
+// Aviso de depreciação no console
+console.warn('[DEPRECATED] EnhancedDataContext is deprecated. Use React Query hooks instead.');
 import {
   fetchSuppliers,
   createSupplier,

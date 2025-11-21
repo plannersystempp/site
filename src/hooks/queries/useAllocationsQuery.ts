@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBroadcastInvalidation } from './useBroadcastInvalidation';
 import { supabase } from '@/integrations/supabase/client';
 import type { Assignment } from '@/contexts/EnhancedDataContext';
 
@@ -42,6 +43,7 @@ export const useCreateAllocationMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (allocationData: Omit<Assignment, 'id' | 'created_at' | 'team_id'>) => {
@@ -57,6 +59,15 @@ export const useCreateAllocationMutation = () => {
       return data as Assignment;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: allocationsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(allocationsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Alocação criada com sucesso!",
@@ -70,6 +81,12 @@ export const useCreateAllocationMutation = () => {
         variant: "destructive"
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: allocationsKeys.all,
+        refetchType: 'none'
+      });
+    },
   });
 };
 
@@ -78,6 +95,7 @@ export const useDeleteAllocationMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (allocationId: string) => {
@@ -91,6 +109,15 @@ export const useDeleteAllocationMutation = () => {
       return allocationId;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: allocationsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(allocationsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Alocação excluída com sucesso!",
@@ -101,6 +128,12 @@ export const useDeleteAllocationMutation = () => {
         title: "Erro",
         description: "Falha ao excluir alocação",
         variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: allocationsKeys.all,
+        refetchType: 'none'
       });
     },
   });

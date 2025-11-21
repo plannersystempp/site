@@ -11,14 +11,18 @@ import { generateDateArray } from '@/utils/dateUtils';
 import { DivisionSelector } from './allocation/DivisionSelector';
 import { WorkDaysSelector } from './allocation/WorkDaysSelector';
 import { useAllocationForm } from './allocation/useAllocationForm';
-import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useTeam } from '@/contexts/TeamContext';
+import { useCreateAllocationMutation } from '@/hooks/queries/useAllocationsQuery';
+import { useCreateDivisionMutation } from '@/hooks/queries/useDivisionsQuery';
+import { useEventsQuery } from '@/hooks/queries/useEventsQuery';
 import { formatCurrency } from '@/utils/formatters';
 import { useAllocationFormPersistence } from './allocation/useAllocationFormPersistence';
 import { useToast } from '@/hooks/use-toast';
 import { type SelectedPerson } from '@/hooks/useMultipleSelection';
 import { usePersonnelQuery } from '@/hooks/queries/usePersonnelQuery';
 import { usePersonnelRealtime } from '@/hooks/queries/usePersonnelRealtime';
+import { useFunctionsQuery } from '@/hooks/queries/useFunctionsQuery';
+import { useAllocationsQuery } from '@/hooks/queries/useAllocationsQuery';
 
 interface AllocationFormProps {
   eventId: string;
@@ -33,18 +37,16 @@ export const AllocationForm: React.FC<AllocationFormProps> = ({
   open,
   onOpenChange
 }) => {
-  const { functions, events, assignments, addAssignment, addDivision } = useEnhancedData();
   const { data: personnel = [] } = usePersonnelQuery();
+  const { data: events = [] } = useEventsQuery();
+  const { data: functions = [] } = useFunctionsQuery();
+  const { data: assignments = [] } = useAllocationsQuery();
+  const createAllocation = useCreateAllocationMutation();
+  const createDivision = useCreateDivisionMutation();
   usePersonnelRealtime();
   const { userRole } = useTeam();
   const { toast } = useToast();
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
-  
-  // Selection mode state
-  const [selectionMode, setSelectionMode] = useState<'individual' | 'multiple'>('individual');
-  const [multipleSelection, setMultipleSelection] = useState<SelectedPerson[]>([]);
-  const [formLoading, setFormLoading] = useState(false);
-  const [totalEventValue, setTotalEventValue] = useState(0);
   
   // Block Home/End keyboard shortcuts when modal is open
   useEffect(() => {
@@ -90,6 +92,12 @@ export const AllocationForm: React.FC<AllocationFormProps> = ({
     open,
     onOpenChange
   });
+  
+  // Selection mode state
+  const [selectionMode, setSelectionMode] = useState<'individual' | 'multiple'>('individual');
+  const [multipleSelection, setMultipleSelection] = useState<SelectedPerson[]>([]);
+  const [formLoading, setFormLoading] = useState(false);
+  const [totalEventValue, setTotalEventValue] = useState(0);
 
   // Add persistence for form state
   const { clearPersistedState } = useAllocationFormPersistence(
@@ -234,22 +242,18 @@ export const AllocationForm: React.FC<AllocationFormProps> = ({
 
         // Create new division if needed
         if (divisionMode === 'new' && newDivisionName.trim()) {
-          const newDivisionId = await addDivision({
+          const newDivision = await createDivision.mutateAsync({
             event_id: eventId,
             name: newDivisionName.trim(),
             description: ''
           });
 
-          if (!newDivisionId) {
-            throw new Error('Failed to create division');
-          }
-
-          finalDivisionId = newDivisionId;
+          finalDivisionId = newDivision.id;
         }
 
         // Create assignments for all selected personnel
         const promises = multipleSelection.map(selectedPerson => 
-          addAssignment({
+          createAllocation.mutateAsync({
             event_id: eventId,
             personnel_id: selectedPerson.personnel.id,
             division_id: finalDivisionId,
