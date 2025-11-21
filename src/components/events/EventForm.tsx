@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
+import { useCreateEventMutation, useUpdateEventMutation } from '@/hooks/queries/useEventsQuery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,7 +35,8 @@ interface EventFormData {
 }
 
 export const EventForm: React.FC<EventFormProps> = ({ event, onClose, onSuccess }) => {
-  const { addEvent, updateEvent } = useEnhancedData();
+  const createEvent = useCreateEventMutation();
+  const updateEvent = useUpdateEventMutation();
   const { user } = useAuth();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
@@ -126,32 +127,12 @@ export const EventForm: React.FC<EventFormProps> = ({ event, onClose, onSuccess 
       
       if (event) {
         console.log('Updating existing event:', event.id);
-        await updateEvent({ ...event, ...cleanData });
-        toast({
-          title: "Sucesso",
-          description: "Evento atualizado com sucesso!",
-        });
+        await updateEvent.mutateAsync({ ...event, ...cleanData });
         onSuccess();
         onClose();
       } else {
         console.log('Creating new event');
-        const eventId = await addEvent({ ...cleanData, user_id: '' });
-        
-        if (!eventId) {
-          // addEvent retornou null - falha silenciosa
-          toast({
-            title: "Erro ao criar evento",
-            description: "Verifique se você tem permissão e se uma equipe está selecionada",
-            variant: "destructive"
-          });
-          return; // Não fecha o modal nem chama onSuccess
-        }
-        
-        toast({
-          title: "Sucesso",
-          description: "Evento criado com sucesso!",
-        });
-        console.log('Event created successfully with ID:', eventId);
+        await createEvent.mutateAsync(cleanData);
         onSuccess();
         onClose();
       }

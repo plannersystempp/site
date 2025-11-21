@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBroadcastInvalidation } from './useBroadcastInvalidation';
 import type { Func } from '@/contexts/EnhancedDataContext';
 
 // Query keys for consistent caching
@@ -50,6 +51,7 @@ export const useCreateFunctionMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (func: Omit<Func, 'id' | 'created_at' | 'team_id'>) => {
@@ -98,13 +100,25 @@ export const useCreateFunctionMutation = () => {
       });
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: functionKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(functionKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Função criada com sucesso!",
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: functionKeys.list(activeTeam?.id) });
+      queryClient.invalidateQueries({ 
+        queryKey: functionKeys.all,
+        refetchType: 'none'
+      });
     },
   });
 };
@@ -114,6 +128,7 @@ export const useUpdateFunctionMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (func: Func) => {
@@ -158,13 +173,25 @@ export const useUpdateFunctionMutation = () => {
       });
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: functionKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(functionKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Função atualizada com sucesso!",
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: functionKeys.list(activeTeam?.id) });
+      queryClient.invalidateQueries({ 
+        queryKey: functionKeys.all,
+        refetchType: 'none'
+      });
     },
   });
 };
@@ -174,6 +201,7 @@ export const useDeleteFunctionMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (functionId: string) => {
@@ -213,13 +241,25 @@ export const useDeleteFunctionMutation = () => {
       });
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: functionKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(functionKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Função excluída com sucesso!",
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: functionKeys.list(activeTeam?.id) });
+      queryClient.invalidateQueries({ 
+        queryKey: functionKeys.all,
+        refetchType: 'none'
+      });
     },
   });
 };

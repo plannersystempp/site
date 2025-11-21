@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBroadcastInvalidation } from './useBroadcastInvalidation';
 import { supabase } from '@/integrations/supabase/client';
 import type { WorkRecord } from '@/contexts/EnhancedDataContext';
 
@@ -42,6 +43,7 @@ export const useCreateWorkLogMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (workLogData: Omit<WorkRecord, 'id' | 'created_at' | 'team_id'>) => {
@@ -57,6 +59,15 @@ export const useCreateWorkLogMutation = () => {
       return data as WorkRecord;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: workLogsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(workLogsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Registro de horas criado com sucesso!",
@@ -70,6 +81,12 @@ export const useCreateWorkLogMutation = () => {
         variant: "destructive"
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: workLogsKeys.all,
+        refetchType: 'none'
+      });
+    },
   });
 };
 
@@ -78,6 +95,7 @@ export const useUpdateWorkLogMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (workLog: WorkRecord) => {
@@ -93,6 +111,15 @@ export const useUpdateWorkLogMutation = () => {
       return data as WorkRecord;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: workLogsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(workLogsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Registro de horas atualizado com sucesso!",
@@ -106,6 +133,12 @@ export const useUpdateWorkLogMutation = () => {
         variant: "destructive"
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: workLogsKeys.all,
+        refetchType: 'none'
+      });
+    },
   });
 };
 
@@ -114,6 +147,7 @@ export const useDeleteWorkLogMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (workLogId: string) => {
@@ -127,6 +161,15 @@ export const useDeleteWorkLogMutation = () => {
       return workLogId;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: workLogsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(workLogsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Registro de horas excluído com sucesso!",
@@ -137,6 +180,12 @@ export const useDeleteWorkLogMutation = () => {
         title: "Erro",
         description: "Falha ao excluir registro de horas",
         variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: workLogsKeys.all,
+        refetchType: 'none'
       });
     },
   });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useEnhancedData } from '@/contexts/EnhancedDataContext';
+import { useUpdateDivisionMutation } from '@/hooks/queries/useDivisionsQuery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +28,7 @@ export const DivisionForm: React.FC<DivisionFormProps> = ({
   onOpenChange,
   onSuccess
 }) => {
-  const { updateDivision } = useEnhancedData();
+  const updateDivision = useUpdateDivisionMutation();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -61,15 +61,10 @@ export const DivisionForm: React.FC<DivisionFormProps> = ({
 
     setLoading(true);
     try {
-      await updateDivision({
+      await updateDivision.mutateAsync({
         ...division,
         name: formData.name.trim(),
         description: formData.description.trim() || undefined
-      });
-      
-      toast({
-        title: "Sucesso",
-        description: "Divisão atualizada com sucesso!"
       });
       
       onOpenChange(false);

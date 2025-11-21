@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBroadcastInvalidation } from './useBroadcastInvalidation';
 import { supabase } from '@/integrations/supabase/client';
 import type { Division } from '@/contexts/EnhancedDataContext';
 
@@ -42,6 +43,7 @@ export const useCreateDivisionMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (divisionData: Omit<Division, 'id' | 'created_at' | 'team_id'>) => {
@@ -57,6 +59,15 @@ export const useCreateDivisionMutation = () => {
       return data as Division;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: divisionsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(divisionsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Divisão criada com sucesso!",
@@ -70,6 +81,12 @@ export const useCreateDivisionMutation = () => {
         variant: "destructive"
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: divisionsKeys.all,
+        refetchType: 'none'
+      });
+    },
   });
 };
 
@@ -78,6 +95,7 @@ export const useUpdateDivisionMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (division: Division) => {
@@ -93,6 +111,15 @@ export const useUpdateDivisionMutation = () => {
       return data as Division;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: divisionsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(divisionsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Divisão atualizada com sucesso!",
@@ -106,6 +133,12 @@ export const useUpdateDivisionMutation = () => {
         variant: "destructive"
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: divisionsKeys.all,
+        refetchType: 'none'
+      });
+    },
   });
 };
 
@@ -114,6 +147,7 @@ export const useDeleteDivisionMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (divisionId: string) => {
@@ -127,6 +161,15 @@ export const useDeleteDivisionMutation = () => {
       return divisionId;
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: divisionsKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(divisionsKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Divisão excluída com sucesso!",
@@ -137,6 +180,12 @@ export const useDeleteDivisionMutation = () => {
         title: "Erro",
         description: "Falha ao excluir divisão",
         variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: divisionsKeys.all,
+        refetchType: 'none'
       });
     },
   });

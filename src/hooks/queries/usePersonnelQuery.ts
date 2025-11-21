@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBroadcastInvalidation } from './useBroadcastInvalidation';
 import { fetchPersonnelByRole } from '@/services/personnelService';
 import { supabase } from '@/integrations/supabase/client';
 import type { Personnel } from '@/contexts/EnhancedDataContext';
@@ -169,6 +170,7 @@ export const useCreatePersonnelMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (personnelData: PersonnelFormData) => {
@@ -281,12 +283,25 @@ export const useCreatePersonnelMutation = () => {
     onSuccess: (data) => {
       logger.personnel.info('CREATE_SUCCESS', { id: data.id, name: data.name });
       
-      // CORREÇÃO: Invalidar cache explicitamente para garantir sincronização
-      queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam!.id) });
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: personnelKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(personnelKeys.all);
       
       toast({
         title: "Sucesso",
         description: "Pessoal adicionado com sucesso!",
+      });
+    },
+    onSettled: () => {
+      // Invalidar queries inativas (para próxima montagem)
+      queryClient.invalidateQueries({ 
+        queryKey: personnelKeys.all,
+        refetchType: 'none'
       });
     },
     onError: (error, data, context) => {
@@ -313,6 +328,7 @@ export const useUpdatePersonnelMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async ({ id, ...personnelData }: { id: string } & Partial<PersonnelFormData>) => {
@@ -401,11 +417,26 @@ export const useUpdatePersonnelMutation = () => {
     },
     onSuccess: (data) => {
       logger.personnel.info('UPDATE_SUCCESS', { id: data?.id });
-      // Realtime handles cache synchronization automatically
+      
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: personnelKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(personnelKeys.all);
       
       toast({
         title: "Sucesso",
         description: "Pessoal atualizado com sucesso!",
+      });
+    },
+    onSettled: () => {
+      // Invalidar queries inativas (para próxima montagem)
+      queryClient.invalidateQueries({ 
+        queryKey: personnelKeys.all,
+        refetchType: 'none'
       });
     },
     onError: (error, { id }, context) => {
@@ -432,6 +463,7 @@ export const useDeletePersonnelMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (personnelId: string) => {
@@ -489,12 +521,27 @@ export const useDeletePersonnelMutation = () => {
     },
     onSuccess: (personnelId) => {
       logger.personnel.info('DELETE_COMPLETE', { id: personnelId });
+      
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: personnelKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(personnelKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Pessoal excluído com sucesso!",
       });
     },
     onSettled: () => {
+      // Invalidar queries inativas (para próxima montagem)
+      queryClient.invalidateQueries({ 
+        queryKey: personnelKeys.all,
+        refetchType: 'none'
+      });
       console.log('[DELETE PERSONNEL] onSettled - Invalidating queries');
       queryClient.invalidateQueries({ queryKey: personnelKeys.list(activeTeam?.id) });
     },

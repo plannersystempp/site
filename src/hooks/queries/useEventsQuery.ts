@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBroadcastInvalidation } from './useBroadcastInvalidation';
 import type { Event } from '@/contexts/EnhancedDataContext';
 
 // Query keys for consistent caching
@@ -60,6 +61,7 @@ export const useCreateEventMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (event: Omit<Event, 'id' | 'created_at' | 'team_id' | 'user_id'>) => {
@@ -112,14 +114,26 @@ export const useCreateEventMutation = () => {
       });
     },
     onSuccess: (data) => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: eventKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(eventKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Evento criado com sucesso!",
       });
     },
     onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: eventKeys.list(activeTeam?.id) });
+      // Invalidar queries inativas (para próxima montagem)
+      queryClient.invalidateQueries({ 
+        queryKey: eventKeys.all,
+        refetchType: 'none'
+      });
     },
   });
 };
@@ -129,6 +143,7 @@ export const useUpdateEventMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (event: Event) => {
@@ -176,13 +191,25 @@ export const useUpdateEventMutation = () => {
       });
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: eventKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(eventKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Evento atualizado com sucesso!",
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: eventKeys.list(activeTeam?.id) });
+      queryClient.invalidateQueries({ 
+        queryKey: eventKeys.all,
+        refetchType: 'none'
+      });
     },
   });
 };
@@ -192,6 +219,7 @@ export const useDeleteEventMutation = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const { broadcast } = useBroadcastInvalidation();
 
   return useMutation({
     mutationFn: async (eventId: string) => {
@@ -231,13 +259,25 @@ export const useDeleteEventMutation = () => {
       });
     },
     onSuccess: () => {
+      // ✅ FASE 2: Invalidar imediatamente + refetch ativo
+      queryClient.invalidateQueries({ 
+        queryKey: eventKeys.all,
+        refetchType: 'active'
+      });
+      
+      // ✅ FASE 3: Notificar outras abas
+      broadcast(eventKeys.all);
+      
       toast({
         title: "Sucesso",
         description: "Evento excluído com sucesso!",
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: eventKeys.list(activeTeam?.id) });
+      queryClient.invalidateQueries({ 
+        queryKey: eventKeys.all,
+        refetchType: 'none'
+      });
     },
   });
 };
