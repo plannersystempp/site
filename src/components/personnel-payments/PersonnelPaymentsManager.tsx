@@ -32,20 +32,22 @@ export const PersonnelPaymentsManager = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Pagamentos Avulsos</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Pagamentos Avulsos</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Gerencie pagamentos a pessoal sem vínculo direto com eventos específicos
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handlePrintReport} variant="outline" size="lg">
+        
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+          <Button onClick={handlePrintReport} variant="outline" size="default" className="w-full sm:w-auto">
             <Printer className="mr-2 h-4 w-4" />
-            Imprimir Relatório
+            <span className="hidden sm:inline">Imprimir Relatório</span>
+            <span className="sm:hidden">Imprimir</span>
           </Button>
-          <Button onClick={() => setShowForm(true)} size="lg">
+          <Button onClick={() => setShowForm(true)} size="default" className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Novo Pagamento
           </Button>

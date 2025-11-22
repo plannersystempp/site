@@ -366,11 +366,11 @@ export default function SuperAdmin() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6 overflow-y-auto max-h-screen pb-24 md:pb-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Super Administração</h1>
-          <p className="text-muted-foreground">Gerenciamento global da plataforma PlannerSystem</p>
+    <div className="container mx-auto space-y-4 sm:space-y-6 relative min-h-screen">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words">Super Administração</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">Gerenciamento global da plataforma PlannerSystem</p>
         </div>
         
         <Button

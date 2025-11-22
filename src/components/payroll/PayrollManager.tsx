@@ -53,13 +53,13 @@ export const PayrollManager: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-full p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 overflow-x-hidden">
+    <div className="w-full max-w-full space-y-3 sm:space-y-4 md:space-y-6 overflow-x-hidden">
       {/* Cabeçalho */}
       <div className="space-y-1">
-        <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold leading-tight`}>
-          {isMobile ? 'Folha de Pagamento' : 'Gestão de Folha de Pagamento'}
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight">
+          Gestão de Folha de Pagamento
         </h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Selecione um evento para visualizar e gerenciar a folha de pagamento
         </p>
       </div>

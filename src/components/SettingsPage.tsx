@@ -161,7 +161,7 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 relative min-h-screen">
+    <div className="space-y-4 sm:space-y-6 relative min-h-screen">
       <div className="flex items-center gap-4">
         <Link to="/app">
           <Button variant="ghost" size="sm">
@@ -169,18 +169,18 @@ export const SettingsPage: React.FC = () => {
             Voltar
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <SettingsIcon className="w-6 h-6" />
-            Configurações
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 break-words">
+            <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+            <span>Configurações</span>
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Gerencie suas configurações pessoais e de segurança
           </p>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
         {/* Menu Desktop - Abas horizontais */}
         <TabsList className="hidden md:grid w-full grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <TabsTrigger value="profile">Perfil</TabsTrigger>

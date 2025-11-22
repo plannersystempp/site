@@ -84,13 +84,13 @@ export const EstimatedCosts: React.FC = () => {
   };
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold">Custos Estimados</h1>
-        <p className="text-sm text-muted-foreground">Análise financeira dos eventos</p>
+        <p className="text-xs sm:text-sm text-muted-foreground">Análise financeira dos eventos</p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="min-h-[100px]">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
