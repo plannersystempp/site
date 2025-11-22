@@ -213,7 +213,7 @@ export const EventDetail: React.FC = () => {
   };
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 print-section">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6 print-section">
       <div className="flex items-center gap-4 no-print">
         <Button 
           variant="ghost" 
@@ -225,10 +225,10 @@ export const EventDetail: React.FC = () => {
         </Button>
       </div>
 
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div className="space-y-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl md:text-3xl font-bold">{event.name}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold break-words">{event.name}</h1>
             <StatusBadge status={event.status || 'planejado'} />
           </div>
           <div className="space-y-1">
@@ -252,21 +252,21 @@ export const EventDetail: React.FC = () => {
           </div>
         </div>
         
-        <div className="flex gap-2 no-print">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto no-print">
           {/* Botão de Folha de Pagamento - apenas para admins ou coordenadores com permissão */}
           {(userRole === 'admin' || canViewPayroll) && (
             <Button 
               variant="secondary" 
               onClick={() => navigate(`/app/folha/${event.id}`)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto text-xs sm:text-sm"
             >
               <DollarSign className="w-4 h-4" />
-              <span className="hidden sm:inline">Folha de Pagamento</span>
-              <span className="sm:hidden">Folha</span>
+              <span className="hidden xs:inline">Folha de Pagamento</span>
+              <span className="xs:hidden">Folha</span>
             </Button>
           )}
           {/* Botão secundário - Imprimir (outline) */}
-          <Button variant="outline" onClick={() => window.print()}>
+          <Button variant="outline" onClick={() => window.print()} className="w-full sm:w-auto text-xs sm:text-sm">
             <Printer className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Imprimir</span>
           </Button>
@@ -276,7 +276,7 @@ export const EventDetail: React.FC = () => {
               {userRole === 'admin' && (
                 <AlertDialog onOpenChange={(open) => { if (!open) setConfirmPermanent(false); }}>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
+                    <Button variant="destructive" className="w-full sm:w-auto text-xs sm:text-sm">
                       <Trash2 className="w-4 h-4 mr-2" />
                       <span className="hidden sm:inline">Excluir</span>
                     </Button>
@@ -309,7 +309,7 @@ export const EventDetail: React.FC = () => {
                 </AlertDialog>
               )}
               {/* Botão primário - Editar */}
-              <Button variant="default" onClick={() => setShowEditForm(true)}>
+              <Button variant="default" onClick={() => setShowEditForm(true)} className="w-full sm:w-auto text-xs sm:text-sm">
                 <Settings2 className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Editar</span>
               </Button>

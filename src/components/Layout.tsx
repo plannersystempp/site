@@ -88,9 +88,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             aria-label="Conteúdo principal"
             tabIndex={-1}
             ref={mainRef}
-            className="flex-1 min-h-0"
+            className="flex-1 min-h-0 overflow-y-auto"
           >
-            <div className="w-full max-w-screen-xl 2xl:max-w-screen-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            <div className="w-full max-w-screen-xl 2xl:max-w-screen-2xl mx-auto px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 pb-20 md:pb-6">
               {children}
             </div>
           </main>

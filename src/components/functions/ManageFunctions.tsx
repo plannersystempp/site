@@ -90,21 +90,21 @@ export const ManageFunctions = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header with search and add button */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex-1 max-w-sm">
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex-1 max-w-full sm:max-w-sm">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Buscar funções..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-2">
+        <Button onClick={() => setShowForm(true)} className="gap-2 w-full sm:w-auto">
           <Plus className="h-4 w-4" />
           Nova Função
         </Button>
@@ -128,7 +128,7 @@ export const ManageFunctions = () => {
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filteredFunctions.map((func) => {
             const personnelCount = getFunctionPersonnelCount(func.id);
             

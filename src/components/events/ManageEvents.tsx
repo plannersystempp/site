@@ -255,22 +255,24 @@ export const ManageEvents: React.FC = () => {
   const exportHeaders = ['nome', 'descricao', 'status', 'data_inicio', 'data_fim', 'pessoas_alocadas', 'total_alocacoes', 'criado_em'];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Gestão de Eventos</h1>
-          <p className="text-muted-foreground">Equipe: {activeTeam.name}</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Gestão de Eventos</h1>
+          <p className="text-sm text-muted-foreground">Equipe: {activeTeam.name}</p>
         </div>
-        <div className="flex gap-2">
-          <ExportDropdown
-            data={exportData}
-            headers={exportHeaders}
-            filename="eventos_filtrados"
-            title="Relatório de Eventos"
-            disabled={filteredEvents.length === 0}
-          />
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+          <div className="order-2 sm:order-1 flex-1">
+            <ExportDropdown
+              data={exportData}
+              headers={exportHeaders}
+              filename="eventos_filtrados"
+              title="Relatório de Eventos"
+              disabled={filteredEvents.length === 0}
+            />
+          </div>
           {canManageEvents && (
-            <Button onClick={handleCreateEvent}>
+            <Button onClick={handleCreateEvent} className="order-1 sm:order-2 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Criar Evento
             </Button>
@@ -278,48 +280,53 @@ export const ManageEvents: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-        <div className="relative flex-1 min-w-[240px] sm:min-w-[280px] sm:max-w-none">
+      <div className="flex flex-col space-y-3">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Buscar por nome, descrição, local ou cliente..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
-        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
-          <Input
-            type="date"
-            value={periodStart}
-            onChange={(e) => setPeriodStart(e.target.value)}
-            placeholder="Data inicial"
-            className="w-[140px] sm:w-[160px]"
-          />
-          <span className="text-muted-foreground text-sm">até</span>
-          <Input
-            type="date"
-            value={periodEnd}
-            onChange={(e) => setPeriodEnd(e.target.value)}
-            placeholder="Data final"
-            className="w-[140px] sm:w-[160px]"
-          />
-          <Button variant="outline" onClick={clearFilters} className="ml-2">
-            <XCircle className="w-4 h-4 mr-0 sm:mr-2" />
-            <span className="hidden sm:inline">Limpar filtro</span>
+        
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Input
+              type="date"
+              value={periodStart}
+              onChange={(e) => setPeriodStart(e.target.value)}
+              placeholder="Data inicial"
+              className="flex-1 sm:w-[140px]"
+            />
+            <span className="text-muted-foreground text-xs sm:text-sm">até</span>
+            <Input
+              type="date"
+              value={periodEnd}
+              onChange={(e) => setPeriodEnd(e.target.value)}
+              placeholder="Data final"
+              className="flex-1 sm:w-[140px]"
+            />
+          </div>
+          
+          <Button variant="outline" onClick={clearFilters} className="w-full sm:w-auto">
+            <XCircle className="w-4 h-4 mr-2" />
+            <span>Limpar filtro</span>
           </Button>
-          <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
-            <SelectTrigger className="w-[200px] md:w-[220px]">
-              <SelectValue placeholder="Ordenar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date_newest">Data: mais recente</SelectItem>
-              <SelectItem value="date_oldest">Data: mais antiga</SelectItem>
-              <SelectItem value="name_asc">Nome: A–Z</SelectItem>
-              <SelectItem value="name_desc">Nome: Z–A</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
+        
+        <Select value={sortOption} onValueChange={(v) => setSortOption(v as typeof sortOption)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date_newest">Data: mais recente</SelectItem>
+            <SelectItem value="date_oldest">Data: mais antiga</SelectItem>
+            <SelectItem value="name_asc">Nome: A–Z</SelectItem>
+            <SelectItem value="name_desc">Nome: Z–A</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {filteredEvents.length === 0 ? (
@@ -339,7 +346,7 @@ export const ManageEvents: React.FC = () => {
           } : undefined}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {sortedEvents.map((event) => {
             const stats = getEventStats(event.id);
             const hasAccess = canViewEventDetails(event.id);

@@ -122,15 +122,23 @@ export const ManagePersonnel: React.FC = () => {
           <p className="text-sm sm:text-base text-muted-foreground">Gerencie toda a equipe da organização</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <div className="order-2 sm:order-1 flex-1">
-            <ExportDropdown data={exportData} headers={exportHeaders} filename="pessoal_filtrado" title="Relatório de Pessoal" disabled={filteredPersonnel.length === 0} />
-          </div>
-          {isAdminOrCoordinator && <Button onClick={handleAddPersonnel} className="order-1 sm:order-2 w-full sm:w-auto" size="default">
-              <Plus className="w-4 h-4 mr-2" />
-              Cadastrar Pessoa
-            </Button>}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+        <div className="order-2 sm:order-1 w-full sm:flex-1">
+          <ExportDropdown
+            data={exportData}
+            headers={exportHeaders}
+            filename="pessoal_filtrado"
+            title="Relatório de Pessoal"
+            disabled={filteredPersonnel.length === 0}
+          />
         </div>
+        {isAdminOrCoordinator && (
+          <Button onClick={handleAddPersonnel} className="order-1 sm:order-2 w-full sm:w-auto" size="default">
+            <Plus className="w-4 h-4 mr-2" />
+            Cadastrar Pessoa
+          </Button>
+        )}
+      </div>
       </div>
 
       <PersonnelStats personnel={personnel} />

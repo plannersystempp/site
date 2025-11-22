@@ -52,7 +52,7 @@ export const ManageSuppliers: React.FC = () => {
   }));
 
   return (
-    <div className="min-h-screen w-full max-w-full p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="space-y-4">
         <div className="flex flex-col space-y-3">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Fornecedores</h1>
@@ -61,7 +61,7 @@ export const ManageSuppliers: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
           <div className="order-2 sm:order-1 flex-1">
             <ExportDropdown
               data={exportData}
@@ -85,7 +85,7 @@ export const ManageSuppliers: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{suppliers.length}</div>
@@ -132,7 +132,7 @@ export const ManageSuppliers: React.FC = () => {
           )}
         </EmptyState>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {filteredSuppliers.map((supplier) => (
             <SupplierCard key={supplier.id} supplier={supplier} onEdit={(s) => { setEditingSupplier(s); setShowForm(true); }} />
           ))}

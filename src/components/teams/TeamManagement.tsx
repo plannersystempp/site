@@ -434,28 +434,28 @@ export const TeamManagement: React.FC = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 pb-24 sm:pb-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="w-full sm:w-auto">
-          <h1 className="text-2xl font-bold">Gerenciar Equipe</h1>
-          <p className="text-muted-foreground">{activeTeam.name}</p>
+    <div className="space-y-4 sm:space-y-6 relative min-h-screen">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+        <div className="w-full">
+          <h1 className="text-xl sm:text-2xl font-bold">Gerenciar Equipe</h1>
+          <p className="text-sm text-muted-foreground">{activeTeam.name}</p>
           <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Código de Convite:</p>
-            <code className="text-lg font-mono font-bold text-blue-900 dark:text-blue-100 break-all">
+            <p className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-200">Código de Convite:</p>
+            <code className="text-base sm:text-lg font-mono font-bold text-blue-900 dark:text-blue-100 break-all">
               {(activeTeam as any).invite_code || 'Carregando...'}
             </code>
-            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+            <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 mt-1">
               Compartilhe este código com novos membros para que possam solicitar acesso à equipe
             </p>
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={fetchMembers}
             disabled={loading}
-            className="flex-1 sm:flex-none"
+            className="w-full sm:w-auto"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Atualizar Lista
@@ -463,7 +463,7 @@ export const TeamManagement: React.FC = () => {
           
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button className="flex-1 sm:flex-none">
+              <Button className="w-full sm:w-auto">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Cadastrar Usuário
               </Button>

@@ -1,0 +1,49 @@
+/* Utilities for mobile-responsive design */
+
+/* Padding responsivo padrão para páginas */
+.mobile-page-padding {
+  @apply px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6;
+}
+
+/* Safe area para iOS (notch e barra inferior) */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Scroll horizontal para tabelas em mobile */
+.table-scroll-mobile {
+  @apply -mx-2 sm:mx-0 overflow-x-auto;
+}
+
+/* Botões mobile - largura total em mobile, auto em desktop */
+.btn-mobile {
+  @apply w-full sm:w-auto;
+}
+
+/* Grid responsivo para cards */
+.cards-grid-mobile {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6;
+}
+
+/* Texto responsivo */
+.text-mobile-xl {
+  @apply text-xl sm:text-2xl md:text-3xl;
+}
+
+.text-mobile-lg {
+  @apply text-lg sm:text-xl md:text-2xl;
+}
+
+.text-mobile-base {
+  @apply text-sm sm:text-base;
+}
+
+/* Espaçamento responsivo */
+.space-mobile-y {
+  @apply space-y-3 sm:space-y-4 md:space-y-6;
+}
+
+/* Container com padding bottom para mobile navigation */
+.page-with-mobile-nav {
+  @apply pb-20 md:pb-6;
+}

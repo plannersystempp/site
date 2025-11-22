@@ -41,15 +41,15 @@ export const PaymentForecastPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 space-y-4 print:p-0 print:bg-white print:text-black pb-24 md:pb-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-lg md:text-2xl font-semibold">Previsão de Pagamentos</h1>
-        <div className="flex flex-col gap-2 print:hidden">
+    <div className="min-h-screen space-y-4 print:p-0 print:bg-white print:text-black">
+      <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">Previsão de Pagamentos</h1>
+        <div className="flex flex-col gap-2 print:hidden w-full sm:w-auto">
           <div className="flex items-center gap-2">
             <label htmlFor="weeks" className="text-sm text-muted-foreground whitespace-nowrap">Semanas:</label>
             <select
               id="weeks"
-              className="border rounded px-3 py-2 text-sm bg-background"
+              className="border rounded px-3 py-2 text-sm bg-background flex-1 sm:flex-none"
               value={weeksAhead}
               onChange={(e) => setWeeksAhead(Number(e.target.value))}
             >

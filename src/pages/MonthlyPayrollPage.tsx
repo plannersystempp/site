@@ -119,34 +119,35 @@ export const MonthlyPayrollPage: React.FC = () => {
   const paymentDate = `${String(monthlyPaymentDay).padStart(2, '0')}/${String(selectedMonth + 1).padStart(2, '0')}/${selectedYear}`;
 
   return (
-    <div className={`w-full max-w-full ${isMobile ? 'px-0 py-3' : 'p-4 md:p-6'} space-y-4 md:space-y-6`}>
+    <div className="w-full max-w-full space-y-4 sm:space-y-6">
       {/* Cabeçalho */}
       <div className="space-y-3">
         <Button
           variant="ghost"
           onClick={() => navigate('/app/folha')}
-          className={`${isMobile ? 'mb-2' : ''} -ml-2`}
+          className="-ml-2"
+          size="sm"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
 
         <div>
-          <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
             Folha de Pagamento Mensal - Fixos
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Pagamento mensal de funcionários fixos (salário + cachês + horas extras)
           </p>
         </div>
 
         {/* Seletores de Mês/Ano */}
-        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-3`}>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Select
             value={String(selectedMonth)}
             onValueChange={(value) => setSelectedMonth(Number(value))}
           >
-            <SelectTrigger className={isMobile ? 'w-full' : 'w-[180px]'}>
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Selecione o mês" />
             </SelectTrigger>
             <SelectContent>
@@ -162,7 +163,7 @@ export const MonthlyPayrollPage: React.FC = () => {
             value={String(selectedYear)}
             onValueChange={(value) => setSelectedYear(Number(value))}
           >
-            <SelectTrigger className={isMobile ? 'w-full' : 'w-[140px]'}>
+            <SelectTrigger className="w-full sm:w-[140px]">
               <SelectValue placeholder="Ano" />
             </SelectTrigger>
             <SelectContent>

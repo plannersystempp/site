@@ -222,14 +222,14 @@ const Dashboard = () => {
   // Ícones e cores foram movidos para StatusBadge
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="rounded-xl border bg-gradient-to-r from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 p-5 md:p-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+      <div className="rounded-xl border bg-gradient-to-r from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 p-4 sm:p-5 md:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight break-words">Dashboard</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {isSuperAdmin ? 'Visão Global (Super Admin)' : `Equipe: ${activeTeam?.name || '—'}`}
               </p>
             </div>
@@ -272,9 +272,9 @@ const Dashboard = () => {
       <QuickActions />
 
       {/* KPIs organizados por grupos: Atividade, Cadastro e Financeiro */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <KpiGroup title="Atividade" icon={<AlertCircle className="h-4 w-4 text-yellow-600" />}> 
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="col-span-full sm:col-span-2 lg:col-span-1">
             <KpiCard
               title="Eventos em Andamento"
               value={eventsInProgress.length}
@@ -322,10 +322,10 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="pt-0">
             <Separator className="my-2" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-              <div className="text-center">
-                <div className="text-lg font-bold">{suppliers.length}</div>
-                <p className="text-xs text-muted-foreground">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 min-w-[300px] overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+              <div className="text-center min-w-[70px]">
+                <div className="text-base sm:text-lg font-bold">{suppliers.length}</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
                   <span className="hidden sm:inline">Total Cadastrados</span>
                   <span className="sm:hidden">Total</span>
                 </p>
