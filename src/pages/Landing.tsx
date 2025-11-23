@@ -422,12 +422,12 @@ export const Landing: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span>WhatsApp:</span>
                   <a 
-                    href="https://wa.me/5521965232224" 
+                    href="https://wa.me/5521965865470" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-success hover:text-chart-green transition-colors font-medium"
                   >
-                    (21) 96523-2224
+                    (21) 96586-5470
                   </a>
                 </div>
                 <p>Segunda a Sexta, 9h às 18h</p>
