@@ -415,11 +415,11 @@ export const Landing: React.FC = () => {
             </div>
 
             {/* Contact Column */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 sm:space-y-4 text-center md:text-left">
               <h4 className="text-base sm:text-lg font-bold">Contato</h4>
               <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-muted-foreground">
                 <p>suporte@plannersystem.com.br</p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center md:justify-start gap-2">
                   <span>WhatsApp:</span>
                   <a 
                     href="https://wa.me/5521965865470" 
