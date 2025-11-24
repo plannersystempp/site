@@ -1,4 +1,4 @@
-import { filterByDateRange, filterPaymentsByStatus, sortByNearestDate, type DateRange, type PaymentStatusFilter } from './dashboardFilters';
+import { filterByDateRange, filterPaymentsByDateRange, filterPaymentsByStatus, sortByNearestDate, type DateRange, type PaymentStatusFilter } from './dashboardFilters';
 
 interface EventLike {
   id: string;
@@ -26,6 +26,16 @@ export const countPaymentsByStatus = (payments: PaymentLike[], now = new Date())
     pendente: filterPaymentsByStatus(payments, 'pendente', now).length,
     vencido: filterPaymentsByStatus(payments, 'vencido', now).length,
     pago: filterPaymentsByStatus(payments, 'pago', now).length,
+    todos: payments.length,
+  };
+};
+
+// Contar PAGAMENTOS por intervalos de data (usando payment_due_date)
+export const countPaymentsByRanges = (payments: PaymentLike[], now = new Date()): Record<DateRange, number> => {
+  return {
+    hoje: filterPaymentsByDateRange(payments, 'hoje', now).length,
+    '7dias': filterPaymentsByDateRange(payments, '7dias', now).length,
+    '30dias': filterPaymentsByDateRange(payments, '30dias', now).length,
     todos: payments.length,
   };
 };

@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { filterByDateRange, filterPaymentsByStatus, sortByNearestDate } from '../../utils/dashboardFilters';
+import { filterByDateRange, filterPaymentsByDateRange, filterPaymentsByStatus, sortByNearestDate, sortPaymentsByNearestDate } from '../../utils/dashboardFilters';
 
 const now = new Date('2025-11-06T12:00:00Z');
 
 describe('dashboardFilters', () => {
-  it('filtra por intervalo de 7 dias', () => {
+  it('filtra eventos por intervalo de 7 dias', () => {
     const items = [
       { id: '1', name: 'Hoje', start_date: '2025-11-06' },
       { id: '2', name: 'Amanhã', start_date: '2025-11-07' },
@@ -14,6 +14,27 @@ describe('dashboardFilters', () => {
 
     const result = filterByDateRange(items, '7dias', now);
     expect(result.map(i => i.id)).toEqual(['1', '2']);
+  });
+
+  it('filtra pagamentos por intervalo de 7 dias usando payment_due_date', () => {
+    const items = [
+      { id: '1', name: 'Hoje', payment_due_date: '2025-11-06' },
+      { id: '2', name: 'Amanhã', payment_due_date: '2025-11-07' },
+      { id: '3', name: '30 dias', payment_due_date: '2025-12-06' },
+    ];
+
+    const result = filterPaymentsByDateRange(items, '7dias', now);
+    expect(result.map(i => i.id)).toEqual(['1', '2']);
+  });
+
+  it('filtra pagamentos hoje', () => {
+    const items = [
+      { id: '1', name: 'Hoje', payment_due_date: '2025-11-06' },
+      { id: '2', name: 'Amanhã', payment_due_date: '2025-11-07' },
+    ];
+
+    const result = filterPaymentsByDateRange(items, 'hoje', now);
+    expect(result.map(i => i.id)).toEqual(['1']);
   });
 
   it('filtra pagamentos por status pendente', () => {
@@ -35,13 +56,23 @@ describe('dashboardFilters', () => {
     expect(result.map(i => i.id)).toEqual(['1']);
   });
 
-  it('ordena por data mais próxima', () => {
+  it('ordena eventos por data mais próxima', () => {
     const items = [
       { id: '1', name: 'Distante', start_date: '2025-12-01' },
       { id: '2', name: 'Próximo', start_date: '2025-11-07' },
       { id: '3', name: 'Hoje', start_date: '2025-11-06' },
     ];
     const result = sortByNearestDate(items, now);
+    expect(result.map(i => i.id)).toEqual(['3', '2', '1']);
+  });
+
+  it('ordena pagamentos por data de vencimento mais próxima', () => {
+    const items = [
+      { id: '1', name: 'Distante', payment_due_date: '2025-12-01' },
+      { id: '2', name: 'Próximo', payment_due_date: '2025-11-07' },
+      { id: '3', name: 'Hoje', payment_due_date: '2025-11-06' },
+    ];
+    const result = sortPaymentsByNearestDate(items, now);
     expect(result.map(i => i.id)).toEqual(['3', '2', '1']);
   });
 });
