@@ -20,12 +20,11 @@ export const usePayrollActions = (
     if (!user || !activeTeam) return;
 
     // VALIDAÇÃO: Verificar se a pessoa está alocada no evento
-    const { data: allocation, error: allocError } = await supabase
+    const { data: allocations, error: allocError } = await supabase
       .from('personnel_allocations')
       .select('id')
       .eq('event_id', selectedEventId)
-      .eq('personnel_id', personnelId)
-      .maybeSingle();
+      .eq('personnel_id', personnelId);
 
     if (allocError) {
       console.error('Error checking allocation:', allocError);
@@ -37,7 +36,7 @@ export const usePayrollActions = (
       return;
     }
 
-    if (!allocation) {
+    if (!allocations || allocations.length === 0) {
       toast({
         title: "Erro de Validação",
         description: "Esta pessoa não está alocada neste evento. Não é possível registrar pagamento.",
@@ -119,12 +118,11 @@ export const usePayrollActions = (
     if (!user || !activeTeam) return;
 
     // VALIDAÇÃO: Verificar se a pessoa está alocada no evento
-    const { data: allocation, error: allocError } = await supabase
+    const { data: allocations, error: allocError } = await supabase
       .from('personnel_allocations')
       .select('id')
       .eq('event_id', selectedEventId)
-      .eq('personnel_id', personnelId)
-      .maybeSingle();
+      .eq('personnel_id', personnelId);
 
     if (allocError) {
       console.error('Error checking allocation:', allocError);
@@ -136,7 +134,7 @@ export const usePayrollActions = (
       return;
     }
 
-    if (!allocation) {
+    if (!allocations || allocations.length === 0) {
       toast({
         title: "Erro de Validação",
         description: "Esta pessoa não está alocada neste evento. Não é possível registrar pagamento.",
