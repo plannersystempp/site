@@ -72,17 +72,16 @@ export const useAllocationForm = ({
   const handleSubmit = async () => {
     if (!isFormValid()) return;
 
-    // Check if person is already allocated to this event with the same function
+    // Check if person is already allocated to this event (regardless of function)
     const existingAllocation = assignments.find(a => 
       a.event_id === eventId && 
-      a.personnel_id === selectedPersonnel &&
-      a.function_name === selectedFunction
+      a.personnel_id === selectedPersonnel
     );
     
     if (existingAllocation) {
       toast({
-        title: "Função já alocada",
-        description: "Esta pessoa já está alocada com esta função neste evento. Escolha uma função diferente.",
+        title: "Alocação já existente",
+        description: "Esta pessoa já está alocada neste evento. Não é possível alocar a mesma pessoa mais de uma vez.",
         variant: "destructive"
       });
       return;

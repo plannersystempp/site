@@ -49,6 +49,17 @@ export const useCreateAllocationMutation = () => {
     mutationFn: async (allocationData: Omit<Assignment, 'id' | 'created_at' | 'team_id'>) => {
       if (!activeTeam) throw new Error('No active team');
 
+      // Verificar se a pessoa já está alocada neste evento
+      const { data: existingAllocations } = await supabase
+        .from('personnel_allocations')
+        .select('id')
+        .eq('event_id', allocationData.event_id)
+        .eq('personnel_id', allocationData.personnel_id);
+
+      if (existingAllocations && existingAllocations.length > 0) {
+        throw new Error('Esta pessoa já está alocada neste evento');
+      }
+
       const { data, error } = await supabase
         .from('personnel_allocations')
         .insert([{ ...allocationData, team_id: activeTeam.id }])
