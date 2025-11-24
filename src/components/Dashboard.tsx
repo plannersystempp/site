@@ -28,8 +28,8 @@ import { usePersonnelPaymentsQuery } from '@/hooks/queries/usePersonnelPaymentsQ
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { KpiGroup } from '@/components/dashboard/KpiGroup';
 import { FilterChips } from '@/components/dashboard/FilterChips';
-import { filterByDateRange, sortByNearestDate, type DateRange } from '@/utils/dashboardFilters';
-import { countEventsByRanges } from '@/utils/dashboardFilterCounts';
+import { filterByDateRange, filterPaymentsByDateRange, sortByNearestDate, sortPaymentsByNearestDate, type DateRange } from '@/utils/dashboardFilters';
+import { countEventsByRanges, countPaymentsByRanges } from '@/utils/dashboardFilterCounts';
 import { usePersistentFilter } from '@/hooks/usePersistentFilter';
 import { Separator } from '@/components/ui/separator';
 
@@ -162,12 +162,10 @@ const Dashboard = () => {
     [upcomingPayments]
   );
   
-  const paymentsIntervalCounts: Record<DateRange, number> = useMemo(() => ({
-    hoje: filterByDateRange(upcomingPaymentsFormatted, 'hoje', currentDate).length,
-    '7dias': filterByDateRange(upcomingPaymentsFormatted, '7dias', currentDate).length,
-    '30dias': filterByDateRange(upcomingPaymentsFormatted, '30dias', currentDate).length,
-    todos: upcomingPaymentsFormatted.length,
-  }), [upcomingPaymentsFormatted, nowKey]);
+  const paymentsIntervalCounts: Record<DateRange, number> = useMemo(() => 
+    countPaymentsByRanges(upcomingPaymentsFormatted, currentDate), 
+    [upcomingPaymentsFormatted, nowKey]
+  );
   
   // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS HAVE BEEN CALLED
   if (!activeTeam && !isSuperAdmin) {
@@ -495,8 +493,8 @@ const Dashboard = () => {
                 />
               ) : (
                 <div className="space-y-2">
-                  {sortByNearestDate(
-                      filterByDateRange(upcomingPaymentsFormatted, paymentsRange, currentDate),
+                  {sortPaymentsByNearestDate(
+                      filterPaymentsByDateRange(upcomingPaymentsFormatted, paymentsRange, currentDate),
                       currentDate
                     ).map(event => {
                     const dueDate = event.payment_due_date || event.end_date;
