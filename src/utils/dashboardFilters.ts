@@ -61,11 +61,13 @@ export const filterPaymentsByStatus = (items: PaymentLike[], status: PaymentStat
 // Filtrar PAGAMENTOS por intervalo de datas usando payment_due_date
 export const filterPaymentsByDateRange = <T extends PaymentLike>(items: T[], range: DateRange, now = new Date()): T[] => {
   if (range === 'todos') return items;
+  
   const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  
   const end = new Date(now);
   
   if (range === 'hoje') {
-    start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
   } else if (range === '7dias') {
     end.setDate(end.getDate() + 7);
@@ -76,10 +78,14 @@ export const filterPaymentsByDateRange = <T extends PaymentLike>(items: T[], ran
   }
 
   return items.filter(item => {
-    // Para pagamentos, priorizar payment_due_date
     const dueDate = toDate(item.payment_due_date) || toDate(item.end_date);
     if (!dueDate) return false;
-    return dueDate >= start && dueDate <= end;
+    
+    // Normalizar a data de vencimento para comparação (remover horas)
+    const normalizedDueDate = new Date(dueDate);
+    normalizedDueDate.setHours(0, 0, 0, 0);
+    
+    return normalizedDueDate >= start && normalizedDueDate <= end;
   });
 };
 
