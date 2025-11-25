@@ -48,7 +48,7 @@ export const PaymentHistoryTab: React.FC<PaymentHistoryTabProps> = ({ personnelI
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <p className="font-semibold text-lg text-green-600 dark:text-green-400">
+                    <p className="font-semibold text-xs sm:text-sm leading-tight text-green-600 dark:text-green-400">
                       {formatCurrency(payment.amount)}
                     </p>
                   </div>

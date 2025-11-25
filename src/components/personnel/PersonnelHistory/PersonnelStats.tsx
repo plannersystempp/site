@@ -33,12 +33,12 @@ export const PersonnelStats: React.FC<PersonnelStatsProps> = ({ personnelId }) =
       {/* Total de Eventos */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center gap-3 justify-start">
+            <div className="min-w-0">
               <p className="text-sm text-muted-foreground">Total de Eventos</p>
-              <p className="text-2xl font-bold">{stats.totalEvents}</p>
+              <p className="text-sm sm:text-base font-bold leading-tight">{stats.totalEvents}</p>
             </div>
-            <Calendar className="h-8 w-8 text-primary/70" />
+            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary/70 flex-shrink-0" />
           </div>
         </CardContent>
       </Card>
@@ -46,14 +46,14 @@ export const PersonnelStats: React.FC<PersonnelStatsProps> = ({ personnelId }) =
       {/* Total Pago */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center gap-3 justify-start">
+            <div className="min-w-0">
               <p className="text-sm text-muted-foreground">Total Pago</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-xs sm:text-sm font-bold text-green-600 leading-tight">
                 {formatCurrency(stats.totalPaidAllTime)}
               </p>
             </div>
-            <DollarSign className="h-8 w-8 text-green-600/70" />
+            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-600/70 flex-shrink-0" />
           </div>
         </CardContent>
       </Card>
@@ -61,14 +61,14 @@ export const PersonnelStats: React.FC<PersonnelStatsProps> = ({ personnelId }) =
       {/* Total Pendente */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center gap-3 justify-start">
+            <div className="min-w-0">
               <p className="text-sm text-muted-foreground">Valores Pendentes</p>
-              <p className={`text-2xl font-bold ${stats.totalPending > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+              <p className={`text-xs sm:text-sm font-bold leading-tight ${stats.totalPending > 0 ? 'text-orange-600' : 'text-green-600'}`}>
                 {formatCurrency(stats.totalPending)}
               </p>
             </div>
-            <AlertCircle className={`h-8 w-8 ${stats.totalPending > 0 ? 'text-orange-600/70' : 'text-green-600/70'}`} />
+            <AlertCircle className={`h-4 w-4 sm:h-5 sm:w-5 ${stats.totalPending > 0 ? 'text-orange-600/70' : 'text-green-600/70'} flex-shrink-0`} />
           </div>
         </CardContent>
       </Card>
