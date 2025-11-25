@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp, Edit2, Loader2, Filter } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp, Edit2, Loader2, Filter, Building2, DollarSign, Database } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -530,6 +530,40 @@ export default function SuperAdmin() {
           {activeTab === 'metrics' && 'Métricas'}
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ações Rápidas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            <Button variant={activeTab === 'users' ? 'default' : 'secondary'} className="flex flex-col items-center justify-center h-20" onClick={() => setActiveTab('users')}>
+              <Users className="h-5 w-5 mb-1" />
+              <span className="text-xs">Usuários</span>
+            </Button>
+            <Button variant={activeTab === 'teams' ? 'default' : 'secondary'} className="flex flex-col items-center justify-center h-20" onClick={() => setActiveTab('teams')}>
+              <Building2 className="h-5 w-5 mb-1" />
+              <span className="text-xs">Equipes</span>
+            </Button>
+            <Button variant={activeTab === 'subscriptions' ? 'default' : 'secondary'} className="flex flex-col items-center justify-center h-20" onClick={() => setActiveTab('subscriptions')}>
+              <DollarSign className="h-5 w-5 mb-1" />
+              <span className="text-xs">Assinaturas</span>
+            </Button>
+            <Button variant={activeTab === 'plans' ? 'default' : 'secondary'} className="flex flex-col items-center justify-center h-20" onClick={() => setActiveTab('plans')}>
+              <LayoutDashboard className="h-5 w-5 mb-1" />
+              <span className="text-xs">Planos</span>
+            </Button>
+            <Button variant={activeTab === 'audit' ? 'default' : 'secondary'} className="flex flex-col items-center justify-center h-20" onClick={() => setActiveTab('audit')}>
+              <Database className="h-5 w-5 mb-1" />
+              <span className="text-xs">Auditoria</span>
+            </Button>
+            <Button variant={activeTab === 'error-reports' ? 'default' : 'secondary'} className="flex flex-col items-center justify-center h-20" onClick={() => setActiveTab('error-reports')}>
+              <Bug className="h-5 w-5 mb-1" />
+              <span className="text-xs">Erros</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
