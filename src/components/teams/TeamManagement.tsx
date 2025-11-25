@@ -107,6 +107,7 @@ export const TeamManagement: React.FC = () => {
       if (!teamMembers || teamMembers.length === 0) {
         setMembers([]);
         setPendingRequests([]);
+        setRejectedMembers([]);
         return;
       }
 
@@ -119,12 +120,27 @@ export const TeamManagement: React.FC = () => {
 
       if (profilesError) throw profilesError;
 
+      // For users without complete profile data, fetch from auth.users
+      const authUsersResponse = await supabase.auth.admin.listUsers();
+      const authUsers = authUsersResponse.data?.users || [];
+      
       // Combine team member data with profile data
       const membersWithProfiles = teamMembers.map(member => {
         const profile = profiles?.find(p => p.user_id === member.user_id);
+        const authUser = authUsers.find(u => u.id === member.user_id);
+        
+        // Use profile data if available and not empty, otherwise fallback to auth user data
+        const name = (profile?.name && profile.name.trim() !== '') 
+          ? profile.name 
+          : (authUser?.user_metadata?.name || authUser?.email?.split('@')[0] || 'Usuário');
+        
+        const email = (profile?.email && profile.email.trim() !== '') 
+          ? profile.email 
+          : (authUser?.email || 'Email não disponível');
+        
         return {
           ...member,
-          user_profiles: profile ? { name: profile.name, email: profile.email } : { name: '', email: '' }
+          user_profiles: { name, email }
         };
       }) as TeamMemberWithProfile[];
       
