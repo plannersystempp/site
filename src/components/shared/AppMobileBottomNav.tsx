@@ -104,9 +104,20 @@ export function AppMobileBottomNav() {
     return null;
   }
 
+  const totalCols = moreTabs.length > 0 ? tabs.length + 1 : tabs.length;
+  const colsClass = totalCols === 5
+    ? 'grid-cols-5'
+    : totalCols === 4
+    ? 'grid-cols-4'
+    : totalCols === 3
+    ? 'grid-cols-3'
+    : totalCols === 2
+    ? 'grid-cols-2'
+    : 'grid-cols-1';
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50 safe-area-inset-bottom" aria-label="Navegação principal móvel">
-      <div className={`grid ${moreTabs.length > 0 ? 'grid-cols-4' : 'grid-cols-3'} h-16`}>
+      <div className={`grid ${colsClass} h-14 px-2 max-w-screen-sm mx-auto`}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const active = isActive(tab.path);
@@ -115,15 +126,15 @@ export function AppMobileBottomNav() {
               key={tab.path}
               onClick={() => handleNavigate(tab.path)}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 transition-colors relative',
+                'flex flex-col items-center justify-center gap-1 transition-colors relative min-w-0',
                 active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )}
               aria-current={active ? 'page' : undefined}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-xs font-medium">{tab.label}</span>
+              <Icon className="h-4 w-4" />
+              <span className="w-full text-center leading-tight text-[10px] sm:text-xs font-medium truncate">{tab.label}</span>
               {active && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-t-full" />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-0.5 bg-primary rounded-t-full" />
               )}
             </button>
           );
@@ -134,22 +145,22 @@ export function AppMobileBottomNav() {
           <SheetTrigger asChild>
             <button
               className={cn(
-                'flex flex-col items-center justify-center gap-1 transition-colors relative',
+                'flex flex-col items-center justify-center gap-1 transition-colors relative min-w-0',
                 isMoreActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )}
               aria-haspopup="true"
               aria-expanded={moreSheetOpen}
               aria-label="Mais opções"
             >
-              <div className="grid grid-cols-2 gap-px w-5 h-5">
+              <div className="grid grid-cols-2 gap-px w-4 h-4">
                 <div className="w-2 h-2 bg-current rounded-sm" />
                 <div className="w-2 h-2 bg-current rounded-sm" />
                 <div className="w-2 h-2 bg-current rounded-sm" />
                 <div className="w-2 h-2 bg-current rounded-sm" />
               </div>
-              <span className="text-xs font-medium">Mais</span>
+              <span className="w-full text-center leading-tight text-[10px] sm:text-xs font-medium truncate">Mais</span>
               {isMoreActive && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-t-full" />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-0.5 bg-primary rounded-t-full" />
               )}
             </button>
           </SheetTrigger>

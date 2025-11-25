@@ -44,7 +44,7 @@ export const ScrollNavigationButtons: React.FC<ScrollNavigationButtonsProps> = (
         size="icon"
         variant="secondary"  
         className={cn(
-          "fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30",
+          "fixed bottom-20 md:bottom-6 left-1/2 transform -translate-x-1/2 z-30",
           "h-10 w-10 rounded-full shadow-lg transition-all duration-300",
           "bg-background/90 backdrop-blur-sm border border-border",
           "hover:bg-accent hover:text-accent-foreground",
