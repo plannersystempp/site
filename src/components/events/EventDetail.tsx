@@ -8,12 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone, DollarSign, Lock, ShieldAlert } from 'lucide-react';
-import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AllocationManager } from './AllocationManager';
 import { EventForm } from './EventForm';
 import { formatDateBR } from '@/utils/dateUtils';
 import { FreelancerRating } from '@/components/personnel/FreelancerRating';
 import { SkeletonCard } from '@/components/shared/SkeletonCard';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
@@ -44,7 +44,6 @@ export const EventDetail: React.FC = () => {
 
   // Refs para rolar até o conteúdo correspondente
   const allocationsRef = useRef<HTMLDivElement | null>(null);
-  const overviewRef = useRef<HTMLDivElement | null>(null);
   const absencesRef = useRef<HTMLDivElement | null>(null);
   const costsRef = useRef<HTMLDivElement | null>(null);
 
@@ -59,13 +58,14 @@ export const EventDetail: React.FC = () => {
     setActiveTab(val);
   };
 
+  const tabsCount = 1 + ((userRole === 'admin' || canManageCosts) ? 1 : 0) + (userRole === 'admin' ? 1 : 0);
+  const tabsColsClass = tabsCount === 1 ? 'grid-cols-1' : tabsCount === 2 ? 'grid-cols-2' : 'grid-cols-3';
+
   // Após mudar a aba, rolar quando o conteúdo estiver montado
   useEffect(() => {
     const target =
       activeTab === 'allocations'
         ? allocationsRef.current
-        : activeTab === 'overview'
-        ? overviewRef.current
         : activeTab === 'absences'
         ? absencesRef.current
         : activeTab === 'costs'
@@ -541,12 +541,8 @@ export const EventDetail: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-8 space-y-6">
-          <TabsList className={`grid w-full h-10 md:h-12 ${
-            (userRole === 'admin' || canManageCosts) ? 'grid-cols-4' : 
-            userRole === 'admin' ? 'grid-cols-4' : 'grid-cols-2'
-          }`}>
+          <TabsList className={`grid w-full h-10 md:h-12 ${tabsColsClass}`}>
             <TabsTrigger value="allocations" className="text-sm">Alocações</TabsTrigger>
-            <TabsTrigger value="overview" className="text-sm">Visão Geral</TabsTrigger>
             {(userRole === 'admin' || canManageCosts) && (
               <TabsTrigger value="costs" className="text-sm">Custos</TabsTrigger>
             )}
@@ -561,96 +557,6 @@ export const EventDetail: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="overview" forceMount>
-            <div ref={overviewRef} className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resumo do Evento</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-semibold mb-2">Informações Básicas</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Status:</span>
-                          <StatusBadge status={event.status || 'planejado'} />
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Criado em:</span>
-                          <span>{new Date(event.created_at).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold mb-2">Estatísticas</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Total de Alocações:</span>
-                          <span>{eventAssignments.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Pessoas Únicas:</span>
-                          <span>{uniquePersonnel.size}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Lançamentos de Horas:</span>
-                          <span>{eventWorkLogs.length}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Avaliações de Freelancers */}
-              {event.end_date && new Date(event.end_date) < new Date() && (user?.role === 'admin' || user?.role === 'coordinator') && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Avaliação de Freelancers</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {eventAssignments
-                        .filter(assignment => {
-                          const person = personnel.find(p => p.id === assignment.personnel_id);
-                          return person?.type === 'freelancer';
-                        })
-                        .map((assignment) => {
-                          const person = personnel.find(p => p.id === assignment.personnel_id);
-                          if (!person) return null;
-
-                          return (
-                            <div key={assignment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                              <div>
-                                <h4 className="font-medium">{person.name}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  Função: {assignment.function_name}
-                                </p>
-                              </div>
-                              <FreelancerRating
-                                eventId={event.id}
-                                freelancerId={person.id}
-                                freelancerName={person.name}
-                              />
-                            </div>
-                          );
-                        })}
-                      {eventAssignments.filter(assignment => {
-                        const person = personnel.find(p => p.id === assignment.personnel_id);
-                        return person?.type === 'freelancer';
-                      }).length === 0 && (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhum freelancer foi alocado neste evento.
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
 
           {user?.role === 'admin' && (
             <>
