@@ -41,7 +41,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         .from('team_subscriptions')
         .select(`
           status,
-          subscription_plans(display_name)
+          plan_id,
+          subscription_plans(display_name, billing_cycle)
         `)
         .eq('team_id', activeTeam.id)
         .single();
@@ -51,9 +52,29 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         return null;
       }
 
+      const nestedPlan = (data.subscription_plans as any) || null;
+      let planName = nestedPlan?.display_name
+        || (nestedPlan?.billing_cycle === 'lifetime' ? 'Plano Vitalício' : undefined);
+
+      // Fallback: se o join não trouxe o plano, buscar direto por plan_id
+      if (!planName && data.plan_id) {
+        const { data: planRow } = await supabase
+          .from('subscription_plans')
+          .select('display_name, billing_cycle')
+          .eq('id', data.plan_id)
+          .single();
+        if (planRow) {
+          planName = planRow.display_name || (planRow.billing_cycle === 'lifetime' ? 'Plano Vitalício' : undefined);
+        }
+      }
+
+      if (!planName) {
+        planName = data.plan_id ? 'Assinante' : 'Free';
+      }
+
       return {
         status: data.status,
-        planName: (data.subscription_plans as any)?.display_name || 'Free'
+        planName
       };
     },
     enabled: !!activeTeam?.id && !isSuperAdmin

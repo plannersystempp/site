@@ -47,7 +47,8 @@ export function useSubscriptionGuard(teamId: string | undefined) {
           status,
           current_period_ends_at,
           trial_ends_at,
-          subscription_plans(display_name)
+          plan_id,
+          subscription_plans(display_name, billing_cycle)
         `)
         .eq('team_id', teamId)
         .single();
@@ -85,10 +86,23 @@ export function useSubscriptionGuard(teamId: string | undefined) {
         }
       }
       
+      let planName = (data.subscription_plans as any)?.display_name;
+      const cycle = (data.subscription_plans as any)?.billing_cycle;
+      if (!planName && cycle === 'lifetime') planName = 'Plano Vitalício';
+      if (!planName && data.plan_id) {
+        const { data: planRow } = await supabase
+          .from('subscription_plans')
+          .select('display_name, billing_cycle')
+          .eq('id', data.plan_id)
+          .single();
+        planName = planRow?.display_name || (planRow?.billing_cycle === 'lifetime' ? 'Plano Vitalício' : undefined);
+      }
+      if (!planName) planName = 'Free';
+
       return {
         isActive, // Usar status do banco, não sobrescrever
         status: data.status,
-        planName: (data.subscription_plans as any)?.display_name || 'Desconhecido',
+        planName,
         expiresAt,
         daysUntilExpiration
       };
