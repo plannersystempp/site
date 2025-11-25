@@ -244,10 +244,10 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
-        <div className="sticky top-0 bg-background pb-4 border-b z-[5]">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <div className="pb-4 sm:pb-5">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-xl">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
               Gestão de Horas Extras
             </DialogTitle>
@@ -291,9 +291,9 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                    );
 
                    return (
-                     <div key={date} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg transition-colors gap-3 sm:gap-0 ${isEditing ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
+                      <div key={date} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg transition-colors gap-3 sm:gap-3 min-w-0 ${isEditing ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                         <div className="text-sm font-medium whitespace-nowrap">
+                         <div className="text-sm font-medium truncate min-w-0">
                            {new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
                              weekday: 'short',
                              day: '2-digit',
@@ -320,11 +320,11 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                          </div>
                        </div>
 
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-shrink-0 sm:ml-4">
                          {isEditing ? (
                           <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
                             <div className="flex items-center gap-2 bg-muted/50 p-2 rounded flex-1 sm:flex-none">
-                              <Label className="text-xs whitespace-nowrap">Horas extras:</Label>
+                              <Label className="text-xs whitespace-nowrap">Horas extras</Label>
                               <Input
                                 type="text"
                                 inputMode="numeric"
@@ -406,12 +406,12 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                           </div>
                         ) : (
                           <div className="flex items-center justify-between w-full sm:w-auto gap-2">
-                            <div className="text-sm font-medium">
-                              <span className={currentHours > 0 ? "text-orange-600 font-semibold" : "text-muted-foreground"}>
-                                {formatHours(currentHours)} extras
-                              </span>
-                            </div>
-                              <div className="flex gap-1">
+                          <div className="text-sm font-medium whitespace-nowrap">
+                            <span className={currentHours > 0 ? "text-orange-600 font-semibold" : "text-muted-foreground"}>
+                              {formatHours(currentHours)} extras
+                            </span>
+                          </div>
+                              <div className="flex gap-1 flex-wrap sm:flex-nowrap">
                                 {hasAbsence ? (
                                   <Button
                                     size="sm"
