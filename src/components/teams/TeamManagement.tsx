@@ -96,13 +96,16 @@ export const TeamManagement: React.FC = () => {
     try {
       setLoading(true);
       
-      // Fetch team members and user profiles separately to avoid join issues
+      // Fetch team members
       const { data: teamMembers, error: membersError } = await supabase
         .from('team_members')
         .select('team_id, user_id, role, status, joined_at')
         .eq('team_id', activeTeam.id);
 
-      if (membersError) throw membersError;
+      if (membersError) {
+        console.error('Error fetching team members:', membersError);
+        throw membersError;
+      }
 
       if (!teamMembers || teamMembers.length === 0) {
         setMembers([]);
@@ -118,25 +121,23 @@ export const TeamManagement: React.FC = () => {
         .select('user_id, name, email')
         .in('user_id', userIds);
 
-      if (profilesError) throw profilesError;
-
-      // For users without complete profile data, fetch from auth.users
-      const authUsersResponse = await supabase.auth.admin.listUsers();
-      const authUsers = authUsersResponse.data?.users || [];
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
       
       // Combine team member data with profile data
       const membersWithProfiles = teamMembers.map(member => {
         const profile = profiles?.find(p => p.user_id === member.user_id);
-        const authUser = authUsers.find(u => u.id === member.user_id);
         
-        // Use profile data if available and not empty, otherwise fallback to auth user data
+        // Use profile data if available and not empty
         const name = (profile?.name && profile.name.trim() !== '') 
           ? profile.name 
-          : (authUser?.user_metadata?.name || authUser?.email?.split('@')[0] || 'Usuário');
+          : 'Usuário';
         
         const email = (profile?.email && profile.email.trim() !== '') 
           ? profile.email 
-          : (authUser?.email || 'Email não disponível');
+          : 'Email não disponível';
         
         return {
           ...member,
