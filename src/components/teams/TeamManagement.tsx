@@ -520,16 +520,30 @@ export const TeamManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Seção de Solicitações Pendentes */}
-      {pendingRequests.length > 0 && (
-        <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
-              <Clock className="w-5 h-5" />
-              Solicitações Pendentes ({pendingRequests.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Seção de Solicitações Pendentes - sempre visível */}
+      <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+            <Clock className="w-5 h-5" />
+            Solicitações Pendentes ({pendingRequests.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingPending ? (
+            <div className="flex justify-center py-8">
+              <LoadingSpinner />
+            </div>
+          ) : pendingRequests.length === 0 ? (
+            <div className="text-center py-8">
+              <Clock className="w-12 h-12 text-orange-300 dark:text-orange-700 mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                Nenhuma solicitação pendente no momento.
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Quando novos usuários usarem o código de convite, eles aparecerão aqui para aprovação.
+              </p>
+            </div>
+          ) : (
             <div className="space-y-4">
               {pendingRequests.map((request) => (
                 <div
@@ -575,9 +589,9 @@ export const TeamManagement: React.FC = () => {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       {/* Seção de Membros Desaprovados */}
       {rejectedMembers.length > 0 && (
