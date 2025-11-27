@@ -73,12 +73,12 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
     }
   };
   return (
-    <Card className="border-l-4 border-l-primary">
-      <CardContent className="p-2 sm:p-3">
-        <div className={`${isMobile ? 'space-y-2.5' : 'flex items-center justify-between'} mb-3`}>
-          <div className={isMobile ? 'space-y-2' : ''}>
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h3 className="font-semibold text-base sm:text-lg">{detail.personName}</h3>
+    <Card className="border-l-2 border-l-primary">
+      <CardContent className="p-2 sm:p-2">
+        <div className={`${isMobile ? 'space-y-1.5' : 'flex items-center justify-between'} mb-1.5`}>
+          <div className={isMobile ? 'space-y-1.5' : ''}>
+            <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+              <h3 className="font-semibold text-sm sm:text-base">{detail.personName}</h3>
               {detail.absencesCount > 0 && (
                 <Badge 
                   variant="destructive" 
@@ -95,49 +95,47 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           <div className={`${isMobile ? 'text-left' : 'text-right'}`}>
             {detail.paidAmount > 0 ? (
               <div>
-                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-green-600`}>
+                <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-green-600`}>
                   {formatCurrency(detail.totalPay)}
                 </p>
-                <div className={`${isMobile ? 'flex-col space-y-1' : 'flex items-center gap-1.5'} text-sm`}>
+                <div className={`${isMobile ? 'flex-col space-y-1' : 'flex items-center gap-1'} text-xs sm:text-sm`}>
                   <span className="text-green-600">Pago: {formatCurrency(detail.paidAmount)}</span>
                   {detail.pendingAmount > 0 && (
                     <span className="text-orange-600">Pendente: {formatCurrency(detail.pendingAmount)}</span>
                   )}
                 </div>
-                <Badge variant={detail.paid ? "default" : "secondary"} className="mt-1 text-xs">
+                <Badge variant={detail.paid ? "default" : "secondary"} className="mt-0.5 text-xs">
                   {detail.paid ? "Pago Integral" : "Pagamento Parcial"}
                 </Badge>
               </div>
             ) : (
               <div>
-                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-green-600`}>
+                <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-green-600`}>
                   {formatCurrency(detail.totalPay)}
                 </p>
-                <p className="text-sm text-muted-foreground">Total a Pagar</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Total a Pagar</p>
               </div>
             )}
           </div>
         </div>
 
-        <Separator className="my-3" />
+        <Separator className="my-1.5" />
         
         {/* Detalhamento dos Cálculos */}
-        <div className={`grid gap-2 sm:gap-3 mb-3 ${
+        <div className={`${
           isMobile 
-            ? 'grid-cols-2' 
-            : detail.personType === 'fixo' 
-              ? (isAdmin && pixKey ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3')
-              : (isAdmin && pixKey ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2')
-        }`}>
+            ? 'grid grid-cols-2 gap-1.5'
+            : 'flex items-center gap-2'
+        } mb-1.5`}>
           {detail.personType === 'fixo' && (
-            <div className={`${isMobile ? 'p-2 bg-muted/50 rounded-lg' : 'text-center'}`}>
-              <p className="text-sm text-muted-foreground">Salário Base</p>
-              <p className="font-semibold text-sm sm:text-base">R$ {detail.baseSalary.toFixed(2)}</p>
+            <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+              <p className="text-xs sm:text-sm text-muted-foreground">Salário Base</p>
+              <p className="font-semibold text-sm">R$ {detail.baseSalary.toFixed(2)}</p>
             </div>
           )}
-          <div className={`${isMobile ? 'p-2 bg-muted/50 rounded-lg' : 'text-center'}`}>
-            <div className={`${isMobile ? 'flex items-start justify-between' : 'flex items-center justify-center gap-1'} mb-1`}>
-              <p className="text-sm text-muted-foreground">
+          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+            <div className={`${isMobile ? 'flex items-start justify-between' : 'flex items-center justify-start gap-1'} mb-0.5`}>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Cachês ({detail.workDays} dias)
               </p>
               {hasEventSpecificCache && (
@@ -159,20 +157,20 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                 </TooltipProvider>
               )}
             </div>
-            <p className="font-semibold text-sm sm:text-base">R$ {detail.cachePay.toFixed(2)}</p>
+            <p className="font-semibold text-sm">R$ {detail.cachePay.toFixed(2)}</p>
             {hasEventSpecificCache && eventSpecificCacheRate && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 {formatCurrency(eventSpecificCacheRate)} × {detail.workDays} dias
               </p>
             )}
           </div>
-          <div className={`${isMobile ? 'p-2 bg-muted/50 rounded-lg' : 'text-center'}`}>
-            <p className="text-sm text-muted-foreground">
+          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Horas Extras: {detail.totalOvertimeHours}h
             </p>
-            <p className="font-semibold text-sm sm:text-base">{formatCurrency(detail.overtimePay)}</p>
+            <p className="font-semibold text-sm">{formatCurrency(detail.overtimePay)}</p>
             {detail.overtimeConversionApplied ? (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 {detail.overtimeCachesUsed} cachê{detail.overtimeCachesUsed > 1 ? 's' : ''} diário{detail.overtimeCachesUsed > 1 ? 's' : ''}
                 {detail.overtimeRemainingHours && detail.overtimeRemainingHours > 0 && 
                   ` + ${detail.overtimeRemainingHours.toFixed(1)}h avulsas`
@@ -180,7 +178,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
               </p>
             ) : (
               detail.totalOvertimeHours > 0 && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[11px] text-muted-foreground mt-1">
                   {detail.totalOvertimeHours}h × {formatCurrency(detail.overtimeRate)}
                 </p>
               )
@@ -188,15 +186,15 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           </div>
           {/* PIX Key Section - Only visible to admins */}
           {isAdmin && pixKey && (
-            <div className={`${isMobile ? 'p-3 bg-muted/50 rounded-lg col-span-2' : 'text-center'}`}>
-              <p className="text-sm text-muted-foreground mb-2">Chave PIX</p>
-              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center justify-center gap-2'}`}>
+            <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[220px]'}`}>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1.5">Chave PIX</p>
+              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center justify-start gap-2'}`}>
                 <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-24'}`}>{pixKey}</p>
                 <Button
                   variant="outline"
                   size="sm" 
                   onClick={copyPixKey}
-                  className="h-8 w-8 p-0 flex-shrink-0"
+                  className="h-6 w-6 p-0 flex-shrink-0"
                 >
                   <Copy className="w-3 h-3" />
                 </Button>
@@ -208,25 +206,25 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
         {/* Payment History */}
         {detail.paymentHistory.length > 0 && (
           <>
-            <Separator className="my-4" />
+            <Separator className="my-2" />
             <div>
-              <h4 className="font-medium mb-2 text-sm sm:text-base">Histórico de Pagamentos</h4>
-              <div className="space-y-2">
+              <h4 className="font-medium mb-1.5 text-sm">Histórico de Pagamentos</h4>
+              <div className="space-y-1.5">
                 {detail.paymentHistory.map((payment) => (
                   <div key={payment.id} className={`${
                     isMobile 
-                      ? 'flex flex-col space-y-2 p-3' 
-                      : 'flex items-center justify-between p-2'
+                      ? 'flex flex-col space-y-1.5 p-1.5' 
+                      : 'flex items-center justify-between p-1.5'
                   } bg-muted rounded-lg`}>
-                    <div className={`${isMobile ? 'flex items-center gap-2 flex-1' : 'flex items-center gap-2'}`}>
+                    <div className={`${isMobile ? 'flex items-center gap-1.5 flex-1' : 'flex items-center gap-1.5'}`}>
                       <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <span className="font-medium text-sm">{formatCurrency(payment.amount)}</span>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           {new Date(payment.paidAt).toLocaleString('pt-BR')}
                         </p>
                         {payment.notes && (
-                          <p className="text-xs text-muted-foreground italic break-words">"{payment.notes}"</p>
+                          <p className="text-[11px] text-muted-foreground italic break-words">"{payment.notes}"</p>
                         )}
                       </div>
                     </div>
@@ -237,11 +235,11 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                       disabled={loading}
                       className={`${
                         isMobile 
-                          ? 'h-8 w-full justify-center' 
-                          : 'h-8 w-8 p-0'
+                          ? 'h-6 w-full justify-center' 
+                          : 'h-6 w-6 p-0'
                       } text-destructive hover:text-destructive flex-shrink-0`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                       {isMobile && <span className="ml-2 text-xs">Cancelar</span>}
                     </Button>
                   </div>
@@ -252,31 +250,33 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className={`${isMobile ? 'flex flex-col gap-2' : 'flex justify-end gap-2'} pt-4`}>
+        <div className={`${isMobile ? 'flex flex-col gap-1.5' : 'flex justify-end gap-1.5'} pt-2`}>
           {detail.paid ? (
             <div className={`${isMobile ? 'text-center' : 'flex flex-col items-end gap-2'}`}>
-              <div className="flex items-center gap-2 text-green-600 justify-center">
-                <Check className="w-4 h-4" />
-                <span className="font-medium text-sm">Pagamento Integral Concluído</span>
+              <div className="flex items-center gap-1.5 text-green-600 justify-center">
+                <Check className="w-3 h-3" />
+                <span className="font-medium text-xs sm:text-sm">Pagamento Integral Concluído</span>
               </div>
             </div>
           ) : detail.paidAmount > 0 ? (
             <>
               <Button 
                 variant="outline"
+                size="sm"
                 onClick={() => setShowPartialPaymentDialog(true)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} text-sm`}
+                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
               >
-                <Clock className="w-4 h-4 mr-2" />
+                <Clock className="w-3 h-3 mr-2" />
                 Pagamento Parcial
               </Button>
               <Button 
+                size="sm"
                 onClick={() => onRegisterPayment(detail.personnelId, detail.pendingAmount)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} text-sm`}
+                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
               >
-                <DollarSign className="w-4 h-4 mr-2" />
+                <DollarSign className="w-3 h-3 mr-2" />
                 {isMobile ? `Pagar Restante` : `Pagar Restante (${formatCurrency(detail.pendingAmount)})`}
               </Button>
             </>
@@ -284,19 +284,21 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
             <>
               <Button 
                 variant="outline"
+                size="sm"
                 onClick={() => setShowPartialPaymentDialog(true)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} text-sm`}
+                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
               >
-                <Clock className="w-4 h-4 mr-2" />
+                <Clock className="w-3 h-3 mr-2" />
                 Pagamento Parcial
               </Button>
               <Button 
+                size="sm"
                 onClick={() => onRegisterPayment(detail.personnelId, detail.totalPay)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} text-sm`}
+                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
               >
-                <DollarSign className="w-4 h-4 mr-2" />
+                <DollarSign className="w-3 h-3 mr-2" />
                 {isMobile ? 'Registrar Pagamento' : 'Registrar Pagamento Integral'}
               </Button>
             </>
