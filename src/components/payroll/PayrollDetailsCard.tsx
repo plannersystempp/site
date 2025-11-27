@@ -265,18 +265,18 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                 size="sm"
                 onClick={() => setShowPartialPaymentDialog(true)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
+                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
               >
-                <Clock className="w-3 h-3 mr-2" />
+                <Clock className="w-3 h-3 mr-1.5" />
                 Pagamento Parcial
               </Button>
               <Button 
                 size="sm"
                 onClick={() => onRegisterPayment(detail.personnelId, detail.pendingAmount)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
+                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
               >
-                <DollarSign className="w-3 h-3 mr-2" />
+                <DollarSign className="w-3 h-3 mr-1.5" />
                 {isMobile ? `Pagar Restante` : `Pagar Restante (${formatCurrency(detail.pendingAmount)})`}
               </Button>
             </>
@@ -287,18 +287,18 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                 size="sm"
                 onClick={() => setShowPartialPaymentDialog(true)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
+                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
               >
-                <Clock className="w-3 h-3 mr-2" />
+                <Clock className="w-3 h-3 mr-1.5" />
                 Pagamento Parcial
               </Button>
               <Button 
                 size="sm"
                 onClick={() => onRegisterPayment(detail.personnelId, detail.totalPay)}
                 disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-6 px-2`}
+                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
               >
-                <DollarSign className="w-3 h-3 mr-2" />
+                <DollarSign className="w-3 h-3 mr-1.5" />
                 {isMobile ? 'Registrar Pagamento' : 'Registrar Pagamento Integral'}
               </Button>
             </>
