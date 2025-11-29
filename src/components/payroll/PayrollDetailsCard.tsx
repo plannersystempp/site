@@ -125,7 +125,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
         <div className={`${
           isMobile 
             ? 'grid grid-cols-2 gap-1.5'
-            : 'grid grid-cols-3 gap-1 items-start'
+            : 'grid grid-cols-3 gap-1.5 items-start'
         } mb-0.5`}>
           {detail.personType === 'fixo' && (
             <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
@@ -188,9 +188,9 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           {isAdmin && pixKey && (
             <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
               <p className="text-xs sm:text-sm text-muted-foreground mb-0.5">Chave PIX</p>
-              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center gap-1 min-w-0'}`}>
-                <div className="flex items-center gap-1 min-w-0">
-                  <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-[120px]'}`}>{pixKey}</p>
+              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center gap-1.5 min-w-0'}`}>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'whitespace-nowrap max-w-[220px] sm:max-w-[260px]'}`}>{pixKey}</p>
                   <Button
                     variant="outline"
                     size="sm" 
