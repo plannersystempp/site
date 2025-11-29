@@ -186,9 +186,9 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           </div>
           {/* PIX Key Section - Only visible to admins */}
           {isAdmin && pixKey && (
-            <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[220px]'}`}>
+            <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[260px]'}`}>
               <p className="text-xs sm:text-sm text-muted-foreground mb-1.5">Chave PIX</p>
-              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center justify-start gap-2'}`}>
+              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center justify-start gap-2 flex-wrap'}`}>
                 <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-24'}`}>{pixKey}</p>
                 <Button
                   variant="outline"
@@ -198,6 +198,62 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                 >
                   <Copy className="w-3 h-3" />
                 </Button>
+                {!isMobile && (
+                  detail.paid ? (
+                    <div className="flex items-center gap-1.5 text-green-600 ml-2">
+                      <Check className="w-3 h-3" />
+                      <span className="text-xs sm:text-sm">Pagamento Integral Concluído</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 ml-2">
+                      {detail.paidAmount > 0 ? (
+                        <>
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowPartialPaymentDialog(true)}
+                            disabled={loading}
+                            className={`h-5 px-1.5 text-xs`}
+                          >
+                            <Clock className="w-3 h-3 mr-1.5" />
+                            Parcial
+                          </Button>
+                          <Button 
+                            size="sm"
+                            onClick={() => onRegisterPayment(detail.personnelId, detail.pendingAmount)}
+                            disabled={loading}
+                            className={`h-5 px-1.5 text-xs`}
+                          >
+                            <DollarSign className="w-3 h-3 mr-1.5" />
+                            Pagar Restante
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowPartialPaymentDialog(true)}
+                            disabled={loading}
+                            className={`h-5 px-1.5 text-xs`}
+                          >
+                            <Clock className="w-3 h-3 mr-1.5" />
+                            Parcial
+                          </Button>
+                          <Button 
+                            size="sm"
+                            onClick={() => onRegisterPayment(detail.personnelId, detail.totalPay)}
+                            disabled={loading}
+                            className={`h-5 px-1.5 text-xs`}
+                          >
+                            <DollarSign className="w-3 h-3 mr-1.5" />
+                            Registrar Integral
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
@@ -249,61 +305,63 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           </>
         )}
 
-        {/* Action Buttons */}
-        <div className={`${isMobile ? 'flex flex-col gap-1.5' : 'flex justify-end gap-1.5'} pt-2`}>
-          {detail.paid ? (
-            <div className={`${isMobile ? 'text-center' : 'flex flex-col items-end gap-2'}`}>
-              <div className="flex items-center gap-1.5 text-green-600 justify-center">
-                <Check className="w-3 h-3" />
-                <span className="font-medium text-xs sm:text-sm">Pagamento Integral Concluído</span>
+        {/* Action Buttons - mobile only */}
+        {isMobile && (
+          <div className={`flex flex-col gap-1.5 pt-2`}>
+            {detail.paid ? (
+              <div className={`text-center`}>
+                <div className="flex items-center gap-1.5 text-green-600 justify-center">
+                  <Check className="w-3 h-3" />
+                  <span className="font-medium text-xs sm:text-sm">Pagamento Integral Concluído</span>
+                </div>
               </div>
-            </div>
-          ) : detail.paidAmount > 0 ? (
-            <>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPartialPaymentDialog(true)}
-                disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
-              >
-                <Clock className="w-3 h-3 mr-1.5" />
-                Pagamento Parcial
-              </Button>
-              <Button 
-                size="sm"
-                onClick={() => onRegisterPayment(detail.personnelId, detail.pendingAmount)}
-                disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
-              >
-                <DollarSign className="w-3 h-3 mr-1.5" />
-                {isMobile ? `Pagar Restante` : `Pagar Restante (${formatCurrency(detail.pendingAmount)})`}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPartialPaymentDialog(true)}
-                disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
-              >
-                <Clock className="w-3 h-3 mr-1.5" />
-                Pagamento Parcial
-              </Button>
-              <Button 
-                size="sm"
-                onClick={() => onRegisterPayment(detail.personnelId, detail.totalPay)}
-                disabled={loading}
-                className={`${isMobile ? 'w-full' : ''} h-5 px-1.5 text-xs`}
-              >
-                <DollarSign className="w-3 h-3 mr-1.5" />
-                {isMobile ? 'Registrar Pagamento' : 'Registrar Pagamento Integral'}
-              </Button>
-            </>
-          )}
-        </div>
+            ) : detail.paidAmount > 0 ? (
+              <>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPartialPaymentDialog(true)}
+                  disabled={loading}
+                  className={`w-full h-5 px-1.5 text-xs`}
+                >
+                  <Clock className="w-3 h-3 mr-1.5" />
+                  Pagamento Parcial
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => onRegisterPayment(detail.personnelId, detail.pendingAmount)}
+                  disabled={loading}
+                  className={`w-full h-5 px-1.5 text-xs`}
+                >
+                  <DollarSign className="w-3 h-3 mr-1.5" />
+                  Pagar Restante
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPartialPaymentDialog(true)}
+                  disabled={loading}
+                  className={`w-full h-5 px-1.5 text-xs`}
+                >
+                  <Clock className="w-3 h-3 mr-1.5" />
+                  Pagamento Parcial
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => onRegisterPayment(detail.personnelId, detail.totalPay)}
+                  disabled={loading}
+                  className={`w-full h-5 px-1.5 text-xs`}
+                >
+                  <DollarSign className="w-3 h-3 mr-1.5" />
+                  Registrar Pagamento
+                </Button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Modals */}
         <AbsencesModal
