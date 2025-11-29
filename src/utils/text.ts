@@ -1,0 +1,2 @@
+export const normalizeText = (s: string) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+export const includesNormalized = (haystack: string, needle: string) => normalizeText(haystack).includes(normalizeText(needle));

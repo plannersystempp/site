@@ -7,6 +7,7 @@ import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { type Assignment } from '@/contexts/EnhancedDataContext';
 import { Users, Calendar, Clock, Trash2, Edit2, User } from 'lucide-react';
 import { WorkLogManager } from './WorkLogManager';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { formatCurrency } from '@/utils/formatters';
 import { useTeam } from '@/contexts/TeamContext';
@@ -25,6 +26,8 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
   const { personnel, functions, divisions, workLogs } = useEnhancedData();
   const { userRole } = useTeam();
   const [workLogManagerOpen, setWorkLogManagerOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
   
@@ -45,7 +48,29 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+            {person.photo_url ? (
+              <img
+                src={person.photo_url}
+                alt={person.name}
+                crossOrigin="anonymous"
+                loading="lazy"
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-zoom-in"
+                onClick={() => {
+                  setPreviewImageUrl(person.photo_url!);
+                  setPreviewOpen(true);
+                }}
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  img.style.display = 'none';
+                  const fallback = img.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ display: person.photo_url ? 'none' : 'flex' }}
+            >
               <User className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
@@ -197,6 +222,21 @@ export const AllocationCard: React.FC<AllocationCardProps> = ({
         open={workLogManagerOpen}
         onOpenChange={setWorkLogManagerOpen}
       />
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Pré-visualização da Foto</DialogTitle>
+          </DialogHeader>
+          {previewImageUrl && (
+            <img
+              src={previewImageUrl}
+              alt="Pré-visualização da foto"
+              crossOrigin="anonymous"
+              className="w-full h-auto object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

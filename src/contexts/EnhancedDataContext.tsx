@@ -131,6 +131,8 @@ export interface WorkRecord {
   overtime_hours: number;
   total_pay: number;
   created_at: string;
+  logged_by_id?: string;
+  date_logged?: string;
 }
 
 interface PersonnelFormData {
@@ -510,7 +512,9 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
               hours_worked: record.hours_worked || 0,
               overtime_hours: record.overtime_hours || 0,
               total_pay: record.total_pay || 0,
-              created_at: record.created_at || ''
+              created_at: record.created_at || '',
+              logged_by_id: record.logged_by_id || undefined,
+              date_logged: record.date_logged || undefined
             });
           }
         }

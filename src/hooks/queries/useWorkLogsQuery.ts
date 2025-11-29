@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
@@ -28,14 +29,34 @@ const fetchWorkLogs = async (teamId: string): Promise<WorkRecord[]> => {
 export const useWorkLogsQuery = () => {
   const { user } = useAuth();
   const { activeTeam } = useTeam();
+  const queryClient = useQueryClient();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: workLogsKeys.list(activeTeam?.id),
     queryFn: () => fetchWorkLogs(activeTeam!.id),
     enabled: !!user && !!activeTeam?.id,
-    staleTime: 30000,
+    staleTime: 0,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (!activeTeam?.id) return;
+    const channel = supabase
+      .channel(`realtime-work_records-${activeTeam.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'work_records',
+        filter: `team_id=eq.${activeTeam.id}`
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: workLogsKeys.list(activeTeam.id), refetchType: 'active' });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [activeTeam?.id, queryClient]);
+
+  return query;
 };
 
 // Hook to create new work log
@@ -51,14 +72,27 @@ export const useCreateWorkLogMutation = () => {
 
       const { data, error } = await supabase
         .from('work_records')
-        .insert([{ ...workLogData, team_id: activeTeam.id }])
+        .upsert([
+          { 
+            ...workLogData, 
+            team_id: activeTeam.id 
+          }
+        ], {
+          onConflict: 'team_id,employee_id,event_id,work_date'
+        })
         .select()
         .single();
 
       if (error) throw error;
       return data as WorkRecord;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(workLogsKeys.list(activeTeam!.id), (old: any) => {
+        const arr = Array.isArray(old) ? [...old] : [];
+        const idx = arr.findIndex((r: WorkRecord) => r.employee_id === (data as WorkRecord).employee_id && r.event_id === (data as WorkRecord).event_id && r.work_date === (data as WorkRecord).work_date);
+        if (idx >= 0) arr[idx] = data as WorkRecord; else arr.push(data as WorkRecord);
+        return arr;
+      });
       // ✅ FASE 2: Invalidar imediatamente + refetch ativo
       queryClient.invalidateQueries({ 
         queryKey: workLogsKeys.all,
@@ -110,7 +144,13 @@ export const useUpdateWorkLogMutation = () => {
       if (error) throw error;
       return data as WorkRecord;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(workLogsKeys.list(activeTeam!.id), (old: any) => {
+        const arr = Array.isArray(old) ? [...old] : [];
+        const idx = arr.findIndex((r: WorkRecord) => r.id === (data as WorkRecord).id);
+        if (idx >= 0) arr[idx] = data as WorkRecord;
+        return arr;
+      });
       // ✅ FASE 2: Invalidar imediatamente + refetch ativo
       queryClient.invalidateQueries({ 
         queryKey: workLogsKeys.all,
@@ -160,7 +200,11 @@ export const useDeleteWorkLogMutation = () => {
       if (error) throw error;
       return workLogId;
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
+      queryClient.setQueryData(workLogsKeys.list(activeTeam!.id), (old: any) => {
+        const arr = Array.isArray(old) ? [...old] : [];
+        return arr.filter((r: WorkRecord) => r.id !== deletedId);
+      });
       // ✅ FASE 2: Invalidar imediatamente + refetch ativo
       queryClient.invalidateQueries({ 
         queryKey: workLogsKeys.all,

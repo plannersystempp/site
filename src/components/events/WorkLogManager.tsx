@@ -43,6 +43,7 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
   const [overtimeHoursText, setOvertimeHoursText] = useState<{[key:string]: string}>({});
   const [overtimeHours, setOvertimeHours] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(false);
+  const [loggerNames, setLoggerNames] = useState<Record<string, string>>({});
 
   // Fetch absences for this event
   const { data: absences = [] } = useAbsencesQuery(assignment?.event_id);
@@ -60,6 +61,21 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
     );
 
     setWorkLogs(filteredLogs);
+
+    const ids = Array.from(new Set(filteredLogs.map(l => l.logged_by_id).filter(Boolean) as string[]));
+    if (ids.length > 0) {
+      supabase
+        .from('user_profiles')
+        .select('user_id,name')
+        .in('user_id', ids)
+        .then(({ data }) => {
+          const map: Record<string, string> = {};
+          (data || []).forEach((u: any) => { map[u.user_id] = u.name || ''; });
+          setLoggerNames(map);
+        });
+    } else {
+      setLoggerNames({});
+    }
     
     // Inicializar estado das horas extras
     const hoursMap: { [key: string]: number } = {};
@@ -311,6 +327,11 @@ export const WorkLogManager: React.FC<WorkLogManagerProps> = ({
                              <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                                Registrado
                              </Badge>
+                           )}
+                           {!hasAbsence && existingLog && (
+                             <span className="text-xs text-muted-foreground">
+                               por {loggerNames[existingLog.logged_by_id || ''] || (existingLog.logged_by_id === user?.id ? 'você' : 'usuário')}
+                             </span>
                            )}
                            {!hasAbsence && !existingLog && currentHours > 0 && (
                              <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
