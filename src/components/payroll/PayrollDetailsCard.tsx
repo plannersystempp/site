@@ -125,15 +125,15 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
         <div className={`${
           isMobile 
             ? 'grid grid-cols-2 gap-1.5'
-            : 'grid grid-cols-3 gap-0.5 items-start'
+            : 'grid grid-cols-[auto_auto_1fr] gap-0.5 items-start'
         } mb-0.5`}>
           {detail.personType === 'fixo' && (
-            <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+            <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:min-w-0'}`}>
               <p className="text-xs sm:text-sm text-muted-foreground">Salário Base</p>
               <p className="font-semibold text-sm">R$ {detail.baseSalary.toFixed(2)}</p>
             </div>
           )}
-          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:min-w-0'}`}>
             <div className={`${isMobile ? 'flex items-start justify-between' : 'flex items-center justify-start gap-1'} mb-0.5`}>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Cachês ({detail.workDays} dias)
@@ -164,7 +164,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
               </p>
             )}
           </div>
-          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:min-w-0'}`}>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Horas Extras: {detail.totalOvertimeHours}h
             </p>
@@ -186,7 +186,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           </div>
           {/* PIX Key Section - Only visible to admins */}
           {isAdmin && pixKey && (
-            <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+            <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-0'}`}>
               <p className="text-xs sm:text-sm text-muted-foreground mb-0.5">Chave PIX</p>
               <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center gap-4 min-w-0'}`}>
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
