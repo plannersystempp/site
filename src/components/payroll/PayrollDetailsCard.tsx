@@ -125,8 +125,8 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
         <div className={`${
           isMobile 
             ? 'grid grid-cols-2 gap-1.5'
-            : 'grid grid-cols-3 gap-1.5 items-start'
-        } mb-1`}>
+            : 'grid grid-cols-3 gap-1 items-start'
+        } mb-0.5`}>
           {detail.personType === 'fixo' && (
             <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
               <p className="text-xs sm:text-sm text-muted-foreground">Salário Base</p>
@@ -187,25 +187,27 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           {/* PIX Key Section - Only visible to admins */}
           {isAdmin && pixKey && (
             <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-1">Chave PIX</p>
-              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center gap-1.5 min-w-0 flex-wrap'}`}>
-                <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-[140px]'}`}>{pixKey}</p>
-                <Button
-                  variant="outline"
-                  size="sm" 
-                  onClick={copyPixKey}
-                  className="h-6 w-6 p-0 flex-shrink-0"
-                >
-                  <Copy className="w-3 h-3" />
-                </Button>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-0.5">Chave PIX</p>
+              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center gap-1 min-w-0'}`}>
+                <div className="flex items-center gap-1 min-w-0">
+                  <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-[120px]'}`}>{pixKey}</p>
+                  <Button
+                    variant="outline"
+                    size="sm" 
+                    onClick={copyPixKey}
+                    className="h-6 w-6 p-0 flex-shrink-0"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
                 {!isMobile && (
                   detail.paid ? (
-                    <div className="flex items-center gap-1.5 text-green-600">
+                    <div className="flex items-center gap-1 text-green-600 shrink-0 whitespace-nowrap">
                       <Check className="w-3 h-3" />
                       <span className="text-xs sm:text-sm">Pagamento Integral Concluído</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 shrink-0 whitespace-nowrap">
                       {detail.paidAmount > 0 ? (
                         <>
                           <Button 
@@ -215,7 +217,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                             disabled={loading}
                             className={`h-5 px-1.5 text-xs`}
                           >
-                            <Clock className="w-3 h-3 mr-1.5" />
+                            <Clock className="w-3 h-3 mr-1" />
                             Parcial
                           </Button>
                           <Button 
@@ -224,7 +226,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                             disabled={loading}
                             className={`h-5 px-1.5 text-xs`}
                           >
-                            <DollarSign className="w-3 h-3 mr-1.5" />
+                            <DollarSign className="w-3 h-3 mr-1" />
                             Pagar Restante
                           </Button>
                         </>
@@ -237,7 +239,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                             disabled={loading}
                             className={`h-5 px-1.5 text-xs`}
                           >
-                            <Clock className="w-3 h-3 mr-1.5" />
+                            <Clock className="w-3 h-3 mr-1" />
                             Parcial
                           </Button>
                           <Button 
@@ -246,7 +248,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
                             disabled={loading}
                             className={`h-5 px-1.5 text-xs`}
                           >
-                            <DollarSign className="w-3 h-3 mr-1.5" />
+                            <DollarSign className="w-3 h-3 mr-1" />
                             Registrar Integral
                           </Button>
                         </>
