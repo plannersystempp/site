@@ -188,24 +188,26 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
           {isAdmin && pixKey && (
             <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[260px]'}`}>
               <p className="text-xs sm:text-sm text-muted-foreground mb-1.5">Chave PIX</p>
-              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center justify-start gap-2 flex-wrap'}`}>
-                <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-24'}`}>{pixKey}</p>
-                <Button
-                  variant="outline"
-                  size="sm" 
-                  onClick={copyPixKey}
-                  className="h-6 w-6 p-0 flex-shrink-0"
-                >
-                  <Copy className="w-3 h-3" />
-                </Button>
+              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center gap-2 min-w-0 flex-nowrap'}`}>
+                <div className={`${isMobile ? 'flex items-center gap-2 flex-1' : 'flex items-center gap-2 min-w-0 flex-none'}`}>
+                  <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'truncate max-w-24'}`}>{pixKey}</p>
+                  <Button
+                    variant="outline"
+                    size="sm" 
+                    onClick={copyPixKey}
+                    className="h-6 w-6 p-0 flex-shrink-0"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
                 {!isMobile && (
                   detail.paid ? (
-                    <div className="flex items-center gap-1.5 text-green-600 ml-2">
+                    <div className="flex items-center gap-1.5 text-green-600 ml-3 shrink-0">
                       <Check className="w-3 h-3" />
                       <span className="text-xs sm:text-sm">Pagamento Integral Concluído</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 ml-2">
+                    <div className="flex items-center gap-1.5 ml-3 shrink-0">
                       {detail.paidAmount > 0 ? (
                         <>
                           <Button 
