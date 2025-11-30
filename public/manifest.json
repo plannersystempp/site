@@ -39,7 +39,7 @@
       "purpose": "any"
     }
   ],
-  "start_url": "https://plannersystem.com.br/auth",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#0979FF",
   "background_color": "#0979FF",

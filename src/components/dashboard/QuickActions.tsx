@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
+import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { Zap, Clock, Calendar, Users, FileText, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { isDateWithinEventPeriod, isDateInAllocation, formatDateBR } from '@/utils/dateValidation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useMyEventPermissions } from '@/hooks/useEventPermissions';
 
 interface QuickOvertimeData {
   eventId: string;
@@ -25,6 +27,8 @@ export const QuickActions: React.FC = () => {
   const { events, personnel, assignments, addWorkLog } = useEnhancedData();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { userRole } = useTeam();
+  const { data: myPerms = [], isLoading: permsLoading } = useMyEventPermissions();
   const [showOvertimeModal, setShowOvertimeModal] = useState(false);
   const [overtimeData, setOvertimeData] = useState<QuickOvertimeData>({
     eventId: '',
@@ -143,32 +147,51 @@ export const QuickActions: React.FC = () => {
     }
   };
 
-  const quickActions = [
-    {
-      title: "Hora Extra",
-      icon: <Clock className="h-5 w-5" />,
-      action: () => setShowOvertimeModal(true),
-      color: "text-orange-600"
-    },
-    {
-      title: "Novo Evento",
-      icon: <Calendar className="h-5 w-5" />,
-      action: () => navigate('/app/eventos'),
-      color: "text-blue-600"
-    },
-    {
-      title: "Pessoal",
-      icon: <Users className="h-5 w-5" />,
-      action: () => navigate('/app/pessoal'),
-      color: "text-green-600"
-    },
-    {
-      title: "Folha",
-      icon: <FileText className="h-5 w-5" />,
-      action: () => navigate('/app/folha'),
-      color: "text-purple-600"
+  const quickActions = (() => {
+    if (userRole === 'coordinator') {
+      return [
+        {
+          title: "Hora Extra",
+          icon: <Clock className="h-5 w-5" />,
+          action: () => setShowOvertimeModal(true),
+          color: "text-orange-600"
+        },
+        {
+          title: "Eventos",
+          icon: <Calendar className="h-5 w-5" />,
+          action: () => navigate('/app/eventos'),
+          color: "text-blue-600"
+        }
+      ];
     }
-  ];
+
+    return [
+      {
+        title: "Hora Extra",
+        icon: <Clock className="h-5 w-5" />,
+        action: () => setShowOvertimeModal(true),
+        color: "text-orange-600"
+      },
+      {
+        title: "Eventos",
+        icon: <Calendar className="h-5 w-5" />,
+        action: () => navigate('/app/eventos'),
+        color: "text-blue-600"
+      },
+      {
+        title: "Pessoal",
+        icon: <Users className="h-5 w-5" />,
+        action: () => navigate('/app/pessoal'),
+        color: "text-green-600"
+      },
+      {
+        title: "Folha",
+        icon: <FileText className="h-5 w-5" />,
+        action: () => navigate('/app/folha'),
+        color: "text-purple-600"
+      }
+    ];
+  })();
 
   const eventPersonnel = overtimeData.eventId 
     ? personnel.filter(p => 
@@ -196,6 +219,14 @@ export const QuickActions: React.FC = () => {
         isDateWithinEventPeriod(date, selectedEvent)
       ).sort((a, b) => a.localeCompare(b))
     : [];
+
+  // Permissões e eventos acessíveis para o usuário atual
+  const accessibleEventIds = new Set(
+    myPerms
+      .filter(p => p.can_view_details || p.can_manage_allocations || p.can_manage_costs || p.can_view_payroll)
+      .map(p => p.event_id)
+  );
+  const eventsForUser = userRole === 'admin' ? events : events.filter(e => accessibleEventIds.has(e.id));
 
   return (
     <>
@@ -246,13 +277,18 @@ export const QuickActions: React.FC = () => {
                   <SelectValue placeholder="Selecione um evento" />
                 </SelectTrigger>
                 <SelectContent>
-                  {events.map((event) => (
+                  {eventsForUser.map((event) => (
                     <SelectItem key={event.id} value={event.id}>
                       {event.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {userRole === 'coordinator' && !permsLoading && eventsForUser.length === 0 && (
+                <p className="text-xs text-muted-foreground text-orange-600">
+                  Nenhum evento liberado para você. Solicite acesso ao administrador.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
