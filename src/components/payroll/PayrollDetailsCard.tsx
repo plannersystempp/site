@@ -125,24 +125,24 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
         <div className={`${
           isMobile 
             ? 'grid grid-cols-2 gap-1.5'
-            : 'grid grid-cols-3 gap-0.5 items-start'
+            : 'grid grid-cols-[1fr_1fr_minmax(180px,auto)_auto] items-start gap-1 md:gap-1.5 lg:gap-2'
         } mb-0.5`}>
           {detail.personType === 'fixo' && (
-            <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
+            <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'lg:flex-1 lg:min-w-0'}`}>
               <p className="text-xs sm:text-sm text-muted-foreground">Salário Base</p>
               <p className="font-semibold text-sm">R$ {detail.baseSalary.toFixed(2)}</p>
             </div>
           )}
-          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
-            <div className={`${isMobile ? 'flex items-start justify-between' : 'flex items-center justify-start gap-1'} mb-0.5`}>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'lg:flex-1 lg:min-w-0'}`}>
+            <div className="inline-flex items-center gap-1 mb-0">
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 Cachês ({detail.workDays} dias)
               </p>
               {hasEventSpecificCache && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
-                      <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                      <Badge variant="outline" className="text-[11px] bg-orange-50 text-orange-700 border-orange-200">
                         ⭐ Específico
                       </Badge>
                     </TooltipTrigger>
@@ -164,8 +164,8 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
               </p>
             )}
           </div>
-          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+          <div className={`${isMobile ? 'p-1.5 rounded-lg' : 'lg:flex-1 lg:min-w-0'}`}>
+            <p className="text-[11px] sm:text-xs text-muted-foreground">
               Horas Extras: {detail.totalOvertimeHours}h
             </p>
             <p className="font-semibold text-sm">{formatCurrency(detail.overtimePay)}</p>
@@ -184,79 +184,79 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
               )
             )}
           </div>
-          {/* PIX Key Section - Only visible to admins */}
-          {isAdmin && pixKey && (
-            <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'text-center lg:text-left lg:flex-1 lg:min-w-[200px]'}`}>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-0.5">Chave PIX</p>
-              <div className={`${isMobile ? 'flex items-center justify-between' : 'flex items-center gap-4 min-w-0'}`}>
-                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  <p className={`text-xs font-mono ${isMobile ? 'truncate flex-1 mr-2' : 'whitespace-nowrap max-w-[360px] sm:max-w-[420px] md:max-w-[520px] lg:max-w-[580px]'}`}>{pixKey}</p>
+          {/* PIX Key Section */}
+          {isAdmin && (
+            <div className={`${isMobile ? 'p-1.5 rounded-lg col-span-2' : 'min-w-0'}`}>
+              <p className="text-[11px] sm:text-xs text-muted-foreground mb-0 text-center">Chave PIX</p>
+              <div className={`${isMobile ? 'flex flex-col items-center gap-0.5' : 'flex flex-col min-w-0 gap-0.5 items-center'}`}>
+                <div className="flex items-center gap-1 min-w-0 justify-center">
+                  <p className={`text-xs font-mono ${isMobile ? 'truncate text-center' : 'truncate sm:max-w-[200px] md:max-w-[260px] lg:max-w-[340px]'}`}>{pixKey || '—'}</p>
                   <Button
                     variant="outline"
                     size="sm" 
                     onClick={copyPixKey}
+                    disabled={!pixKey}
                     className="h-6 w-6 p-0 flex-shrink-0"
                   >
-                    <Copy className="w-3 h-3" />
+                  <Copy className="w-3 h-3" />
                   </Button>
                 </div>
-                {!isMobile && (
-                  detail.paid ? (
-                    <div className="flex items-center gap-1 text-green-600 shrink-0 whitespace-nowrap">
-                      <Check className="w-3 h-3" />
-                      <span className="text-xs sm:text-sm">Pagamento Integral Concluído</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 shrink-0 whitespace-nowrap">
-                      {detail.paidAmount > 0 ? (
-                        <>
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowPartialPaymentDialog(true)}
-                            disabled={loading}
-                            className={`h-5 px-1.5 text-xs`}
-                          >
-                            <Clock className="w-3 h-3 mr-1" />
-                            Parcial
-                          </Button>
-                          <Button 
-                            size="sm"
-                            onClick={() => onRegisterPayment(detail.personnelId, detail.pendingAmount)}
-                            disabled={loading}
-                            className={`h-5 px-1.5 text-xs`}
-                          >
-                            <DollarSign className="w-3 h-3 mr-1" />
-                            Pagar Restante
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowPartialPaymentDialog(true)}
-                            disabled={loading}
-                            className={`h-5 px-1.5 text-xs`}
-                          >
-                            <Clock className="w-3 h-3 mr-1" />
-                            Parcial
-                          </Button>
-                          <Button 
-                            size="sm"
-                            onClick={() => onRegisterPayment(detail.personnelId, detail.totalPay)}
-                            disabled={loading}
-                            className={`h-5 px-1.5 text-xs`}
-                          >
-                            <DollarSign className="w-3 h-3 mr-1" />
-                            Registrar Integral
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  )
-                )}
               </div>
+            </div>
+          )}
+          {/* Ações na 4ª coluna (desktop) */}
+          {!isMobile && (
+            <div className="flex items-center justify-end gap-0 sm:gap-0 md:gap-1 lg:gap-1.5 justify-self-end">
+              {detail.paid ? (
+                <div className="flex items-center gap-1 sm:gap-0 text-green-600">
+                  <Check className="w-3 h-3" />
+                  <span className="text-xs sm:text-sm">Pagamento Integral Concluído</span>
+                </div>
+              ) : detail.paidAmount > 0 ? (
+                <>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPartialPaymentDialog(true)}
+                    disabled={loading}
+                    className={`h-4 px-1 sm:px-1 text-[11px]`}
+                  >
+                    <Clock className="w-3 h-3 mr-1" />
+                    Parcial
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={() => onRegisterPayment(detail.personnelId, detail.pendingAmount)}
+                    disabled={loading}
+                    className={`h-4 px-1 sm:px-1 text-[11px]`}
+                  >
+                    <DollarSign className="w-3 h-3 mr-1" />
+                    Pagar Restante
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPartialPaymentDialog(true)}
+                    disabled={loading}
+                    className={`h-4 px-1 sm:px-1 text-[11px]`}
+                  >
+                    <Clock className="w-3 h-3 mr-1" />
+                    Parcial
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={() => onRegisterPayment(detail.personnelId, detail.totalPay)}
+                    disabled={loading}
+                    className={`h-4 px-1 sm:px-1 text-[11px]`}
+                  >
+                    <DollarSign className="w-3 h-3 mr-1" />
+                    Registrar Integral
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </div>
