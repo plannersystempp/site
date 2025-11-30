@@ -7,6 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { ChevronDown } from 'lucide-react';
 import { type Personnel, type Func } from '@/contexts/EnhancedDataContext';
+import { useTeam } from '@/contexts/TeamContext';
+import { PersonnelForm } from '@/components/personnel/PersonnelForm';
 
 interface PersonnelSelectorProps {
   personnel: Personnel[];
@@ -29,6 +31,9 @@ export const PersonnelSelector: React.FC<PersonnelSelectorProps> = ({
   const selectedPerson = personnel.find(p => p.id === selectedPersonnel);
   const availableFunctions = selectedPerson?.functions || functions;
   const [open, setOpen] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { userRole } = useTeam();
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   const handlePersonnelChange = (personnelId: string) => {
     onPersonnelChange(personnelId);
@@ -62,7 +67,27 @@ export const PersonnelSelector: React.FC<PersonnelSelectorProps> = ({
             <Command>
               <CommandInput placeholder="Pesquisar por nome ou email..." className="h-10" />
               <CommandList className="max-h-[500px] md:max-h-[600px] overflow-y-auto">
-                <CommandEmpty>Nenhuma pessoa encontrada.</CommandEmpty>
+                {isAdmin && (
+                  <CommandGroup>
+                    <CommandItem
+                      onSelect={() => {
+                        setShowCreateForm(true)
+                      }}
+                    >
+                      + Cadastrar nova pessoa
+                    </CommandItem>
+                  </CommandGroup>
+                )}
+                <CommandEmpty>
+                  <div className="p-3 text-center space-y-2">
+                    <p className="text-sm text-muted-foreground">Nenhuma pessoa encontrada.</p>
+                    {isAdmin && (
+                      <Button size="sm" onClick={() => setShowCreateForm(true)} className="h-8">
+                        Cadastrar Pessoa
+                      </Button>
+                    )}
+                  </div>
+                </CommandEmpty>
                 <CommandGroup>
                   {personnel
                     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
@@ -89,6 +114,16 @@ export const PersonnelSelector: React.FC<PersonnelSelectorProps> = ({
           </PopoverContent>
         </Popover>
       </div>
+      {showCreateForm && (
+        <PersonnelForm
+          personnel={null as any}
+          onClose={() => setShowCreateForm(false)}
+          onSuccess={() => {
+            setShowCreateForm(false);
+            setOpen(false);
+          }}
+        />
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="function">Função <span className="text-red-500">*</span></Label>
