@@ -53,6 +53,9 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
   const [showPartialPaymentDialog, setShowPartialPaymentDialog] = useState(false);
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [confirmPermanent, setConfirmPermanent] = useState(false);
+  const cacheDailyRate = (hasEventSpecificCache && eventSpecificCacheRate)
+    || (detail as any).cacheRate
+    || (typeof detail.workDays === 'number' && detail.workDays > 0 ? (detail.cachePay / detail.workDays) : undefined);
 
   const copyPixKey = async () => {
     if (pixKey) {
@@ -73,7 +76,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
     }
   };
   return (
-    <Card className="border-l-2 border-l-primary">
+    <Card className="border-l-2 border-l-primary shadow-lg hover:shadow-xl transition-shadow">
       <CardContent className="p-2 sm:p-2">
         <div className={`${isMobile ? 'space-y-1.5' : 'flex items-center justify-between'} mb-1.5`}>
           <div className={isMobile ? 'space-y-1.5' : ''}>
@@ -92,7 +95,7 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
             </div>
             <Badge variant="secondary" className="text-xs">{detail.personType}</Badge>
           </div>
-          <div className={`${isMobile ? 'text-left' : 'text-right'}`}>
+          <div className={`${isMobile ? 'text-center' : 'text-right'}`}>
             {detail.paidAmount > 0 ? (
               <div>
                 <p className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-green-600`}>
@@ -158,9 +161,9 @@ export const PayrollDetailsCard: React.FC<PayrollDetailsCardProps> = ({
               )}
             </div>
             <p className="font-semibold text-sm">R$ {detail.cachePay.toFixed(2)}</p>
-            {hasEventSpecificCache && eventSpecificCacheRate && (
+            {cacheDailyRate !== undefined && typeof detail.workDays === 'number' && (
               <p className="text-[11px] text-muted-foreground mt-1">
-                {formatCurrency(eventSpecificCacheRate)} × {detail.workDays} dias
+                {formatCurrency(cacheDailyRate)} × {detail.workDays} dias
               </p>
             )}
           </div>
