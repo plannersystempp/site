@@ -37,6 +37,8 @@ export async function fetchEventForecast(teamId: string, startDate: string, endD
   const eventIds = allEvents.map((e: any) => e.id);
   let payrollRows: any[] = [];
   let closingRows: any[] = [];
+  let allocationsRows: any[] = [];
+  
   if (eventIds.length > 0) {
     const { data: payroll } = await supabase
       .from('event_payroll')
@@ -44,6 +46,7 @@ export async function fetchEventForecast(teamId: string, startDate: string, endD
       .eq('team_id', teamId)
       .in('event_id', eventIds);
     payrollRows = Array.isArray(payroll) ? payroll : [];
+    
     // Fallback por event_id (alguns registros antigos podem não ter team_id)
     if (!payrollRows.length) {
       const { data: payrollByEvent } = await supabase
@@ -56,19 +59,34 @@ export async function fetchEventForecast(teamId: string, startDate: string, endD
     // Buscar folhas de pagamento registradas para os eventos (indica fechamento em andamento)
     const { data: closings } = await supabase
       .from('payroll_closings')
-      .select('event_id, id')
+      .select('event_id, id, total_amount_paid')
       .eq('team_id', teamId)
       .in('event_id', eventIds);
     closingRows = Array.isArray(closings) ? closings : [];
+    
     if (!closingRows.length) {
       const { data: closingsByEvent } = await supabase
         .from('payroll_closings')
-        .select('event_id, id')
+        .select('event_id, id, total_amount_paid')
         .in('event_id', eventIds);
       closingRows = Array.isArray(closingsByEvent) ? closingsByEvent : [];
     }
+
+    // Buscar alocações de pessoal para calcular valores estimados
+    const { data: allocations } = await supabase
+      .from('personnel_allocations')
+      .select(`
+        event_id,
+        work_days,
+        event_specific_cache,
+        personnel:personnel_id (event_cache)
+      `)
+      .eq('team_id', teamId)
+      .in('event_id', eventIds);
+    allocationsRows = Array.isArray(allocations) ? allocations : [];
   }
 
+  // Calcular valores de event_payroll (consolidados)
   const remainingByEvent: Record<string, number> = {};
   payrollRows.forEach((row) => {
     const remainingBalance = row?.remaining_balance;
@@ -79,6 +97,23 @@ export async function fetchEventForecast(teamId: string, startDate: string, endD
     remainingByEvent[row.event_id] = pending;
   });
 
+  // Calcular valores estimados baseados em alocações
+  const estimatedByEvent: Record<string, number> = {};
+  allocationsRows.forEach((alloc: any) => {
+    const cache = Number(alloc.event_specific_cache || alloc.personnel?.event_cache || 0);
+    const days = Array.isArray(alloc.work_days) ? alloc.work_days.length : 0;
+    const value = cache * days;
+    estimatedByEvent[alloc.event_id] = (estimatedByEvent[alloc.event_id] || 0) + value;
+  });
+
+  // Calcular total já pago via payroll_closings
+  const paidByEvent: Record<string, number> = {};
+  closingRows.forEach((row: any) => {
+    const paid = Number(row.total_amount_paid || 0);
+    paidByEvent[row.event_id] = (paidByEvent[row.event_id] || 0) + paid;
+  });
+
+  // Contar fechamentos por evento
   const closingsCountByEvent: Record<string, number> = {};
   closingRows.forEach((row) => {
     const key = String(row.event_id);
@@ -93,20 +128,30 @@ export async function fetchEventForecast(teamId: string, startDate: string, endD
         d.setDate(d.getDate() + 7);
         due = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       }
-      const amount = remainingByEvent[e.id] ?? 0;
+      
+      // Calcular valor final: prioriza event_payroll, fallback para estimativa
+      const fromPayroll = remainingByEvent[e.id];
+      const estimated = estimatedByEvent[e.id] || 0;
+      const paid = paidByEvent[e.id] || 0;
+      const amount = fromPayroll !== undefined 
+        ? fromPayroll 
+        : Math.max(estimated - paid, 0);
+      
       if (!due) return null;
 
-      // Regras de inclusão:
-      // - Incluir se houver saldo > 0 (pendente calculado)
-      // - OU se o status do evento indicar pagamento pendente
-      // - OU se existirem fechamentos registrados (processo em andamento)
+      // Regras de inclusão expandidas
+      const hasAllocations = estimated > 0;
       const isPendingByStatus = e.status === 'concluido_pagamento_pendente';
       const hasClosings = (closingsCountByEvent[String(e.id)] || 0) > 0;
-      const shouldInclude = amount > 0.01 || isPendingByStatus || hasClosings;
+      const shouldInclude = amount > 0.01 || isPendingByStatus || hasClosings || hasAllocations;
+      
       if (!shouldInclude) return null;
 
-      // Notas amigáveis considerando ausência de saldo consolidado
-      const notes = isPendingByStatus
+      // Notas contextuais
+      const isEstimated = fromPayroll === undefined && hasAllocations;
+      const notes = isEstimated
+        ? 'Valor estimado (folha não consolidada)'
+        : isPendingByStatus
         ? amount > 0.01
           ? 'Pagamento pendente'
           : 'Pagamento pendente (valor ainda não consolidado)'
