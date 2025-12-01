@@ -165,6 +165,21 @@
   }
 }
 
+/* iOS smooth scrolling para áreas scrolláveis */
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto,
+[data-radix-scroll-area-viewport] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Corrigir scroll em modais no iOS */
+[data-radix-dialog-content],
+[data-radix-sheet-content] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 @media print {
   .no-print {
     display: none !important;

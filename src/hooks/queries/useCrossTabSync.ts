@@ -22,8 +22,37 @@ export const useCrossTabSync = () => {
   useEffect(() => {
     // Verificar se BroadcastChannel é suportado
     if (typeof BroadcastChannel === 'undefined') {
-      console.warn('[CrossTabSync] BroadcastChannel not supported in this browser');
-      return;
+      console.warn('[CrossTabSync] BroadcastChannel not supported, using localStorage fallback');
+      
+      // Fallback para iOS < 15.4 usando localStorage
+      const handleStorage = (e: StorageEvent) => {
+        if (e.key === 'plannersystem-sync' && e.newValue) {
+          try {
+            const message: SyncMessage = JSON.parse(e.newValue);
+            if (message.type === 'INVALIDATE_QUERIES') {
+              logger.realtime.info('🔄 [CrossTabSync] Received invalidation via localStorage', { 
+                queryKey: message.queryKey, 
+                timestamp: message.timestamp 
+              });
+              
+              queryClient.invalidateQueries({ 
+                queryKey: message.queryKey,
+                refetchType: 'active'
+              });
+            }
+          } catch (error) {
+            console.error('[CrossTabSync] Error parsing localStorage message:', error);
+          }
+        }
+      };
+      
+      window.addEventListener('storage', handleStorage);
+      logger.realtime.info('✅ [CrossTabSync] localStorage fallback enabled');
+      
+      return () => {
+        window.removeEventListener('storage', handleStorage);
+        logger.realtime.info('🔌 [CrossTabSync] localStorage fallback closed');
+      };
     }
 
     const channel = new BroadcastChannel('plannersystem-sync');
