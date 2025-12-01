@@ -56,11 +56,11 @@ export const Landing: React.FC = () => {
       <div className="h-14 sm:h-16 lg:h-20" />
 
       {/* Hero Section */}
-      <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
+      <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-16 lg:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
           {/* Content Column */}
-          <div className="space-y-6 sm:space-y-8 lg:space-y-10">
-            <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-8 sm:space-y-8 lg:space-y-10">
+            <div className="space-y-6 sm:space-y-6">
               <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
                 <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
                   Sistema Completo de Gestão de Eventos
@@ -74,7 +74,7 @@ export const Landing: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-4 lg:gap-6">
               <Link to="/plans">
                 <Button size="lg" className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto group touch-manipulation">
                   Ver Planos
@@ -96,12 +96,12 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* Features Grid */}
-      <section className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-28">
-        <div className="text-center mb-10 sm:mb-14 lg:mb-20">
-          <Badge variant="outline" className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border-primary/30 text-primary">
+      <section className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-16 lg:py-28">
+        <div className="text-center mb-12 sm:mb-14 lg:mb-20">
+          <Badge variant="outline" className="mb-6 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border-primary/30 text-primary">
             Funcionalidades
           </Badge>
-          <h3 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight">
+          <h3 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-6 sm:mb-6 leading-tight">
             <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
               Tudo que você precisa
             </span>
@@ -113,7 +113,7 @@ export const Landing: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-8 lg:gap-10">
           {/* Feature Cards */}
           <div itemScope itemType="https://schema.org/Thing">
             <Card className="group hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 border-2 border-border/50 hover:border-primary/40 bg-card/80 backdrop-blur-md shadow-lg">
@@ -214,11 +214,11 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="relative bg-gradient-to-br from-card/40 via-card/30 to-card/20 backdrop-blur-sm py-12 sm:py-16 lg:py-28">
+      <section className="relative bg-gradient-to-br from-card/40 via-card/30 to-card/20 backdrop-blur-sm py-16 sm:py-16 lg:py-28">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
-            <div className="space-y-6 sm:space-y-8">
-              <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
+            <div className="space-y-8 sm:space-y-8">
+              <div className="space-y-6 sm:space-y-6">
               <Badge variant="outline" className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border-primary/30 text-primary">
                 Vantagens
               </Badge>
@@ -232,12 +232,12 @@ export const Landing: React.FC = () => {
                 </h3>
               </div>
               
-              <div className="space-y-4 sm:space-y-6">
-                <div className="flex items-start gap-3 sm:gap-4 group">
+              <div className="space-y-6 sm:space-y-6">
+                <div className="flex items-start gap-4 sm:gap-4 group">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-primary/10">
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   </div>
-                  <div className="space-y-1 sm:space-y-2">
+                  <div className="space-y-2 sm:space-y-2">
                     <h4 className="text-base sm:text-lg font-bold">Economia de Tempo</h4>
                     <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                       Automatize cálculos complexos e reduza horas de trabalho manual com nossa tecnologia avançada
@@ -245,11 +245,11 @@ export const Landing: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-3 sm:gap-4 group">
+                <div className="flex items-start gap-4 sm:gap-4 group">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-chart-purple/20 to-chart-purple/5 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-purple/10">
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-chart-purple" />
                   </div>
-                  <div className="space-y-1 sm:space-y-2">
+                  <div className="space-y-2 sm:space-y-2">
                     <h4 className="text-base sm:text-lg font-bold">Controle Total</h4>
                     <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                       Tenha visibilidade completa sobre custos e alocação de recursos em tempo real
@@ -257,11 +257,11 @@ export const Landing: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-3 sm:gap-4 group">
+                <div className="flex items-start gap-4 sm:gap-4 group">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-chart-blue/20 to-chart-blue/5 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-chart-blue/10">
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-chart-blue" />
                   </div>
-                  <div className="space-y-1 sm:space-y-2">
+                  <div className="space-y-2 sm:space-y-2">
                     <h4 className="text-base sm:text-lg font-bold">Precisão nos Cálculos</h4>
                     <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                       Elimine erros humanos com cálculos automáticos e precisos baseados em regras customizáveis
@@ -269,11 +269,11 @@ export const Landing: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-3 sm:gap-4 group">
+                <div className="flex items-start gap-4 sm:gap-4 group">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-success/20 to-success/5 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-success/10">
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                   </div>
-                  <div className="space-y-1 sm:space-y-2">
+                  <div className="space-y-2 sm:space-y-2">
                     <h4 className="text-base sm:text-lg font-bold">Fácil de Usar</h4>
                     <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                       Interface intuitiva que qualquer pessoa pode aprender rapidamente, sem necessidade de treinamento
@@ -283,41 +283,41 @@ export const Landing: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-primary/15 via-primary/8 to-transparent rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-primary/30 backdrop-blur-md shadow-xl shadow-primary/5">
-              <div className="space-y-6 sm:space-y-8">
-                <div className="space-y-3 sm:space-y-4">
+            <div className="bg-gradient-to-br from-primary/15 via-primary/8 to-transparent rounded-3xl p-8 sm:p-8 lg:p-10 border-2 border-primary/30 backdrop-blur-md shadow-xl shadow-primary/5">
+              <div className="space-y-8 sm:space-y-8">
+                <div className="space-y-4 sm:space-y-4">
                   <h2 className="text-2xl sm:text-3xl font-bold">Como funciona?</h2>
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     Processo simples e intuitivo em 5 passos
                   </p>
                 </div>
                 
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="flex items-center gap-3 sm:gap-4 group">
+                <div className="space-y-5 sm:space-y-6">
+                  <div className="flex items-center gap-4 sm:gap-4 group">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-chart-blue rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs sm:text-sm shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-primary/20">
                       1
                     </div>
                     <span className="text-sm sm:text-base font-medium">Cadastre seus eventos e datas</span>
                   </div>
-                  <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className="flex items-center gap-4 sm:gap-4 group">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-chart-purple to-chart-purple/80 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs sm:text-sm shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-chart-purple/20">
                       2
                     </div>
                     <span className="text-sm sm:text-base font-medium">Adicione sua equipe e funções</span>
                   </div>
-                  <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className="flex items-center gap-4 sm:gap-4 group">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-chart-orange to-chart-orange/80 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs sm:text-sm shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-chart-orange/20">
                       3
                     </div>
                     <span className="text-sm sm:text-base font-medium">Aloque pessoas por divisões</span>
                   </div>
-                  <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className="flex items-center gap-4 sm:gap-4 group">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-success to-chart-green rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs sm:text-sm shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-success/20">
                       4
                     </div>
                     <span className="text-sm sm:text-base font-medium">Lance horas trabalhadas diariamente</span>
                   </div>
-                  <div className="flex items-center gap-3 sm:gap-4 group">
+                  <div className="flex items-center gap-4 sm:gap-4 group">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-chart-blue to-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs sm:text-sm shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-chart-blue/20">
                       5
                     </div>
@@ -331,9 +331,9 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-28 text-center">
-        <div className="max-w-4xl mx-auto space-y-8 sm:space-y-10">
-          <div className="space-y-4 sm:space-y-6">
+      <section className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-16 lg:py-28 text-center">
+        <div className="max-w-4xl mx-auto space-y-10 sm:space-y-10">
+          <div className="space-y-6 sm:space-y-6">
             <Badge variant="outline" className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium border-primary/30 text-primary">
               Comece Agora
             </Badge>
@@ -345,7 +345,7 @@ export const Landing: React.FC = () => {
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-4 lg:gap-6 justify-center">
             <Link to="/plans">
               <Button size="lg" className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto group touch-manipulation">
                 Ver Planos
@@ -361,8 +361,8 @@ export const Landing: React.FC = () => {
           </div>
 
           {/* Trust Indicators */}
-          <div className="pt-6 sm:pt-8 border-t border-border/50">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-muted-foreground">
+          <div className="pt-8 sm:pt-8 border-t border-border/50">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success" />
                 <span>Sem compromisso</span>
@@ -381,11 +381,11 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="relative border-t border-border/50 bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-md py-8 sm:py-10 lg:py-16 shadow-inner">
+      <footer className="relative border-t border-border/50 bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-md py-12 sm:py-10 lg:py-16 shadow-inner">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-8 lg:gap-12 max-w-6xl mx-auto">
             {/* Brand Column */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4 sm:space-y-4">
               <div className="flex items-center">
                 <img
                   src="/icons/logo_plannersystem.png"
@@ -399,9 +399,9 @@ export const Landing: React.FC = () => {
             </div>
 
             {/* Links Column */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4 sm:space-y-4">
               <h4 className="text-base sm:text-lg font-bold">Links Úteis</h4>
-              <div className="space-y-2 sm:space-y-3">
+              <div className="space-y-3 sm:space-y-3">
                 <Link to="/plans" className="block text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors">
                   Planos e Preços
                 </Link>
@@ -415,9 +415,9 @@ export const Landing: React.FC = () => {
             </div>
 
             {/* Contact Column */}
-            <div className="space-y-3 sm:space-y-4 text-center md:text-left">
+            <div className="space-y-4 sm:space-y-4 text-center md:text-left">
               <h4 className="text-base sm:text-lg font-bold">Contato</h4>
-              <div className="space-y-2 sm:space-y-3 text-sm sm:text-base text-muted-foreground">
+              <div className="space-y-3 sm:space-y-3 text-sm sm:text-base text-muted-foreground">
                 <p>suporte@plannersystem.com.br</p>
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <span>WhatsApp:</span>
