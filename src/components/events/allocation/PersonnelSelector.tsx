@@ -32,17 +32,36 @@ export const PersonnelSelector: React.FC<PersonnelSelectorProps> = ({
   const availableFunctions = selectedPerson?.functions || functions;
   const [open, setOpen] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [functionFilter, setFunctionFilter] = useState<string>('');
   const { userRole } = useTeam();
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   const handlePersonnelChange = (personnelId: string) => {
     onPersonnelChange(personnelId);
-    // Reset function selection when personnel changes
-    onFunctionChange('');
+    if (functionFilter) {
+      onFunctionChange(functionFilter);
+    } else {
+      onFunctionChange('');
+    }
   };
 
   return (
     <>
+      <div className="space-y-2">
+        <Label htmlFor="function-filter">Filtrar por função (opcional)</Label>
+        <Select value={functionFilter} onValueChange={(value) => { setFunctionFilter(value); onFunctionChange(value); }}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma função para filtrar" />
+          </SelectTrigger>
+          <SelectContent>
+            {functions.map((func) => (
+              <SelectItem key={func.id} value={func.name}>
+                {func.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="personnel">Pessoa <span className="text-red-500">*</span></Label>
         {/* Combobox com busca para Pessoa */}
@@ -91,6 +110,11 @@ export const PersonnelSelector: React.FC<PersonnelSelectorProps> = ({
                 </CommandEmpty>
                 <CommandGroup>
                   {personnel
+                    .filter((p) => {
+                      if (!functionFilter) return true;
+                      const funcs = (p.functions && p.functions.length > 0) ? p.functions : functions;
+                      return funcs.some((f) => f.name === functionFilter);
+                    })
                     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
                     .map((person) => (
                       <CommandItem

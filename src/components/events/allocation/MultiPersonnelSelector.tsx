@@ -41,6 +41,7 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
   const { userRole } = useTeam();
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
   const [showCreateForm, setShowCreateForm] = React.useState(false);
+  const [functionFilter, setFunctionFilter] = React.useState<string>('');
   React.useEffect(() => {
     const prev = document.body.style.overflow;
     if (showCreateForm) document.body.style.overflow = 'hidden';
@@ -72,6 +73,20 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar por nome ou email..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-9 text-sm" />
           </div>
+          <div className="w-full sm:w-56">
+            <Select value={functionFilter} onValueChange={setFunctionFilter}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Filtrar por função" />
+              </SelectTrigger>
+              <SelectContent>
+                {functions.map((func) => (
+                  <SelectItem key={func.id} value={func.name}>
+                    {func.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={toggleSelectAll} className="whitespace-nowrap text-xs px-3 h-9">
               {selectAll ? 'Desmarcar Todos' : 'Selecionar Todos'}
@@ -86,7 +101,13 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
       {/* Personnel List */}
       <ScrollArea className={`h-[350px] md:h-[400px] w-full border rounded-md ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
         <div className="p-2 md:p-4 space-y-2 md:space-y-3">
-          {filteredPersonnel.length === 0 ? <div className="text-center py-6 md:py-8 space-y-2">
+          {(filteredPersonnel
+            .filter(p => {
+              if (!functionFilter) return true;
+              const funcs = p.functions?.length ? p.functions : functions;
+              return funcs.some(f => f.name === functionFilter);
+            })
+          ).length === 0 ? <div className="text-center py-6 md:py-8 space-y-2">
               <Users className="h-6 md:h-8 w-6 md:w-8 text-muted-foreground mx-auto" />
               <p className="text-xs md:text-sm text-muted-foreground">
                 {searchQuery ? 'Nenhuma pessoa encontrada' : 'Nenhuma pessoa disponível'}
@@ -96,7 +117,13 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                   Cadastrar Pessoa
                 </Button>
               )}
-            </div> : filteredPersonnel.map(person => {
+            </div> : filteredPersonnel
+            .filter(p => {
+              if (!functionFilter) return true;
+              const funcs = p.functions?.length ? p.functions : functions;
+              return funcs.some(f => f.name === functionFilter);
+            })
+            .map(person => {
           const isSelected = isPersonSelected(person.id);
           const selectedPerson = selectedPersonnel.find(sp => sp.personnel.id === person.id);
           const availableFunctions = getAvailableFunctions(person);
@@ -105,7 +132,13 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                   <CardContent className="p-2 md:p-4">
                     {/* Person Header */}
                     <div className="flex items-start gap-2 md:gap-3 mb-2 md:mb-3">
-                      <Checkbox checked={isSelected} onCheckedChange={() => togglePersonSelection(person)} className="mt-0.5 md:mt-1 my-0 aspect-square self-center" />
+                      <Checkbox checked={isSelected} onCheckedChange={() => { 
+                        const wasSelected = isSelected;
+                        togglePersonSelection(person);
+                        if (!wasSelected && functionFilter) {
+                          updatePersonFunction(person.id, functionFilter);
+                        }
+                      }} className="mt-0.5 md:mt-1 my-0 aspect-square self-center" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium text-sm truncate">
