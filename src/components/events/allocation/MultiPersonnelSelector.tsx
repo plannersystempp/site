@@ -11,6 +11,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { type Personnel, type Func } from '@/contexts/EnhancedDataContext';
 import { useMultipleSelection, type SelectedPerson } from '@/hooks/useMultipleSelection';
 import { formatPhoneNumber } from '@/utils/formatters';
+import { useTeam } from '@/contexts/TeamContext';
+import { PersonnelForm } from '@/components/personnel/PersonnelForm';
 interface MultiPersonnelSelectorProps {
   personnel: Personnel[];
   functions: Func[];
@@ -36,6 +38,14 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
     clearSelections,
     selectedCount
   } = useMultipleSelection(personnel, functions);
+  const { userRole } = useTeam();
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+  const [showCreateForm, setShowCreateForm] = React.useState(false);
+  React.useEffect(() => {
+    const prev = document.body.style.overflow;
+    if (showCreateForm) document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [showCreateForm]);
 
   // Sync with external value
   React.useEffect(() => {
@@ -46,7 +56,8 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
   const getAvailableFunctions = (person: Personnel) => {
     return person.functions?.length > 0 ? person.functions : functions;
   };
-  return <div className="space-y-4">
+  const blocked = showCreateForm;
+  return <div className="space-y-4 relative">
       {/* Search and Controls */}
       <div className="space-y-2 md:space-y-3">
         <div className="flex items-center justify-between">
@@ -56,7 +67,7 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
           </Badge>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className={`flex flex-col sm:flex-row gap-2 ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar por nome ou email..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-9 text-sm" />
@@ -73,13 +84,18 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
       </div>
 
       {/* Personnel List */}
-      <ScrollArea className="h-[350px] md:h-[400px] w-full border rounded-md">
+      <ScrollArea className={`h-[350px] md:h-[400px] w-full border rounded-md ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
         <div className="p-2 md:p-4 space-y-2 md:space-y-3">
-          {filteredPersonnel.length === 0 ? <div className="text-center py-6 md:py-8">
-              <Users className="h-6 md:h-8 w-6 md:w-8 text-muted-foreground mx-auto mb-2" />
+          {filteredPersonnel.length === 0 ? <div className="text-center py-6 md:py-8 space-y-2">
+              <Users className="h-6 md:h-8 w-6 md:w-8 text-muted-foreground mx-auto" />
               <p className="text-xs md:text-sm text-muted-foreground">
                 {searchQuery ? 'Nenhuma pessoa encontrada' : 'Nenhuma pessoa disponível'}
               </p>
+              {isAdmin && (
+                <Button size="sm" onClick={() => setShowCreateForm(true)} className="h-8">
+                  Cadastrar Pessoa
+                </Button>
+              )}
             </div> : filteredPersonnel.map(person => {
           const isSelected = isPersonSelected(person.id);
           const selectedPerson = selectedPersonnel.find(sp => sp.personnel.id === person.id);
@@ -98,7 +114,14 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                           <Badge variant={person.type === 'fixo' ? 'default' : 'secondary'} className="text-sm">
                             {person.type === 'fixo' ? 'Fixo' : 'Freelancer'}
                           </Badge>
-                        </div>
+      </div>
+      {showCreateForm && (
+        <PersonnelForm
+          personnel={null as any}
+          onClose={() => setShowCreateForm(false)}
+          onSuccess={() => setShowCreateForm(false)}
+        />
+      )}
                         
                         {/* Person Details */}
                         <div className="space-y-0.5 md:space-y-1 text-sm text-muted-foreground">
@@ -163,7 +186,7 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
       </ScrollArea>
 
       {/* Summary */}
-      {selectedCount > 0 && <div className="bg-muted/30 rounded-lg p-2 md:p-3">
+      {selectedCount > 0 && <div className={`bg-muted/30 rounded-lg p-2 md:p-3 ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
           <div className="flex items-center justify-between text-xs md:text-sm">
             <span className="font-medium">
               {selectedCount} pessoa{selectedCount !== 1 ? 's' : ''} selecionada{selectedCount !== 1 ? 's' : ''}
@@ -173,5 +196,6 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
             </Button>
           </div>
         </div>}
+      {blocked && <div className="absolute inset-0 z-10"></div>}
     </div>;
 };
