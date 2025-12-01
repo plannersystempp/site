@@ -72,6 +72,7 @@ export const PersonnelSelector: React.FC<PersonnelSelectorProps> = ({
                     <CommandItem
                       onSelect={() => {
                         setShowCreateForm(true)
+                        setOpen(false)
                       }}
                     >
                       + Cadastrar nova pessoa
@@ -82,7 +83,7 @@ export const PersonnelSelector: React.FC<PersonnelSelectorProps> = ({
                   <div className="p-3 text-center space-y-2">
                     <p className="text-sm text-muted-foreground">Nenhuma pessoa encontrada.</p>
                     {isAdmin && (
-                      <Button size="sm" onClick={() => setShowCreateForm(true)} className="h-8">
+                      <Button size="sm" onClick={() => { setShowCreateForm(true); setOpen(false); }} className="h-8">
                         Cadastrar Pessoa
                       </Button>
                     )}
