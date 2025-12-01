@@ -10,6 +10,10 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* Scroll horizontal para tabelas em mobile */
 .table-scroll-mobile {
   @apply -mx-2 sm:mx-0 overflow-x-auto;
