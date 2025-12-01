@@ -19,6 +19,7 @@ import { ManagePersonnel } from './components/personnel/ManagePersonnel';
 import { ManageFunctions } from './components/functions/ManageFunctions';
 import { ManageEvents } from './components/events/ManageEvents';
 import { EventDetail } from './components/events/EventDetail';
+import { EventFreelancersRatingPage } from './pages/EventFreelancersRatingPage';
 import { EstimatedCosts } from './components/costs/EstimatedCosts';
 import { PayrollManager } from './components/payroll/PayrollManager';
 import { PayrollEventView } from './components/payroll/PayrollEventView';
@@ -289,6 +290,11 @@ const AppContent = () => {
               <Route path="/eventos/:id" element={
                 <RouteErrorBoundary routeName="Detalhes do Evento">
                   <EventDetail />
+                </RouteErrorBoundary>
+              } />
+              <Route path="/eventos/:id/avaliar-freelancers" element={
+                <RouteErrorBoundary routeName="Avaliar Freelancers">
+                  <EventFreelancersRatingPage />
                 </RouteErrorBoundary>
               } />
               <Route path="/fornecedores" element={

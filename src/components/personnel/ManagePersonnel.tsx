@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { PersonnelForm } from './PersonnelForm';
 import { PersonnelStats } from './PersonnelStats';
 import { PersonnelFilters } from './PersonnelFilters';
+import { supabase } from '@/integrations/supabase/client';
 import { PersonnelList } from './PersonnelList';
 import { PersonnelViewToggle } from './PersonnelViewToggle';
 import { ExportDropdown } from '@/components/shared/ExportDropdown';
@@ -34,6 +35,8 @@ export const ManagePersonnel: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'fixo' | 'freelancer'>('all');
   const [filterFunction, setFilterFunction] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name_asc' | 'name_desc' | 'rating_desc' | 'rating_asc'>('name_asc');
+  const [ratingsAvg, setRatingsAvg] = useState<Record<string, number>>({});
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [ratingPersonnel, setRatingPersonnel] = useState<Personnel | null>(null);
   const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
@@ -44,6 +47,74 @@ export const ManagePersonnel: React.FC = () => {
   const effectiveViewMode = isMobile ? 'grid' : viewMode;
 
   // Filter personnel based on search term, type, and function
+  useEffect(() => {
+    const teamId = activeTeam?.id;
+    if (!teamId) return;
+    supabase
+      .from('freelancer_ratings')
+      .select('freelancer_id, rating')
+      .eq('team_id', teamId)
+      .then(({ data, error }) => {
+        if (error) return;
+        const acc: Record<string, { sum: number; count: number }> = {};
+        for (const row of (data || [])) {
+          const id = (row as any).freelancer_id as string;
+          const rating = (row as any).rating as number;
+          if (!acc[id]) acc[id] = { sum: 0, count: 0 };
+          acc[id].sum += rating || 0;
+          acc[id].count += 1;
+        }
+        const avg: Record<string, number> = {};
+        Object.keys(acc).forEach(id => {
+          avg[id] = acc[id].count > 0 ? acc[id].sum / acc[id].count : 0;
+        });
+        setRatingsAvg(avg);
+      });
+  }, [activeTeam]);
+
+  // Atualização em tempo real das médias de avaliação
+  useEffect(() => {
+    const teamId = activeTeam?.id;
+    if (!teamId) return;
+
+    const refetchAverages = async () => {
+      const { data, error } = await supabase
+        .from('freelancer_ratings')
+        .select('freelancer_id, rating')
+        .eq('team_id', teamId);
+      if (error) return;
+      const acc: Record<string, { sum: number; count: number }> = {};
+      for (const row of (data || [])) {
+        const id = (row as any).freelancer_id as string;
+        const rating = (row as any).rating as number;
+        if (!acc[id]) acc[id] = { sum: 0, count: 0 };
+        acc[id].sum += rating || 0;
+        acc[id].count += 1;
+      }
+      const avg: Record<string, number> = {};
+      Object.keys(acc).forEach(id => {
+        avg[id] = acc[id].count > 0 ? acc[id].sum / acc[id].count : 0;
+      });
+      setRatingsAvg(avg);
+    };
+
+    const channel = supabase
+      .channel(`manage_personnel_ratings_${teamId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'freelancer_ratings',
+        filter: `team_id=eq.${teamId}`
+      }, () => {
+        refetchAverages();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTeam]);
+
   const filteredPersonnel = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
     return personnel.filter(person => {
@@ -53,6 +124,17 @@ export const ManagePersonnel: React.FC = () => {
       return matchesSearch && matchesType && matchesFunction;
     });
   }, [personnel, searchTerm, filterType, filterFunction]);
+
+  const sortedPersonnel = useMemo(() => {
+    const arr = [...filteredPersonnel];
+    const cmpNameAsc = (a: Personnel, b: Personnel) => a.name.localeCompare(b.name, 'pt-BR');
+    const getRating = (p: Personnel) => (p.type === 'freelancer' ? (ratingsAvg[p.id] ?? 0) : 0);
+    if (sortBy === 'name_asc') arr.sort(cmpNameAsc);
+    else if (sortBy === 'name_desc') arr.sort((a, b) => cmpNameAsc(b, a));
+    else if (sortBy === 'rating_desc') arr.sort((a, b) => getRating(b) - getRating(a) || cmpNameAsc(a, b));
+    else if (sortBy === 'rating_asc') arr.sort((a, b) => getRating(a) - getRating(b) || cmpNameAsc(a, b));
+    return arr;
+  }, [filteredPersonnel, sortBy, ratingsAvg]);
   const handleEdit = (person: Personnel) => {
     setEditingPersonnel(person);
     setShowForm(true);
@@ -143,7 +225,7 @@ export const ManagePersonnel: React.FC = () => {
 
       <PersonnelStats personnel={personnel} />
 
-      <PersonnelFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} filterType={filterType} onTypeChange={setFilterType} filterFunction={filterFunction} onFunctionChange={setFilterFunction} functions={functions} />
+      <PersonnelFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} filterType={filterType} onTypeChange={setFilterType} filterFunction={filterFunction} onFunctionChange={setFilterFunction} functions={functions} sortBy={sortBy} onSortChange={setSortBy} />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div className="text-sm text-muted-foreground order-2 sm:order-1">
@@ -166,7 +248,7 @@ export const ManagePersonnel: React.FC = () => {
       onClick: () => setShowForm(true)
     } : undefined} /> : <div className="w-full">
           <PersonnelList 
-            personnel={filteredPersonnel} 
+            personnel={sortedPersonnel} 
             functions={functions} 
             viewMode={effectiveViewMode} 
             onEdit={handleEdit} 

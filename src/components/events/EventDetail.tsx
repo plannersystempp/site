@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone, DollarSign, Lock, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, Clock, Settings2, Printer, Trash2, MapPin, Phone, DollarSign, Lock, ShieldAlert, Star } from 'lucide-react';
 import { AllocationManager } from './AllocationManager';
 import { EventForm } from './EventForm';
 import { formatDateBR } from '@/utils/dateUtils';
@@ -263,6 +263,17 @@ export const EventDetail: React.FC = () => {
               <DollarSign className="w-4 h-4" />
               <span className="hidden xs:inline">Folha de Pagamento</span>
               <span className="xs:hidden">Folha</span>
+            </Button>
+          )}
+          {(userRole === 'admin' || userRole === 'coordinator') && (
+            <Button
+              variant="default"
+              onClick={() => navigate(`/app/eventos/${event.id}/avaliar-freelancers`)}
+              className="flex items-center gap-2 w-full sm:w-auto text-xs sm:text-sm"
+            >
+              <Star className="w-4 h-4" />
+              <span className="hidden xs:inline">Avaliar Freelancers</span>
+              <span className="xs:hidden">Avaliar</span>
             </Button>
           )}
           {/* Botão secundário - Imprimir (outline) */}

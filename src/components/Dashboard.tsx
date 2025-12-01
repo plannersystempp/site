@@ -38,7 +38,7 @@ const Dashboard = () => {
   
   // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - BEFORE ANY CONDITIONAL RETURNS
   const { events, personnel, functions, eventSupplierCosts, suppliers, loading } = useEnhancedData();
-  const { activeTeam } = useTeam();
+  const { activeTeam, userRole } = useTeam();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isSuperAdmin = user?.role === 'superadmin';
@@ -308,8 +308,8 @@ const Dashboard = () => {
         {/* KPI removido conforme solicitação: Pagamentos Avulsos Pendentes */}
       </div>
 
-      {/* Estatísticas de Fornecedores (Fase 5) */}
-      {!isSuperAdmin && (
+      {/* Estatísticas de Fornecedores (somente admin) */}
+      {!isSuperAdmin && userRole === 'admin' && (
         <Card className="bg-muted/30 dark:bg-muted/20">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">

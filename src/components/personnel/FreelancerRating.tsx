@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,11 +22,32 @@ export const FreelancerRating: React.FC<FreelancerRatingProps> = ({
   onRatingSubmitted
 }) => {
   const [rating, setRating] = useState(existingRating || 0);
+  const [currentRowId, setCurrentRowId] = useState<string | null>(null);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { activeTeam } = useTeam();
   const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchExisting = async () => {
+      if (!activeTeam || !user) return;
+      const { data, error } = await supabase
+        .from('freelancer_ratings')
+        .select('id, rating')
+        .eq('team_id', activeTeam.id)
+        .eq('event_id', eventId)
+        .eq('freelancer_id', freelancerId)
+        .eq('rated_by_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      if (!error && data) {
+        setCurrentRowId(data.id as string);
+        setRating(Number(data.rating) || 0);
+      }
+    };
+    fetchExisting();
+  }, [activeTeam, user, eventId, freelancerId]);
 
   const handleRatingSubmit = async (selectedRating: number) => {
     if (!activeTeam || !user) {
@@ -40,22 +61,32 @@ export const FreelancerRating: React.FC<FreelancerRatingProps> = ({
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('freelancer_ratings')
-        .insert({
-          team_id: activeTeam.id,
-          event_id: eventId,
-          freelancer_id: freelancerId,
-          rating: selectedRating,
-          rated_by_id: user.id
-        });
-
-      if (error) throw error;
+      if (currentRowId) {
+        const { error } = await supabase
+          .from('freelancer_ratings')
+          .update({ rating: selectedRating })
+          .eq('id', currentRowId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('freelancer_ratings')
+          .insert({
+            team_id: activeTeam.id,
+            event_id: eventId,
+            freelancer_id: freelancerId,
+            rating: selectedRating,
+            rated_by_id: user.id
+          })
+          .select('id')
+          .maybeSingle();
+        if (error) throw error;
+        if (data?.id) setCurrentRowId(String(data.id));
+      }
 
       setRating(selectedRating);
       toast({
-        title: "Avaliação enviada!",
-        description: `${freelancerName} foi avaliado com ${selectedRating} estrela${selectedRating > 1 ? 's' : ''}`,
+        title: "Avaliação salva",
+        description: `${freelancerName} avaliado com ${selectedRating} estrela${selectedRating > 1 ? 's' : ''}`,
       });
 
       onRatingSubmitted?.();
@@ -63,7 +94,7 @@ export const FreelancerRating: React.FC<FreelancerRatingProps> = ({
       console.error('Error submitting rating:', error);
       toast({
         title: "Erro",
-        description: "Falha ao enviar avaliação",
+        description: "Falha ao salvar avaliação",
         variant: "destructive"
       });
     } finally {
@@ -80,12 +111,12 @@ export const FreelancerRating: React.FC<FreelancerRatingProps> = ({
         <button
           key={index}
           type="button"
-          onClick={() => !existingRating && !isSubmitting && handleRatingSubmit(starValue)}
-          onMouseEnter={() => !existingRating && setHoveredRating(starValue)}
-          onMouseLeave={() => !existingRating && setHoveredRating(0)}
-          disabled={!!existingRating || isSubmitting}
+          onClick={() => !isSubmitting && handleRatingSubmit(starValue)}
+          onMouseEnter={() => setHoveredRating(starValue)}
+          onMouseLeave={() => setHoveredRating(0)}
+          disabled={isSubmitting}
           className={`${
-            existingRating ? 'cursor-default' : 'cursor-pointer hover:scale-110'
+            'cursor-pointer hover:scale-110'
           } transition-transform`}
         >
           <Star
@@ -99,17 +130,6 @@ export const FreelancerRating: React.FC<FreelancerRatingProps> = ({
       );
     });
   };
-
-  if (existingRating) {
-    return (
-      <div className="flex items-center gap-1">
-        {renderStars()}
-        <span className="text-sm text-muted-foreground ml-2">
-          Avaliado
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center gap-1">
