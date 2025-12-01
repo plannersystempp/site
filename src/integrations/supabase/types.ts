@@ -1850,6 +1850,7 @@ export type Database = {
           event_id: string
           hours_worked: number | null
           id: string
+          logged_by_id: string | null
           overtime_hours: number | null
           paid: boolean | null
           team_id: string
@@ -1863,6 +1864,7 @@ export type Database = {
           event_id: string
           hours_worked?: number | null
           id?: string
+          logged_by_id?: string | null
           overtime_hours?: number | null
           paid?: boolean | null
           team_id: string
@@ -1876,6 +1878,7 @@ export type Database = {
           event_id?: string
           hours_worked?: number | null
           id?: string
+          logged_by_id?: string | null
           overtime_hours?: number | null
           paid?: boolean | null
           team_id?: string
@@ -1896,6 +1899,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_records_logged_by_id_fkey"
+            columns: ["logged_by_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "work_records_team_id_fkey"
