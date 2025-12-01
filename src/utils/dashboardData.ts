@@ -27,7 +27,8 @@ export function getUpcomingPayments(
   events: EventItem[],
   completedPaymentEventIds: string[],
   startDate: Date = new Date(),
-  endDate: Date | null = null
+  endDate: Date | null = null,
+  noDateLimit: boolean = false
 ): EventItem[] {
   const today = new Date(startDate);
   today.setHours(0, 0, 0, 0);
@@ -47,6 +48,9 @@ export function getUpcomingPayments(
 
     // Incluir sempre concluido_pagamento_pendente
     if (event.status === 'concluido_pagamento_pendente') return true;
+
+    // Se noDateLimit = true, incluir todos os pendentes sem filtro de data
+    if (noDateLimit) return true;
 
     // Considerar data de vencimento ou fim do evento
     const dueDate = event.payment_due_date

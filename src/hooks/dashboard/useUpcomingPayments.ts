@@ -13,7 +13,7 @@ export const useUpcomingPayments = (completedEventIds: string[]) => {
   );
   
   const upcoming = useMemo(
-    () => getUpcomingPayments(eventsFormatted, completedEventIds, start),
+    () => getUpcomingPayments(eventsFormatted, completedEventIds, start, null, true),
     [eventsFormatted, completedEventIds]
   );
   return upcoming;
