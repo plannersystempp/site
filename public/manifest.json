@@ -41,8 +41,8 @@
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#0979FF",
-  "background_color": "#0979FF",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
   "description": "Sistema completo para gestão de eventos, equipes e folha de pagamento",
   "categories": ["business", "productivity", "finance"]
 }
