@@ -20,15 +20,35 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+// Função segura para ler localStorage
+const safeGetItem = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.warn('[ThemeProvider] localStorage não disponível:', e);
+    return null;
+  }
+};
+
+// Função segura para escrever localStorage
+const safeSetItem = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn('[ThemeProvider] Não foi possível salvar tema:', e);
+  }
+};
+
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
   storageKey = 'plannersystem-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = safeGetItem(storageKey);
+    return (stored as Theme) || defaultTheme;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -51,7 +71,7 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
+      safeSetItem(storageKey, theme);
       setTheme(theme);
     },
   };

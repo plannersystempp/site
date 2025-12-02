@@ -1562,6 +1562,7 @@ export type Database = {
       }
       team_members: {
         Row: {
+          can_access_suppliers: boolean
           joined_at: string | null
           joined_with_code: string | null
           role: string
@@ -1570,6 +1571,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          can_access_suppliers?: boolean
           joined_at?: string | null
           joined_with_code?: string | null
           role: string
@@ -1578,6 +1580,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          can_access_suppliers?: boolean
           joined_at?: string | null
           joined_with_code?: string | null
           role?: string
