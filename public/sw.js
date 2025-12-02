@@ -1,5 +1,5 @@
 // FASE 6: PWA com Cache Otimizado
-const CACHE_NAME = 'plannersystem-v2.6.0-optimized';
+const CACHE_NAME = 'plannersystem-v2.7.0-safari-fix';
 const API_CACHE_NAME = 'plannersystem-api-cache-v1';
 // Detectar iOS para ajustar TTL de cache
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);

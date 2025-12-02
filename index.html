@@ -180,5 +180,43 @@
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Botão de emergência se o app não carregar -->
+    <script>
+      (function() {
+        window.__appLoaded = false;
+        setTimeout(function() {
+          if (!window.__appLoaded) {
+            console.error('⚠️ App não carregou em 15s, mostrando botão de reset');
+            var resetBtn = document.createElement('button');
+            resetBtn.innerText = 'Limpar Cache e Recarregar';
+            resetBtn.id = 'emergency-reset-btn';
+            resetBtn.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);padding:16px 32px;font-size:16px;font-family:system-ui,sans-serif;background:#0979FF;color:white;border:none;border-radius:8px;cursor:pointer;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+            resetBtn.onclick = function() {
+              resetBtn.innerText = 'Limpando...';
+              resetBtn.disabled = true;
+              // Limpar caches
+              if ('caches' in window) {
+                caches.keys().then(function(keys) {
+                  keys.forEach(function(k) { caches.delete(k); });
+                });
+              }
+              // Desregistrar Service Workers
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  regs.forEach(function(r) { r.unregister(); });
+                });
+              }
+              // Limpar storage
+              try { localStorage.clear(); } catch(e) {}
+              try { sessionStorage.clear(); } catch(e) {}
+              // Recarregar após limpeza
+              setTimeout(function() { location.reload(); }, 500);
+            };
+            document.body.appendChild(resetBtn);
+          }
+        }, 15000);
+      })();
+    </script>
   </body>
 </html>

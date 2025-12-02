@@ -6,6 +6,7 @@
  */
 
 import { logger } from '@/utils/logger';
+import { safeLocalStorage } from '@/utils/safeStorage';
 
 interface SyncMessage {
   type: 'INVALIDATE_QUERIES';
@@ -25,14 +26,10 @@ export const useBroadcastInvalidation = () => {
     if (typeof BroadcastChannel === 'undefined') {
       logger.realtime.warn('[BroadcastInvalidation] BroadcastChannel not supported, using localStorage fallback');
       
-      try {
-        localStorage.setItem('plannersystem-sync', JSON.stringify(message));
-        // Limpar após propagação
-        setTimeout(() => localStorage.removeItem('plannersystem-sync'), 100);
-        logger.realtime.info('📡 [BroadcastInvalidation] Broadcasted via localStorage', { queryKey });
-      } catch (error) {
-        console.error('[BroadcastInvalidation] Error broadcasting via localStorage:', error);
-      }
+      safeLocalStorage.setItem('plannersystem-sync', JSON.stringify(message));
+      // Limpar após propagação
+      setTimeout(() => safeLocalStorage.removeItem('plannersystem-sync'), 100);
+      logger.realtime.info('📡 [BroadcastInvalidation] Broadcasted via localStorage', { queryKey });
       return;
     }
 
