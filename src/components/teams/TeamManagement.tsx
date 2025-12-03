@@ -352,9 +352,18 @@ export const TeamManagement: React.FC = () => {
         description: `${userToApprove.userName} foi aprovado como ${roleLabels[selectedRoleForApproval]} e agora tem acesso à equipe.`
       });
 
+      // Fechar dialog e limpar estados ANTES de recarregar
       setApprovalDialogOpen(false);
       setUserToApprove(null);
-      fetchMembers();
+      
+      // Forçar limpeza do estado de pendentes imediatamente
+      setPendingRequests(prev => prev.filter(p => p.user_id !== userToApprove.userId));
+      
+      // Aguardar um momento para garantir que o banco atualizou
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Recarregar lista completa
+      await fetchMembers();
     } catch (error) {
       console.error('Error approving user:', error);
       toast({
@@ -383,12 +392,17 @@ export const TeamManagement: React.FC = () => {
 
       if (error) throw error;
 
+      // Remover imediatamente da lista visual
+      setPendingRequests(prev => prev.filter(p => p.user_id !== userId));
+
       toast({
         title: "Solicitação rejeitada",
         description: `A solicitação de ${userName} foi rejeitada.`
       });
 
-      fetchMembers();
+      // Aguardar e recarregar para garantir sincronização
+      await new Promise(resolve => setTimeout(resolve, 150));
+      await fetchMembers();
     } catch (error) {
       console.error('Error rejecting request:', error);
       toast({
