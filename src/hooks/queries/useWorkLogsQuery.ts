@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useBroadcastInvalidation } from './useBroadcastInvalidation';
 import { supabase } from '@/integrations/supabase/client';
 import type { WorkRecord } from '@/contexts/EnhancedDataContext';
+import { payrollKeys } from './usePayrollQuery';
 
 // Query keys for consistent caching
 export const workLogsKeys = {
@@ -87,10 +88,11 @@ export const useCreateWorkLogMutation = () => {
       return data as WorkRecord;
     },
     onSuccess: (data) => {
+      const workRecord = data as WorkRecord;
       queryClient.setQueryData(workLogsKeys.list(activeTeam!.id), (old: any) => {
         const arr = Array.isArray(old) ? [...old] : [];
-        const idx = arr.findIndex((r: WorkRecord) => r.employee_id === (data as WorkRecord).employee_id && r.event_id === (data as WorkRecord).event_id && r.work_date === (data as WorkRecord).work_date);
-        if (idx >= 0) arr[idx] = data as WorkRecord; else arr.push(data as WorkRecord);
+        const idx = arr.findIndex((r: WorkRecord) => r.employee_id === workRecord.employee_id && r.event_id === workRecord.event_id && r.work_date === workRecord.work_date);
+        if (idx >= 0) arr[idx] = workRecord; else arr.push(workRecord);
         return arr;
       });
       // ✅ FASE 2: Invalidar imediatamente + refetch ativo
@@ -98,6 +100,15 @@ export const useCreateWorkLogMutation = () => {
         queryKey: workLogsKeys.all,
         refetchType: 'active'
       });
+      
+      // ✅ CRÍTICO: Invalidar cache de payroll do evento afetado
+      if (workRecord.event_id) {
+        queryClient.invalidateQueries({ 
+          queryKey: payrollKeys.event(workRecord.event_id),
+          refetchType: 'active'
+        });
+        console.log('♻️ [WorkLogs] Invalidated payroll cache for event:', workRecord.event_id);
+      }
       
       // ✅ FASE 3: Notificar outras abas
       broadcast(workLogsKeys.all);
@@ -145,10 +156,11 @@ export const useUpdateWorkLogMutation = () => {
       return data as WorkRecord;
     },
     onSuccess: (data) => {
+      const workRecord = data as WorkRecord;
       queryClient.setQueryData(workLogsKeys.list(activeTeam!.id), (old: any) => {
         const arr = Array.isArray(old) ? [...old] : [];
-        const idx = arr.findIndex((r: WorkRecord) => r.id === (data as WorkRecord).id);
-        if (idx >= 0) arr[idx] = data as WorkRecord;
+        const idx = arr.findIndex((r: WorkRecord) => r.id === workRecord.id);
+        if (idx >= 0) arr[idx] = workRecord;
         return arr;
       });
       // ✅ FASE 2: Invalidar imediatamente + refetch ativo
@@ -156,6 +168,15 @@ export const useUpdateWorkLogMutation = () => {
         queryKey: workLogsKeys.all,
         refetchType: 'active'
       });
+      
+      // ✅ CRÍTICO: Invalidar cache de payroll do evento afetado
+      if (workRecord.event_id) {
+        queryClient.invalidateQueries({ 
+          queryKey: payrollKeys.event(workRecord.event_id),
+          refetchType: 'active'
+        });
+        console.log('♻️ [WorkLogs] Invalidated payroll cache for event:', workRecord.event_id);
+      }
       
       // ✅ FASE 3: Notificar outras abas
       broadcast(workLogsKeys.all);
@@ -191,6 +212,13 @@ export const useDeleteWorkLogMutation = () => {
 
   return useMutation({
     mutationFn: async (workLogId: string) => {
+      // Buscar o registro antes de deletar para obter o event_id
+      const { data: workLog } = await supabase
+        .from('work_records')
+        .select('event_id')
+        .eq('id', workLogId)
+        .single();
+      
       const { error } = await supabase
         .from('work_records')
         .delete()
@@ -198,18 +226,27 @@ export const useDeleteWorkLogMutation = () => {
         .eq('team_id', activeTeam!.id);
 
       if (error) throw error;
-      return workLogId;
+      return { workLogId, eventId: workLog?.event_id };
     },
-    onSuccess: (deletedId) => {
+    onSuccess: ({ workLogId, eventId }) => {
       queryClient.setQueryData(workLogsKeys.list(activeTeam!.id), (old: any) => {
         const arr = Array.isArray(old) ? [...old] : [];
-        return arr.filter((r: WorkRecord) => r.id !== deletedId);
+        return arr.filter((r: WorkRecord) => r.id !== workLogId);
       });
       // ✅ FASE 2: Invalidar imediatamente + refetch ativo
       queryClient.invalidateQueries({ 
         queryKey: workLogsKeys.all,
         refetchType: 'active'
       });
+      
+      // ✅ CRÍTICO: Invalidar cache de payroll do evento afetado
+      if (eventId) {
+        queryClient.invalidateQueries({ 
+          queryKey: payrollKeys.event(eventId),
+          refetchType: 'active'
+        });
+        console.log('♻️ [WorkLogs] Invalidated payroll cache for event:', eventId);
+      }
       
       // ✅ FASE 3: Notificar outras abas
       broadcast(workLogsKeys.all);
