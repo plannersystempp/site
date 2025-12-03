@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { type Personnel, type Func } from '@/contexts/EnhancedDataContext';
 import { useMultipleSelection, type SelectedPerson } from '@/hooks/useMultipleSelection';
-import { formatPhoneNumber } from '@/utils/formatters';
 import { useTeam } from '@/contexts/TeamContext';
 import { PersonnelForm } from '@/components/personnel/PersonnelForm';
 interface MultiPersonnelSelectorProps {
@@ -99,8 +98,8 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
       </div>
 
       {/* Personnel List */}
-      <ScrollArea className={`h-[350px] md:h-[400px] w-full border rounded-md ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
-        <div className="p-2 md:p-4 space-y-2 md:space-y-3">
+      <ScrollArea className={`h-[60vh] md:h-[400px] w-full border rounded-md overflow-x-hidden ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
+        <div className="px-2 md:px-4 py-2 md:py-4 space-y-2 md:space-y-3">
           {(filteredPersonnel
             .filter(p => {
               if (!functionFilter) return true;
@@ -138,7 +137,7 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                         if (!wasSelected && functionFilter) {
                           updatePersonFunction(person.id, functionFilter);
                         }
-                      }} className="mt-0.5 md:mt-1 my-0 aspect-square self-center" />
+                      }} className="mt-0.5 md:mt-1 my-0 aspect-square self-center h-5 w-5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium text-sm truncate">
@@ -159,13 +158,12 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                         {/* Person Details */}
                         <div className="space-y-0.5 md:space-y-1 text-sm text-muted-foreground">
                           {person.email && <div className="truncate">{person.email}</div>}
-                          {person.phone && <div>{formatPhoneNumber(person.phone)}</div>}
                         </div>
 
                         {/* Functions */}
                         <div className="mt-1 md:mt-2">
                           <div className="text-sm text-muted-foreground mb-1">
-                            Função{availableFunctions.length > 1 ? 'ões' : ''} disponível{availableFunctions.length > 1 ? 'is' : ''}:
+                            {availableFunctions.length > 1 ? 'Funções disponíveis:' : 'Função disponível:'}
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {availableFunctions.slice(0, 3).map(func => <Badge key={func.id} variant="outline" className="text-sm">
@@ -186,7 +184,7 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
                           Função para este evento <span className="text-destructive">*</span>
                         </Label>
                         <Select value={selectedPerson?.selectedFunction || ''} onValueChange={functionName => updatePersonFunction(person.id, functionName)}>
-                          <SelectTrigger className="min-h-[44px] h-10 text-sm mt-1">
+                          <SelectTrigger className="min-h-[44px] h-11 text-sm mt-1">
                             <SelectValue placeholder="Selecione uma função" />
                           </SelectTrigger>
                           <SelectContent>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTeam } from '@/contexts/TeamContext';
@@ -42,6 +42,8 @@ const fetchPersonnelFunctions = async (personnelId: string, teamId: string) => {
 export const usePersonnelRealtime = () => {
   const queryClient = useQueryClient();
   const { activeTeam } = useTeam();
+  const lastStatusRef = useRef<string>('');
+  const fallbackIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!activeTeam?.id) return;
@@ -50,17 +52,20 @@ export const usePersonnelRealtime = () => {
     console.log('🔌 [Realtime Personnel] Connecting for team:', activeTeam.id);
 
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(`realtime-personnel-${activeTeam.id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'personnel',
-          filter: `team_id=eq.${activeTeam.id}`
+          table: 'personnel'
         },
         async (payload) => {
           const personnelId = (payload.new as any)?.id || (payload.old as any)?.id;
+          const newTeamId = (payload.new as any)?.team_id;
+          const oldTeamId = (payload.old as any)?.team_id;
+          const matchesTeam = newTeamId === activeTeam.id || oldTeamId === activeTeam.id;
+          if (!matchesTeam) return;
           
           console.log('🔄 [Realtime Personnel] Change detected:', {
             type: payload.eventType,
@@ -93,16 +98,55 @@ export const usePersonnelRealtime = () => {
         
         if (status === 'SUBSCRIBED') {
           logger.realtime.info('✅ [Realtime Personnel] Successfully subscribed');
+          lastStatusRef.current = status;
+          if (fallbackIntervalRef.current) {
+            clearInterval(fallbackIntervalRef.current);
+            fallbackIntervalRef.current = null;
+          }
         } else if (status === 'CHANNEL_ERROR') {
           logger.realtime.error('❌ [Realtime Personnel] Channel error');
+          lastStatusRef.current = status;
         } else if (status === 'TIMED_OUT') {
           logger.realtime.error('⏱️ [Realtime Personnel] Subscription timed out');
+          lastStatusRef.current = status;
+        } else if (status === 'CLOSED') {
+          lastStatusRef.current = status;
         }
       });
+
+    const functionsChannel = supabase
+      .channel(`realtime-personnel-functions-${activeTeam.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'personnel_functions',
+          filter: `team_id=eq.${activeTeam.id}`
+        },
+        async () => {
+          queryClient.invalidateQueries({ queryKey: personnelKeys.all, refetchType: 'active' });
+          queryClient.invalidateQueries({ queryKey: personnelKeys.all, refetchType: 'none' });
+        }
+      )
+      .subscribe();
+
+    if (!fallbackIntervalRef.current) {
+      fallbackIntervalRef.current = window.setInterval(() => {
+        if (lastStatusRef.current && lastStatusRef.current !== 'SUBSCRIBED') {
+          queryClient.invalidateQueries({ queryKey: personnelKeys.all, refetchType: 'active' });
+        }
+      }, 15000);
+    }
 
     return () => {
       console.log('🔌 [Realtime Personnel] Unsubscribing from personnel changes');
       supabase.removeChannel(channel);
+      supabase.removeChannel(functionsChannel);
+      if (fallbackIntervalRef.current) {
+        clearInterval(fallbackIntervalRef.current);
+        fallbackIntervalRef.current = null;
+      }
     };
   }, [activeTeam?.id, queryClient]);
 };

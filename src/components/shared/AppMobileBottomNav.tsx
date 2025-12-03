@@ -15,13 +15,14 @@ import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useTeam } from '@/contexts/TeamContext';
+import { canShowSuppliersModule } from '@/lib/permissions';
 
 // Menu inferior móvel com as principais rotas do app
 export function AppMobileBottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [moreSheetOpen, setMoreSheetOpen] = useState(false);
-  const { userRole, activeTeam } = useTeam();
+  const { userRole, activeTeam, memberCaps } = useTeam();
 
   // Rotas principais (abas fixas)
   const tabs = useMemo(() => {
@@ -40,13 +41,13 @@ export function AppMobileBottomNav() {
     ];
     
     return allTabs.filter(tab => {
-      // Coordenadores só veem fornecedores se a equipe permitir
+      // Coordenadores veem fornecedores se a equipe permitir ou se tiver acesso específico
       if (userRole === 'coordinator' && tab.path === '/app/fornecedores') {
-        return activeTeam?.allow_coordinators_suppliers === true;
+        return canShowSuppliersModule(userRole, activeTeam?.allow_coordinators_suppliers, memberCaps);
       }
       return true;
     });
-  }, [userRole, activeTeam]);
+  }, [userRole, activeTeam, memberCaps]);
 
   // Mais opções (sheet)
   const moreTabs = useMemo(() => {

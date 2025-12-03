@@ -23,6 +23,9 @@ export interface TeamContextType {
   activeTeam: Team | null;
   userRole: string | null;
   loading: boolean;
+  memberCaps?: {
+    canAccessSuppliers: boolean;
+  };
   setActiveTeam: (team: Team) => void;
   refreshTeams: () => Promise<void>;
   createTeam: (name: string) => Promise<Team>;

@@ -89,7 +89,7 @@ const platformItems = [
 export const AppSidebar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
-  const { userRole, activeTeam } = useTeam();
+  const { userRole, activeTeam, memberCaps } = useTeam();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showErrorReportDialog, setShowErrorReportDialog] = useState(false);
   const [payrollMenuOpen, setPayrollMenuOpen] = useState(
@@ -170,9 +170,9 @@ export const AppSidebar = () => {
                   if (userRole === 'coordinator') {
                     // Coordenadores não veem Funções
                     if (item.title === 'Funções') return false;
-                    // Fornecedores: só se a equipe permitir
+                    // Fornecedores: equipe permite ou coordenador específico autorizado
                     if (item.title === 'Fornecedores') {
-                      return activeTeam?.allow_coordinators_suppliers === true;
+                      return canShowSuppliersModule(userRole, activeTeam?.allow_coordinators_suppliers, memberCaps);
                     }
                   }
                   return true;
@@ -416,3 +416,4 @@ export const AppSidebar = () => {
     </Sidebar>
   );
 };
+import { canShowSuppliersModule } from '@/lib/permissions';

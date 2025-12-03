@@ -238,7 +238,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Banner de Aviso de Assinatura */}
+      {/* Banner de Aviso de Assinatura - ação disponível só para admin */}
       {!isSuperAdmin && subscription && subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0 && subscription.status !== 'trial_expired' && (
         <Card className="border-orange-200 bg-orange-50/50">
           <CardContent className="p-4">
@@ -254,13 +254,17 @@ const Dashboard = () => {
                     : `Sua assinatura ${subscription.planName} expira em ${subscription.daysUntilExpiration} dia(s). Renove agora para continuar usando o PlannerSystem sem interrupções.`
                   }
                 </p>
-                <Button 
-                  size="sm" 
-                  className="mt-3"
-                  onClick={() => navigate(subscription.status === 'trial' ? '/plans' : '/app/upgrade')}
-                >
-                  {subscription.status === 'trial' ? 'Escolher Plano' : 'Renovar Assinatura'}
-                </Button>
+                {userRole === 'admin' ? (
+                  <Button 
+                    size="sm" 
+                    className="mt-3"
+                    onClick={() => navigate(subscription.status === 'trial' ? '/plans' : '/upgrade')}
+                  >
+                    {subscription.status === 'trial' ? 'Escolher Plano' : 'Renovar Assinatura'}
+                  </Button>
+                ) : (
+                  <p className="text-xs text-orange-700 mt-2">Apenas o administrador pode alterar o plano. Solicite a renovação ao admin.</p>
+                )}
               </div>
             </div>
           </CardContent>

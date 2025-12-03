@@ -52,6 +52,8 @@ import MonthlyPayrollPage from './pages/MonthlyPayrollPage';
 import PaymentForecastPage from './pages/PaymentForecastPage';
 import { useRealtimeSync } from './hooks/queries/useRealtimeSync';
 import { SetDemoRoleAdmin } from './pages/SetDemoRoleAdmin';
+import { useTeam } from './contexts/TeamContext';
+import { canShowSuppliersModule } from './lib/permissions';
 
 
 
@@ -88,6 +90,17 @@ const RouteRestorer = () => {
   }, [navigate, location.pathname]);
   
   return null;
+};
+
+const SuppliersGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { userRole, activeTeam, memberCaps } = useTeam();
+  const allowed = canShowSuppliersModule(userRole, activeTeam?.allow_coordinators_suppliers, memberCaps);
+  return allowed ? <>{children}</> : <Navigate to="/app" replace />;
+};
+
+const AdminGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { userRole } = useTeam();
+  return userRole === 'admin' ? <>{children}</> : <Navigate to="/app" replace />;
 };
 
 const PendingApprovalMessage = () => {
@@ -299,7 +312,30 @@ const AppContent = () => {
               } />
               <Route path="/fornecedores" element={
                 <RouteErrorBoundary routeName="Fornecedores">
-                  <ManageSuppliers />
+                  <SuppliersGuard>
+                    <ManageSuppliers />
+                  </SuppliersGuard>
+                </RouteErrorBoundary>
+              } />
+              <Route path="/upgrade" element={
+                <RouteErrorBoundary routeName="Upgrade">
+                  <AdminGuard>
+                    <UpgradePlan />
+                  </AdminGuard>
+                </RouteErrorBoundary>
+              } />
+              <Route path="/plans" element={
+                <RouteErrorBoundary routeName="Planos">
+                  <AdminGuard>
+                    <PlansPage />
+                  </AdminGuard>
+                </RouteErrorBoundary>
+              } />
+              <Route path="/subscription" element={
+                <RouteErrorBoundary routeName="Assinatura">
+                  <AdminGuard>
+                    <ManageSubscription />
+                  </AdminGuard>
                 </RouteErrorBoundary>
               } />
               <Route path="/custos" element={

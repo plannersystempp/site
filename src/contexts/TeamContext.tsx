@@ -15,6 +15,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [memberCaps, setMemberCaps] = useState<{ canAccessSuppliers: boolean } | undefined>(undefined);
 
   const {
     inviteUserToTeam,
@@ -55,11 +56,13 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // If we have approved memberships, use the most recent one
       if (memberships && memberships.length > 0) {
         const team = memberships[0].teams as unknown as Team;
-        const role = memberships[0].role;
+        const role = user.role === 'admin' ? 'admin' : memberships[0].role;
+        const caps = { canAccessSuppliers: !!(memberships[0] as any).can_access_suppliers };
         
         console.log('[TeamContext] Found approved membership - Team:', team.name, 'Role:', role);
         setActiveTeam(team);
         setUserRole(role);
+        setMemberCaps(caps);
         setLoading(false);
         return;
       }
@@ -81,16 +84,38 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const team = ownedTeams[0];
         console.log('[TeamContext] User is owner of team:', team.name);
         setActiveTeam(team);
-        setUserRole('admin'); // Owners are always admin
+        setUserRole('admin');
+        setMemberCaps({ canAccessSuppliers: true });
       } else {
-        console.log('[TeamContext] No teams found for user - no membership or ownership');
-        setActiveTeam(null);
-        setUserRole(null);
+        console.log('[TeamContext] No owned teams. Checking any membership regardless of status');
+        const { data: anyMemberships, error: anyMembershipsError } = await supabase
+          .from('team_members')
+          .select('joined_at, role, status, teams!inner(*)')
+          .eq('user_id', user.id)
+          .order('joined_at', { ascending: false });
+
+        if (anyMembershipsError) {
+          console.error('[TeamContext] Error fetching any memberships:', anyMembershipsError);
+          setActiveTeam(null);
+          setUserRole(null);
+        } else if (anyMemberships && anyMemberships.length > 0) {
+          const team = anyMemberships[0].teams as unknown as Team;
+          const role = user.role === 'admin' ? 'admin' : anyMemberships[0].role;
+          console.log('[TeamContext] Using latest membership regardless of status - Team:', team.name, 'Role:', role);
+          setActiveTeam(team);
+          setUserRole(role);
+          setMemberCaps({ canAccessSuppliers: !!(anyMemberships[0] as any).can_access_suppliers });
+        } else {
+          console.log('[TeamContext] No teams found for user - no membership or ownership');
+          setActiveTeam(null);
+          setUserRole(null);
+        }
       }
     } catch (error) {
       console.error('[TeamContext] Error in refreshTeams:', error);
       setActiveTeam(null);
       setUserRole(null);
+      setMemberCaps(undefined);
     } finally {
       setLoading(false);
     }
@@ -109,6 +134,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else {
       setActiveTeam(null);
       setUserRole(null);
+      setMemberCaps(undefined);
       setLoading(false);
     }
   }, [user]);
@@ -144,6 +170,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     activeTeam,
     userRole,
     loading,
+    memberCaps,
     setActiveTeam: () => {}, // No longer needed since there's only one team
     refreshTeams,
     createTeam: async () => { throw new Error('Team creation not supported in single-team mode'); },

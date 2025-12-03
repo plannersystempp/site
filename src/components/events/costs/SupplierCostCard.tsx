@@ -7,6 +7,7 @@ import { Edit, Package } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { EventSupplierCost } from '@/contexts/data/types';
 import { formatDateBR } from '@/utils/dateUtils';
+import { differenceInCalendarDays } from 'date-fns';
 import { formatCurrency } from '@/utils/formatters';
 
 interface SupplierCostCardProps {
@@ -85,11 +86,23 @@ export const SupplierCostCard: React.FC<SupplierCostCardProps> = ({ cost, onEdit
           </span>
         </div>
 
-        {cost.payment_date && (
+        {cost.payment_date && (cost.payment_status === 'paid' || cost.payment_status === 'partially_paid') && (
           <div className="text-xs text-muted-foreground">
             Pago em: {formatDateBR(cost.payment_date)}
           </div>
         )}
+        {cost.payment_date && cost.payment_status === 'pending' && (() => {
+          const payDate = new Date(cost.payment_date);
+          const daysDiff = differenceInCalendarDays(payDate, new Date());
+          const isOverdue = daysDiff < 0;
+          return (
+            <div className={`text-xs ${isOverdue ? 'text-red-600' : 'text-blue-600'}`}>
+              {isOverdue
+                ? `Vencido em: ${formatDateBR(cost.payment_date)} (${Math.abs(daysDiff)} dia(s) de atraso)`
+                : `Agendado para: ${formatDateBR(cost.payment_date)} (em ${daysDiff} dia(s))`}
+            </div>
+          );
+        })()}
 
         {cost.notes && (
           <div className="text-xs text-muted-foreground pt-2 border-t">

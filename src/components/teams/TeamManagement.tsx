@@ -9,7 +9,7 @@ import { ApprovalStatusBadge } from '@/components/shared/ApprovalStatusBadge';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User, Loader2, Package } from 'lucide-react';
+import { UserPlus, Trash2, Users, Mail, Settings, Crown, Check, X, Clock, DollarSign, RefreshCw, MoreVertical, Edit, UserMinus, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { NoTeamSelected } from '@/components/shared/NoTeamSelected';
@@ -24,6 +24,7 @@ interface TeamMemberWithProfile {
   role: 'admin' | 'coordinator' | 'financeiro';
   status: 'pending' | 'approved' | 'rejected';
   joined_at: string;
+  can_access_suppliers?: boolean;
   user_profiles: {
     name: string;
     email: string;
@@ -50,45 +51,7 @@ export const TeamManagement: React.FC = () => {
   const [userToApprove, setUserToApprove] = useState<{userId: string, userName: string} | null>(null);
   const [selectedRoleForApproval, setSelectedRoleForApproval] = useState<'admin' | 'coordinator' | 'financeiro'>('coordinator');
   
-  // Estado para controle de acesso de coordenadores ao módulo de fornecedores
-  const [allowCoordinatorsSuppliers, setAllowCoordinatorsSuppliers] = useState(activeTeam?.allow_coordinators_suppliers || false);
-  
-  // Sincronizar estado quando activeTeam mudar
-  useEffect(() => {
-    if (activeTeam) {
-      setAllowCoordinatorsSuppliers(activeTeam.allow_coordinators_suppliers || false);
-    }
-  }, [activeTeam]);
-
-  const handleToggleSuppliersAccess = async (enabled: boolean) => {
-    if (!activeTeam) return;
-    
-    try {
-      const { error } = await supabase
-        .from('teams')
-        .update({ allow_coordinators_suppliers: enabled })
-        .eq('id', activeTeam.id);
-      
-      if (error) throw error;
-      
-      setAllowCoordinatorsSuppliers(enabled);
-      await refreshTeams(); // Atualizar contexto
-      
-      toast({
-        title: enabled ? "Acesso liberado" : "Acesso restrito",
-        description: enabled 
-          ? "Coordenadores agora podem acessar o módulo de Fornecedores" 
-          : "Coordenadores não podem mais acessar o módulo de Fornecedores"
-      });
-    } catch (error) {
-      console.error('Error updating suppliers access:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao atualizar permissões",
-        variant: "destructive"
-      });
-    }
-  };
+  // Removido: controle global de acesso de coordenadores ao módulo de fornecedores (usamos apenas por membro)
 
   const fetchMembers = async () => {
     if (!activeTeam) return;
@@ -99,12 +62,41 @@ export const TeamManagement: React.FC = () => {
       // Fetch team members
       const { data: teamMembers, error: membersError } = await supabase
         .from('team_members')
-        .select('team_id, user_id, role, status, joined_at')
+        .select('team_id, user_id, role, status, joined_at, can_access_suppliers')
         .eq('team_id', activeTeam.id);
 
       if (membersError) {
         console.error('Error fetching team members:', membersError);
         throw membersError;
+      }
+
+      // Auto-reparo: garantir que o dono da equipe possui registro em team_members
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const isOwner = authUser?.id === activeTeam.owner_id;
+      const hasOwnerMembership = (teamMembers || []).some(m => m.user_id === activeTeam.owner_id);
+      if (isOwner && !hasOwnerMembership) {
+        try {
+          const { error: insertErr } = await supabase
+            .from('team_members')
+            .insert({
+              team_id: activeTeam.id,
+              user_id: activeTeam.owner_id,
+              role: 'admin',
+              status: 'approved',
+              joined_at: new Date().toISOString()
+            });
+          if (!insertErr) {
+            const { data: refreshedMembers } = await supabase
+              .from('team_members')
+              .select('team_id, user_id, role, status, joined_at, can_access_suppliers')
+              .eq('team_id', activeTeam.id);
+            if (refreshedMembers) {
+              teamMembers.splice(0, teamMembers.length, ...refreshedMembers);
+            }
+          }
+        } catch (e) {
+          console.warn('Falha ao criar membership do dono automaticamente:', e);
+        }
       }
 
       if (!teamMembers || teamMembers.length === 0) {
@@ -244,6 +236,23 @@ export const TeamManagement: React.FC = () => {
   const handleChangeRole = (userId: string, userName: string, currentRole: string) => {
     setSelectedMember({ userId, name: userName, currentRole });
     setRoleDialogOpen(true);
+  };
+
+  const handleToggleMemberSuppliersAccess = async (userId: string, enabled: boolean) => {
+    if (!activeTeam) return;
+    try {
+      const { error } = await supabase
+        .from('team_members')
+        .update({ can_access_suppliers: enabled })
+        .eq('team_id', activeTeam.id)
+        .eq('user_id', userId);
+      if (error) throw error;
+      setMembers(prev => prev.map(m => m.user_id === userId ? { ...m, can_access_suppliers: enabled } : m));
+      toast({ title: enabled ? 'Acesso habilitado' : 'Acesso desabilitado', description: 'Permissão de Fornecedores atualizada para o coordenador.' });
+    } catch (error) {
+      console.error('Error updating member suppliers access:', error);
+      toast({ title: 'Erro', description: 'Falha ao atualizar permissão', variant: 'destructive' });
+    }
   };
 
   const handleRoleChange = async (newRole: 'admin' | 'coordinator' | 'financeiro') => {
@@ -503,37 +512,7 @@ export const TeamManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Seção de Configurações da Equipe */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Configurações da Equipe
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <Package className="w-5 h-5 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="suppliers-access" className="text-base font-medium">
-                  Acesso de Coordenadores ao Módulo de Fornecedores
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Permite que coordenadores visualizem e gerenciem fornecedores da equipe
-                </p>
-              </div>
-            </div>
-            <Switch
-              id="suppliers-access"
-              checked={allowCoordinatorsSuppliers}
-              onCheckedChange={handleToggleSuppliersAccess}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Configurações removidas: acesso global a Fornecedores (mantemos controle por coordenador ao lado de cada membro) */}
 
       {/* Seção de Solicitações Pendentes - sempre visível */}
       <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20">
@@ -748,6 +727,16 @@ export const TeamManagement: React.FC = () => {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                      )}
+                      {member.role === 'coordinator' && (
+                        <div className="flex items-center gap-2 pl-2 border-l">
+                          <Label htmlFor={`member-${member.user_id}-suppliers`} className="text-xs">Fornecedores</Label>
+                          <Switch
+                            id={`member-${member.user_id}-suppliers`}
+                            checked={!!member.can_access_suppliers}
+                            onCheckedChange={(v) => handleToggleMemberSuppliersAccess(member.user_id, v)}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
