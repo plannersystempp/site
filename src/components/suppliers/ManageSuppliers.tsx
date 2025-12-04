@@ -109,7 +109,7 @@ export const ManageSuppliers: React.FC = () => {
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 pointer-events-none" />
         <Input
           placeholder="Buscar por nome, CNPJ, contato, email ou cidade..."
           value={searchTerm}
