@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -20,14 +20,27 @@ export const ManageSuppliers: React.FC = () => {
 
   const isAdmin = user?.role === 'admin';
 
-  const filteredSuppliers = suppliers.filter(supplier =>
-    supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.legal_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.cnpj?.includes(searchTerm.replace(/\D/g, '')) ||
-    supplier.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.address_city?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const filteredSuppliers = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return suppliers;
+    }
+    
+    const term = searchTerm.toLowerCase().trim();
+    const termDigitsOnly = searchTerm.replace(/\D/g, '');
+    
+    return suppliers.filter(supplier =>
+      supplier.name.toLowerCase().includes(term) ||
+      supplier.legal_name?.toLowerCase().includes(term) ||
+      (termDigitsOnly && supplier.cnpj?.includes(termDigitsOnly)) ||
+      supplier.contact_person?.toLowerCase().includes(term) ||
+      supplier.email?.toLowerCase().includes(term) ||
+      supplier.address_city?.toLowerCase().includes(term)
+    );
+  }, [suppliers, searchTerm]);
 
   const exportData = filteredSuppliers.map(supplier => ({
     nome_fantasia: supplier.name,
@@ -113,7 +126,7 @@ export const ManageSuppliers: React.FC = () => {
         <Input
           placeholder="Buscar por nome, CNPJ, contato, email ou cidade..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           className="pl-9"
         />
       </div>
