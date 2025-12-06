@@ -22,8 +22,9 @@ export const CostChart: React.FC<CostChartProps> = ({ data }) => {
 
   const formatTooltip = (value: number, name: string) => {
     const labels: { [key: string]: string } = {
-      totalCost: 'Custo Total',
-      overtimeCost: 'Horas Extras'
+      baseCost: 'Cachês',
+      overtimeCost: 'Horas Extras',
+      supplierCost: 'Fornecedores'
     };
     return [formatCurrency(value), labels[name] || name];
   };
@@ -76,16 +77,25 @@ export const CostChart: React.FC<CostChartProps> = ({ data }) => {
             wrapperStyle={{ fontSize: '12px' }}
           />
           <Bar 
-            dataKey="totalCost" 
+            dataKey="baseCost" 
             fill="#3b82f6" 
-            name="Custo Total"
+            name="Cachês"
             radius={[4, 4, 4, 4]}
+            stackId="a"
           />
           <Bar 
             dataKey="overtimeCost" 
             fill="#f97316" 
             name="Horas Extras"
             radius={[4, 4, 4, 4]}
+            stackId="a"
+          />
+          <Bar 
+            dataKey="supplierCost" 
+            fill="#ec4899" 
+            name="Fornecedores"
+            radius={[4, 4, 4, 4]}
+            stackId="a"
           />
         </BarChart>
       </ResponsiveContainer>

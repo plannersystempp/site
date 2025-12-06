@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
+import { encode as encodeHex } from 'https://deno.land/std@0.168.0/encoding/hex.ts'
 
 // Configuração CORS aprimorada
 const corsHeaders = {
@@ -28,9 +29,9 @@ serve(async (req) => {
       )
     }
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
     if (!supabaseUrl || !supabaseAnonKey) {
       return new Response(
@@ -47,6 +48,8 @@ serve(async (req) => {
         headers: { Authorization: authHeader },
       },
     })
+
+    const serviceClient = supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : null
 
     // Verify the user is authenticated
     const {
@@ -87,7 +90,6 @@ serve(async (req) => {
       )
     }
 
-    // Updated table list based on current schema
     const tables: { tablename: string }[] = [
       { tablename: 'users' },
       { tablename: 'teams' },
@@ -109,11 +111,14 @@ serve(async (req) => {
       { tablename: 'absences' },
       { tablename: 'personnel_payments' },
       { tablename: 'event_divisions' },
-      { tablename: 'personnel_functions' }
+      { tablename: 'personnel_functions' },
+      { tablename: 'error_reports' },
+      { tablename: 'notification_settings' }
     ]
 
     const backupData: Record<string, any> = {}
     const backupTimestamp = new Date().toISOString()
+    const start = Date.now()
 
     // Backup each table with error handling
     for (const table of tables) {
@@ -145,7 +150,6 @@ serve(async (req) => {
       }
     }
 
-    // Create backup metadata
     const successfulTables = Object.values(backupData).filter((t: any) => !t.error).length
     const failedTables = Object.values(backupData).filter((t: any) => t.error).length
 
@@ -157,40 +161,136 @@ serve(async (req) => {
       successfulTables: successfulTables,
       failedTables: failedTables,
       databaseSize: JSON.stringify(backupData).length,
+      durationMs: Date.now() - start
     }
 
-    // Create the complete backup object
     const completeBackup = {
       metadata: backupMetadata,
       data: backupData,
-      version: '1.1',
+      version: '2.0',
       format: 'planner-system-backup'
     }
 
-    // Log the backup in audit_logs
+    const jsonString = JSON.stringify(completeBackup)
+    const jsonBytes = new TextEncoder().encode(jsonString)
+    const checksumBuf = await crypto.subtle.digest('SHA-256', jsonBytes)
+    const checksum = new TextDecoder().decode(encodeHex(new Uint8Array(checksumBuf)))
+    const gzipStream = new CompressionStream('gzip')
+    const gzipped = await new Response(new Blob([jsonBytes]).stream().pipeThrough(gzipStream)).arrayBuffer()
+    const gzBytes = new Uint8Array(gzipped)
+    let sqlText = ''
+    for (const t of tables) {
+      const name = t.tablename
+      const entry = backupData[name]
+      if (entry && entry.data && Array.isArray(entry.data) && entry.data.length > 0) {
+        for (const row of entry.data) {
+          const cols = Object.keys(row)
+          const vals = cols.map(c => toSqlValue(row[c]))
+          sqlText += `INSERT INTO ${name} (${cols.map(c=>`"${c}"`).join(',')}) VALUES (${vals.join(',')});\n`
+        }
+      }
+    }
+    const sqlBytes = new TextEncoder().encode(sqlText)
+    const sqlGzip = await new Response(new Blob([sqlBytes]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()
+    const sqlGzBytes = new Uint8Array(sqlGzip)
+
+    let fileKey: string | null = null
+    let fileSize: number | null = null
+    let signedUrl: string | null = null
+    let sqlFileKey: string | null = null
+
+    if (serviceClient) {
+      const bucketName = 'backups'
+      const ensureBucket = await serviceClient.storage.getBucket(bucketName)
+      if (!ensureBucket.data) {
+        await serviceClient.storage.createBucket(bucketName, { public: false })
+      }
+      const base = `backup_${backupTimestamp.replace(/[:.]/g,'-')}`
+      const fileName = `${base}.json.gz`
+      fileKey = fileName
+      const upload = await serviceClient.storage.from(bucketName).upload(fileName, gzBytes, { contentType: 'application/gzip', upsert: true })
+      if (!upload.error) {
+        fileSize = gzBytes.byteLength
+        const signed = await serviceClient.storage.from(bucketName).createSignedUrl(fileName, 60 * 60)
+        signedUrl = signed.data?.signedUrl || null
+      }
+      const sqlName = `${base}.sql.gz`
+      sqlFileKey = sqlName
+      await serviceClient.storage.from(bucketName).upload(sqlName, sqlGzBytes, { contentType: 'application/gzip', upsert: true })
+      const retentionSet = await serviceClient.from('backup_settings').select('*').limit(1).maybeSingle()
+      const retentionDays = retentionSet.data?.retention_days ?? 30
+      const maxBackups = retentionSet.data?.max_backups ?? 20
+      const expiresAt = new Date(Date.now() + retentionDays * 24 * 60 * 60 * 1000).toISOString()
+      await serviceClient.from('backup_logs').insert({
+        status: 'success',
+        file_key: fileKey,
+        file_name: fileKey,
+        file_size: fileSize,
+        checksum,
+        format: 'json',
+        compressed: true,
+        triggered_by: user.id,
+        retention_expires_at: expiresAt,
+        metadata: backupMetadata
+      })
+      await serviceClient.from('backup_logs').insert({
+        status: 'success',
+        file_key: sqlFileKey,
+        file_name: sqlFileKey,
+        file_size: sqlGzBytes.byteLength,
+        checksum,
+        format: 'sql',
+        compressed: true,
+        triggered_by: user.id,
+        retention_expires_at: expiresAt,
+        metadata: backupMetadata
+      })
+      const existing = await serviceClient.storage.from(bucketName).list('', { limit: 1000 })
+      if (!existing.error && existing.data) {
+        const sorted = [...existing.data].sort((a,b)=> a.name.localeCompare(b.name))
+        if (sorted.length > maxBackups) {
+          const toDelete = sorted.slice(0, sorted.length - maxBackups)
+          for (const f of toDelete) {
+            await serviceClient.storage.from(bucketName).remove([f.name])
+          }
+        }
+      }
+    }
+
     try {
       await supabaseClient.from('audit_logs').insert({
         user_id: user.id,
         action: 'database_backup',
         table_name: 'database',
-        new_values: backupMetadata,
+        new_values: { ...backupMetadata, checksum },
         created_at: backupTimestamp,
       })
-    } catch (logError) {
-      console.error('Erro ao registrar log de auditoria:', logError)
-    }
+    } catch {}
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         backup: completeBackup,
-        downloadUrl: null
+        downloadUrl: signedUrl,
+        fileKey,
+        checksum,
+        sqlFileKey
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
     )
+
+function toSqlValue(v: any): string {
+  if (v === null || v === undefined) return 'NULL'
+  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'NULL'
+  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE'
+  if (v instanceof Date) return `'${v.toISOString().replace("'", "''")}'`
+  if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'`
+  const s = String(v)
+  return `'${s.replace(/'/g, "''")}'`
+}
 
   } catch (error: any) {
     console.error('Erro no backup do banco de dados:', error)

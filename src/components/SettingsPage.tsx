@@ -15,9 +15,11 @@ import { DangerZone } from '@/components/admin/DangerZone';
 import { TeamPayrollConfig } from './settings/TeamPayrollConfig';
 import { NotificationSettings } from './settings/NotificationSettings';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useTeam } from '@/contexts/TeamContext';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
+  const { userRole } = useTeam();
   const navigate = useNavigate();
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -186,7 +188,9 @@ export const SettingsPage: React.FC = () => {
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
-          <TabsTrigger value="payroll">Folha</TabsTrigger>
+          {userRole === 'admin' && (
+            <TabsTrigger value="payroll">Folha</TabsTrigger>
+          )}
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
           <TabsTrigger value="account">Conta</TabsTrigger>
         </TabsList>
@@ -242,18 +246,20 @@ export const SettingsPage: React.FC = () => {
                   <SettingsIcon className="w-4 h-4 mr-2" />
                   Notificações
                 </Button>
-                <Button
-                  variant={activeTab === 'payroll' ? 'default' : 'ghost'}
-                  className="justify-start touch-manipulation"
-                  style={{ touchAction: 'manipulation' }}
-                  onClick={() => {
-                    setActiveTab('payroll');
-                    setIsMenuOpen(false);
-                  }}
-                >
-                  <SettingsIcon className="w-4 h-4 mr-2" />
-                  Folha
-                </Button>
+                {userRole === 'admin' && (
+                  <Button
+                    variant={activeTab === 'payroll' ? 'default' : 'ghost'}
+                    className="justify-start touch-manipulation"
+                    style={{ touchAction: 'manipulation' }}
+                    onClick={() => {
+                      setActiveTab('payroll');
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <SettingsIcon className="w-4 h-4 mr-2" />
+                    Folha
+                  </Button>
+                )}
                 <Button
                   variant={activeTab === 'subscription' ? 'default' : 'ghost'}
                   className="justify-start touch-manipulation"
@@ -391,7 +397,20 @@ export const SettingsPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="payroll">
-          <TeamPayrollConfig />
+          {userRole === 'admin' ? (
+            <TeamPayrollConfig />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Acesso restrito</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Apenas administradores podem alterar configurações de horas extras e de folha.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="subscription">

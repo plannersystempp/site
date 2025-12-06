@@ -2,12 +2,12 @@
 import React, { useMemo } from 'react';
 import { useEnhancedData } from '@/contexts/EnhancedDataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, Calendar, Users } from 'lucide-react';
+import { DollarSign, TrendingUp, Calendar, Users, Package } from 'lucide-react';
 import { CostChart } from './CostChart';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 export const EstimatedCosts: React.FC = () => {
-  const { events, assignments, personnel, workLogs, loading } = useEnhancedData();
+  const { events, assignments, personnel, workLogs, eventSupplierCosts, loading } = useEnhancedData();
 
   if (loading) {
     return <LoadingSpinner />;
@@ -31,6 +31,7 @@ export const EstimatedCosts: React.FC = () => {
     const data = events.map(event => {
       let baseCost = 0;
       let overtimeCost = 0;
+      let supplierCost = 0;
 
       const eventAssignments = assignments.filter(a => a.event_id === event.id);
 
@@ -52,22 +53,29 @@ export const EstimatedCosts: React.FC = () => {
         });
       });
 
+      const supplierItems = eventSupplierCosts.filter(c => c.event_id === event.id);
+      supplierItems.forEach(item => {
+        supplierCost += item.total_amount || 0;
+      });
+
       return {
         name: event.name,
         start_date: event.start_date,
         baseCost,
         overtimeCost,
-        totalCost: baseCost + overtimeCost,
+        supplierCost,
+        totalCost: baseCost + overtimeCost + supplierCost,
       };
     });
     
     return data.sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()).slice(-10);
-  }, [events, personnel, assignments, workLogs, loading]);
+  }, [events, personnel, assignments, workLogs, eventSupplierCosts, loading]);
 
   const chartData = costData.map(event => ({
     name: event.name,
     baseCost: event.baseCost,
     overtimeCost: event.overtimeCost,
+    supplierCost: (event as any).supplierCost || 0,
     totalCost: event.totalCost,
     date: event.start_date
   }));
@@ -75,6 +83,7 @@ export const EstimatedCosts: React.FC = () => {
   const totalCost = useMemo(() => costData.reduce((sum, d) => sum + d.totalCost, 0), [costData]);
   const totalBaseCost = useMemo(() => costData.reduce((sum, d) => sum + d.baseCost, 0), [costData]);
   const totalOvertimeCost = useMemo(() => costData.reduce((sum, d) => sum + d.overtimeCost, 0), [costData]);
+  const totalSupplierCost = useMemo(() => costData.reduce((sum, d: any) => sum + (d.supplierCost || 0), 0), [costData]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -136,6 +145,20 @@ export const EstimatedCosts: React.FC = () => {
         <Card className="min-h-[100px]">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Package className="w-4 h-4 text-pink-500 flex-shrink-0" />
+              <span className="truncate">Fornecedores</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-sm sm:text-lg lg:text-2xl font-bold text-pink-600 leading-tight">
+              {formatCurrency(totalSupplierCost)}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="min-h-[100px]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Calendar className="w-4 h-4 text-purple-500 flex-shrink-0" />
               <span className="truncate">Eventos</span>
             </CardTitle>
@@ -173,6 +196,10 @@ export const EstimatedCosts: React.FC = () => {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 sm:w-4 sm:h-4 bg-orange-500 rounded flex-shrink-0"></div>
               <span>Custo de Horas Extras</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-pink-500 rounded flex-shrink-0"></div>
+              <span>Custos de Fornecedores (incluídos no total)</span>
             </div>
           </div>
         </CardContent>

@@ -17,7 +17,7 @@ interface TeamPayrollConfigData {
 }
 
 export const TeamPayrollConfig: React.FC = () => {
-  const { activeTeam } = useTeam();
+  const { activeTeam, userRole } = useTeam();
   const { toast } = useToast();
   const [config, setConfig] = useState<TeamPayrollConfigData>({
     threshold: 8,
@@ -100,6 +100,21 @@ export const TeamPayrollConfig: React.FC = () => {
       <Card>
         <CardContent className="p-6">
           <p className="text-muted-foreground">Carregando configurações...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (userRole !== 'admin') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Acesso restrito</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Apenas administradores podem alterar configurações de horas extras e de folha.
+          </p>
         </CardContent>
       </Card>
     );

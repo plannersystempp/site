@@ -289,9 +289,9 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return;
     }
 
+    let startedLoadingFlag = !isInitialized;
     try {
-      // Only set loading true for the very first data fetch
-      if (!isInitialized) {
+      if (startedLoadingFlag) {
         setLoading(true);
       }
       console.log('Initializing data for:', isSuperAdmin ? 'super admin (all teams)' : `team: ${activeTeam?.id}`);
@@ -535,8 +535,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         variant: "destructive"
       });
     } finally {
-      // Only set loading false if it was set true (i.e., first initialization)
-      if (!isInitialized) {
+      if (startedLoadingFlag) {
         setLoading(false);
       }
     }

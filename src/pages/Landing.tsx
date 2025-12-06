@@ -56,33 +56,32 @@ export const Landing: React.FC = () => {
       <div className="h-14 sm:h-16 lg:h-20" />
 
       {/* Hero Section */}
-      <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-16 lg:py-24">
+      <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
-          {/* Content Column */}
-          <div className="space-y-8 sm:space-y-8 lg:space-y-10">
+          <div className="space-y-7 sm:space-y-7 lg:space-y-8">
             <div className="space-y-6 sm:space-y-6">
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
                 <span className="bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
                   Sistema Completo de Gestão de Eventos
                 </span>
                 <br />
                 <span className="text-foreground">Eficiência Total em Eventos e Equipes</span>
               </h1>
-              <p className="text-base sm:text-lg lg:text-2xl text-muted-foreground leading-relaxed max-w-2xl">
+              <p className="text-sm sm:text-base lg:text-xl text-muted-foreground leading-relaxed max-w-2xl">
                 Controle completo de pessoal, custos e folha de pagamento para seus eventos em 
                 <span className="text-primary font-semibold"> uma única plataforma</span>
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-4 lg:gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 lg:gap-6">
               <Link to="/plans">
-                <Button size="lg" className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto group touch-manipulation">
+                <Button size="lg" className="px-5 sm:px-6 py-3 sm:py-3 text-sm sm:text-base lg:text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto group touch-manipulation">
                   Ver Planos
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button size="lg" variant="outline" className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold border-2 hover:bg-primary/5 transition-all duration-300 w-full sm:w-auto group touch-manipulation">
+                <Button size="lg" variant="outline" className="px-5 sm:px-6 py-3 sm:py-3 text-sm sm:text-base lg:text-base font-semibold border-2 hover:bg-primary/5 transition-all duration-300 w-full sm:w-auto group touch-manipulation">
                   <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 group-hover:scale-110 transition-transform" />
                   Começar Grátis (Trial 15 Dias)
                 </Button>
@@ -90,8 +89,18 @@ export const Landing: React.FC = () => {
             </div>
           </div>
 
-          {/* System Preview Column removido temporariamente */}
-          {/* Conteúdo de preview virá posteriormente quando houver imagem */}
+          <div className="relative w-full flex items-center justify-center lg:justify-end mb-8 sm:mb-10 lg:mb-0">
+            <div className="absolute inset-0 -z-10 blur-2xl opacity-30 bg-gradient-to-br from-primary/40 via-chart-blue/40 to-chart-purple/40 rounded-[48px]" />
+            <div className="w-full max-w-xs sm:max-w-sm lg:max-w-sm xl:max-w-md rounded-2xl shadow-xl">
+              <img
+                src="/images/landing/hero-tablet.png.png"
+                alt="Profissional segurando um tablet com a tela do sistema PlannerSystem"
+                className="w-full h-auto object-contain object-center p-1"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+          </div>
         </div>
       </section>
 

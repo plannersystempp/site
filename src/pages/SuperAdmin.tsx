@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp, Edit2, Loader2, Filter, Building2, DollarSign, Database } from 'lucide-react';
+import { Users, UserCheck, UserX, Trash2, Mail, UserCog, Shield, UserPlus, UserMinus, Menu, Bug, LayoutDashboard, Search, TrendingUp, Edit2, Loader2, Filter, Building2, DollarSign, Database, HardDriveDownload } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -25,6 +25,7 @@ import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { MobileBottomNav } from '@/components/admin/mobile/MobileBottomNav';
 import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { triggerBackup, listBackups, restoreBackup } from '@/services/backupService';
 
 // Lazy load das abas para otimizar performance (Fase 11)
 const LazyMonitoringDashboard = lazy(() => import('@/components/admin/MonitoringDashboard').then(m => ({ default: m.MonitoringDashboard })));
@@ -95,6 +96,9 @@ export default function SuperAdmin() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [backups, setBackups] = useState<any[]>([]);
+  const [restoringKey, setRestoringKey] = useState<string | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const debouncedUserSearch = useDebounce(userSearchQuery, 300);
@@ -320,6 +324,7 @@ export default function SuperAdmin() {
     console.info('[SuperAdmin] Componente montado');
     fetchUsers();
     fetchTeams();
+    fetchBackups();
   }, []);
 
   useEffect(() => {
@@ -363,6 +368,40 @@ export default function SuperAdmin() {
   const handleNavigateFromSearch = (tab: string, id?: string) => {
     setActiveTab(tab);
     // TODO: Scroll to item if id is provided
+  };
+
+  const fetchBackups = async () => {
+    try {
+      const data = await listBackups(100);
+      setBackups(data);
+    } catch (e: any) {
+      toast({ title: 'Erro', description: e?.message || 'Falha ao listar backups', variant: 'destructive' });
+    }
+  };
+
+  const handleBackupNow = async () => {
+    setBackupLoading(true);
+    try {
+      const res = await triggerBackup({});
+      toast({ title: 'Backup iniciado', description: 'Arquivo gerado', });
+      await fetchBackups();
+    } catch (e: any) {
+      toast({ title: 'Erro no backup', description: e?.message || 'Falha ao executar backup', variant: 'destructive' });
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
+  const handleRestore = async (fileKey: string, format: 'json'|'sql') => {
+    setRestoringKey(fileKey);
+    try {
+      await restoreBackup(fileKey, format);
+      toast({ title: 'Restauração concluída', description: 'Dados restaurados com sucesso' });
+    } catch (e: any) {
+      toast({ title: 'Erro na restauração', description: e?.message || 'Falha ao restaurar backup', variant: 'destructive' });
+    } finally {
+      setRestoringKey(null);
+    }
   };
 
   return (
@@ -567,7 +606,7 @@ export default function SuperAdmin() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
-        <TabsList className="hidden md:grid w-full md:grid-cols-11">
+        <TabsList className="hidden md:grid w-full md:grid-cols-12">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
@@ -579,6 +618,7 @@ export default function SuperAdmin() {
           <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
           <TabsTrigger value="error-reports">Reportes</TabsTrigger>
+          <TabsTrigger value="backups">Backups</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6 animate-in fade-in duration-300">
@@ -1100,6 +1140,66 @@ export default function SuperAdmin() {
           <Suspense fallback={<LoadingSpinner />}>
             <LazyErrorReportsManagement />
           </Suspense>
+        </TabsContent>
+
+        <TabsContent value="backups" className="space-y-6 animate-in fade-in duration-300">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><HardDriveDownload className="h-5 w-5" /> Backups do Banco de Dados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3 mb-4">
+                <Button onClick={handleBackupNow} disabled={backupLoading} className="gap-2">
+                  {backupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDriveDownload className="h-4 w-4" />}
+                  Fazer backup agora
+                </Button>
+                <Button variant="outline" onClick={fetchBackups}>Atualizar lista</Button>
+              </div>
+              <div className="overflow-x-auto -mx-4 px-4">
+                <Table className="min-w-[800px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Arquivo</TableHead>
+                      <TableHead>Formato</TableHead>
+                      <TableHead>Tamanho</TableHead>
+                      <TableHead>Checksum</TableHead>
+                      <TableHead>Criado em</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {backups.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum backup encontrado</TableCell>
+                      </TableRow>
+                    ) : (
+                      backups.map((b) => (
+                        <TableRow key={`${b.file_name}-${b.created_at}`}>
+                          <TableCell className="break-all">{b.file_name}</TableCell>
+                          <TableCell>{b.format?.toUpperCase?.() || 'JSON'}</TableCell>
+                          <TableCell>{b.file_size ? `${Math.round(b.file_size/1024)} KB` : '-'}</TableCell>
+                          <TableCell className="break-all text-xs">{b.checksum || '-'}</TableCell>
+                          <TableCell>{format(new Date(b.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {b.signedUrl && (
+                                <a href={b.signedUrl} target="_blank" rel="noreferrer">
+                                  <Button variant="outline" size="sm">Download</Button>
+                                </a>
+                              )}
+                              <Button size="sm" onClick={() => handleRestore(b.file_name, b.format || 'json')} disabled={restoringKey === b.file_name}>
+                                {restoringKey === b.file_name ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Restaurar'}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

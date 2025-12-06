@@ -182,14 +182,15 @@ export const AddSupplierCostDialog: React.FC<AddSupplierCostDialogProps> = ({
           return;
         }
         
-        // Enviar notificação
         if (activeTeam?.id) {
-          await notificationService.notifySupplierCostAdded(
-            formData.supplier_name,
-            eventName,
-            unitPrice * quantity,
-            activeTeam.id
-          );
+          notificationService
+            .notifySupplierCostAdded(
+              formData.supplier_name,
+              eventName,
+              unitPrice * quantity,
+              activeTeam.id
+            )
+            .catch(() => {});
         }
       }
       onClose();
