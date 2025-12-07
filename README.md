@@ -62,3 +62,20 @@ npm run icons:gen
 ## Deploy
 
 - Pode ser publicado na Vercel. Ajuste configurações em `vercel.json` conforme necessário.
+## Compatibilidade com iOS/iPadOS/macOS Safari
+
+- Viewport e Safe Area:
+  - `index.html` usa `viewport-fit=cover` e adiciona classe `is-pwa` quando instalado.
+  - `src/index.css` utiliza `100svh/100dvh` com fallback `-webkit-fill-available` e `env(safe-area-inset-*)`.
+- PWA/Service Worker:
+  - O Service Worker é registrado também fora do modo PWA para melhorar cache em Safari.
+  - Botão de emergência para limpar caches/Storage caso o app não carregue em 15s.
+- Upload de Fotos (Câmera iOS):
+  - Inputs usam `accept="image/*"` e `capture="environment"` quando iOS/Safari.
+- Notificações Push:
+  - Push Web é suportado apenas no iOS ≥ 16.4 (Safari). A UI protege cenários sem suporte.
+  - Em ambientes sem HTTPS (exceto `localhost`), push é desabilitado.
+
+### Dicas de Instalação em iOS
+- iPhone/iPad: abrir no Safari, tocar em Compartilhar → "Adicionar à Tela de Início".
+- Em modo instalado (standalone), o app usa `safe-area` e viewport corretos.

@@ -21,10 +21,29 @@ const isLocalStorageAvailable = () => {
   }
 };
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: isLocalStorageAvailable() ? localStorage : undefined,
-    persistSession: isLocalStorageAvailable(),
-    autoRefreshToken: true,
-  }
-});
+let supabase: ReturnType<typeof createClient<Database>> | any;
+try {
+  supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      storage: isLocalStorageAvailable() ? localStorage : undefined,
+      persistSession: isLocalStorageAvailable(),
+      autoRefreshToken: true,
+    }
+  });
+} catch (e) {
+  console.warn('⚠️ Supabase não configurado corretamente. Preview continuará com funcionalidades limitadas.');
+  const notConfigured = () => { throw new Error('Supabase não configurado') };
+  supabase = {
+    auth: {
+      signInWithPassword: notConfigured,
+      signUp: notConfigured,
+      signOut: notConfigured,
+      getSession: notConfigured,
+    },
+    from: () => ({ select: notConfigured, insert: notConfigured, update: notConfigured, delete: notConfigured }),
+    functions: { invoke: notConfigured },
+    storage: { from: () => ({ upload: notConfigured, getPublicUrl: notConfigured, remove: notConfigured }) },
+  };
+}
+
+export { supabase };

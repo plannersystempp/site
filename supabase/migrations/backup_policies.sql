@@ -20,3 +20,8 @@ CREATE POLICY write_block_all ON public.backup_logs
   USING (false)
   WITH CHECK (false);
 
+-- Permitir INSERT para superadmin via cliente (anon) — para registrar backups mesmo sem service role
+DROP POLICY IF EXISTS insert_for_superadmin ON public.backup_logs;
+CREATE POLICY insert_for_superadmin ON public.backup_logs
+  FOR INSERT
+  WITH CHECK (public.is_super_admin());

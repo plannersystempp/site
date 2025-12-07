@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Camera, Upload, X, User, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { isIOSSafari } from '@/utils/device';
 
 interface PersonnelPhotoUploadProps {
   currentPhotoUrl?: string;
@@ -357,10 +358,11 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
+                accept="image/*"
                 onChange={handleFileSelect}
                 className="hidden"
                 disabled={disabled || uploading}
+                capture={isIOSSafari() ? 'environment' : undefined}
               />
             </>
           ) : (
@@ -404,10 +406,11 @@ export const PersonnelPhotoUpload: React.FC<PersonnelPhotoUploadProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
+                accept="image/*"
                 onChange={handleFileSelect}
                 className="hidden"
                 disabled={disabled || uploading}
+                capture={isIOSSafari() ? 'environment' : undefined}
               />
             </div>
           )}

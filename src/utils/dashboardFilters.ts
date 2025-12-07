@@ -17,6 +17,13 @@ interface PaymentLike extends EventLike {
   payment_status?: 'pending' | 'paid' | 'overdue' | string | null;
 }
 
+interface SupplierCostLike {
+  id: string;
+  created_at?: string | Date | null;
+  payment_date?: string | Date | null;
+  payment_status?: 'pending' | 'paid' | string | null;
+}
+
 const toDate = (d?: string | Date | null) => (d ? new Date(d) : null);
 
 export const filterByDateRange = <T extends EventLike>(items: T[], range: DateRange, now = new Date()): T[] => {
@@ -103,5 +110,28 @@ export const sortPaymentsByNearestDate = <T extends PaymentLike>(items: T[], now
     const da = toDate(a.payment_due_date) || toDate(a.end_date) || now;
     const db = toDate(b.payment_due_date) || toDate(b.end_date) || now;
     return da.getTime() - db.getTime();
+  });
+};
+
+export const filterSupplierCostsByDateRange = <T extends SupplierCostLike>(items: T[], range: DateRange, now = new Date()): T[] => {
+  if (range === 'todos') return items;
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(now);
+  if (range === 'hoje') {
+    end.setHours(23, 59, 59, 999);
+  } else if (range === '7dias') {
+    end.setDate(end.getDate() + 7);
+    end.setHours(23, 59, 59, 999);
+  } else if (range === '30dias') {
+    end.setDate(end.getDate() + 30);
+    end.setHours(23, 59, 59, 999);
+  }
+  return items.filter(item => {
+    const baseDate = (item.payment_status === 'paid') ? toDate(item.payment_date) : toDate(item.created_at);
+    if (!baseDate) return false;
+    const normalized = new Date(baseDate);
+    normalized.setHours(0, 0, 0, 0);
+    return normalized >= start && normalized <= end;
   });
 };

@@ -777,30 +777,42 @@ html {
   }
   
   /* Optimize sheet components for PWA */
-  [data-radix-dialog-content] {
-    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+[data-radix-dialog-content] {
+    max-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 }
 
 /* iOS PWA specific fixes */
 @supports (-webkit-touch-callout: none) {
-  .is-pwa body,
-  @media (display-mode: standalone) {
-    /* Fix for iOS PWA viewport issues */
-    min-height: 100vh;
+  /* Fix para viewport em iOS PWA quando instalado via A2HS */
+  .is-pwa body {
+    min-height: 100dvh;
     min-height: -webkit-fill-available;
   }
-  
-  /* Improve touch handling on iOS PWA */
+
+  /* Melhorar toque em botões no iOS PWA */
   .is-pwa button,
-  .is-pwa .button,
-  @media (display-mode: standalone) {
-    button, .button {
-      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
+  .is-pwa .button {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Aplicar regras também quando em display-mode: standalone */
+@media (display-mode: standalone) {
+  body {
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+  }
+
+  button,
+  .button {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 }
 

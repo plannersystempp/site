@@ -28,7 +28,9 @@ import { usePersonnelPaymentsQuery } from '@/hooks/queries/usePersonnelPaymentsQ
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { KpiGroup } from '@/components/dashboard/KpiGroup';
 import { FilterChips } from '@/components/dashboard/FilterChips';
-import { filterByDateRange, filterPaymentsByDateRange, sortByNearestDate, sortPaymentsByNearestDate, type DateRange } from '@/utils/dashboardFilters';
+import { filterByDateRange, filterPaymentsByDateRange, sortByNearestDate, sortPaymentsByNearestDate, filterSupplierCostsByDateRange, type DateRange, type PaymentStatusFilter } from '@/utils/dashboardFilters';
+import { useSupplierCostsByEvent } from '@/hooks/dashboard/useSupplierCostsByEvent';
+import { SupplierCostsByEvent } from '@/components/dashboard/SupplierCostsByEvent';
 import { countEventsByRanges, countPaymentsByRanges } from '@/utils/dashboardFilterCounts';
 import { usePersistentFilter } from '@/hooks/usePersistentFilter';
 import { Separator } from '@/components/ui/separator';
@@ -56,6 +58,12 @@ const Dashboard = () => {
   const { value: paymentsRange, setValue: setPaymentsRange } = usePersistentFilter<DateRange>({
     filterName: 'paymentsRange',
     defaultValue: '30dias',
+    userId: user?.id,
+    teamId: activeTeam?.id,
+  });
+  const { value: suppliersStatus, setValue: setSuppliersStatus } = usePersistentFilter<PaymentStatusFilter>({
+    filterName: 'suppliersStatus',
+    defaultValue: 'todos',
     userId: user?.id,
     teamId: activeTeam?.id,
   });
@@ -165,6 +173,16 @@ const Dashboard = () => {
   const paymentsIntervalCounts: Record<DateRange, number> = useMemo(() => 
     countPaymentsByRanges(upcomingPaymentsFormatted, currentDate), 
     [upcomingPaymentsFormatted, nowKey]
+  );
+  const filteredSupplierCosts = useMemo(() => (
+    // KPIs continuam em todo o período; para última N apenas na lista detalhada
+    filterSupplierCostsByDateRange(eventSupplierCosts as any, 'todos', currentDate)
+  ), [eventSupplierCosts, nowKey]);
+  const supplierGroups = useSupplierCostsByEvent(
+    eventSupplierCosts as any,
+    events as any,
+    'todos',
+    suppliersStatus
   );
   
   // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS HAVE BEEN CALLED
@@ -320,7 +338,7 @@ const Dashboard = () => {
               <Package className="h-4 w-4" />
               Fornecedores
             </CardTitle>
-            <CardDescription className="text-xs">Resumo dos fornecedores e custos do time ativo</CardDescription>
+            <CardDescription className="text-xs">Resumo dos fornecedores e custos por evento</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <Separator className="my-2" />
@@ -334,7 +352,7 @@ const Dashboard = () => {
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-orange-600">
-                  {eventSupplierCosts.filter(c => c.payment_status === 'pending').length}
+                  {filteredSupplierCosts.filter(c => c.payment_status === 'pending').length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="hidden sm:inline">Custos Pendentes</span>
@@ -343,9 +361,9 @@ const Dashboard = () => {
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-green-600">
-                  {formatCurrency(eventSupplierCosts
+                  {formatCurrency(filteredSupplierCosts
                     .filter(c => c.payment_status === 'paid')
-                    .reduce((sum, c) => sum + (c.paid_amount || 0), 0))}
+                    .reduce((sum, c) => sum + (Number(c.paid_amount) || 0), 0))}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="hidden sm:inline">Total Pago</span>
@@ -354,9 +372,9 @@ const Dashboard = () => {
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-red-600">
-                  {formatCurrency(eventSupplierCosts
+                  {formatCurrency(filteredSupplierCosts
                     .filter(c => c.payment_status !== 'paid')
-                    .reduce((sum, c) => sum + ((c.total_amount || 0) - (c.paid_amount || 0)), 0))}
+                    .reduce((sum, c) => sum + (((Number(c.total_amount) || 0) - (Number(c.paid_amount) || 0))), 0))}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="hidden sm:inline">Total Pendente</span>
@@ -364,6 +382,13 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
+            <Separator className="my-3" />
+            <SupplierCostsByEvent
+              groups={supplierGroups}
+              status={suppliersStatus}
+              onStatusChange={setSuppliersStatus}
+              onNavigate={(id) => navigate(`/app/eventos/${id}`)}
+            />
           </CardContent>
         </Card>
       )}

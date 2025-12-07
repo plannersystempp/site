@@ -255,6 +255,24 @@ serve(async (req) => {
           }
         }
       }
+    } else {
+      // Sem service role: pelo menos registrar metadados do backup para histórico (sem arquivo)
+      try {
+        await supabaseClient.from('backup_logs').insert({
+          status: failedTables === 0 ? 'success' : 'failed',
+          file_key: null,
+          file_name: null,
+          file_size: null,
+          checksum,
+          format: 'json',
+          compressed: true,
+          triggered_by: user.id,
+          retention_expires_at: null,
+          metadata: backupMetadata
+        })
+      } catch (e) {
+        console.error('Falha ao registrar backup_logs com cliente anon:', e)
+      }
     }
 
     try {
