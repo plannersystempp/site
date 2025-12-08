@@ -11,6 +11,7 @@ interface SubscriptionStatus {
   planName: string;
   expiresAt: string | null;
   daysUntilExpiration?: number;
+  isLifetime?: boolean;
 }
 
 export function useSubscriptionGuard(teamId: string | undefined) {
@@ -108,7 +109,8 @@ export function useSubscriptionGuard(teamId: string | undefined) {
         status: data.status,
         planName,
         expiresAt,
-        daysUntilExpiration
+        daysUntilExpiration,
+        isLifetime
       };
     },
     enabled: !!teamId,
