@@ -38,7 +38,7 @@ interface DemoAccountResponse {
 export const useCreateDemoAccount = () => {
   return useMutation({
     mutationFn: async (): Promise<DemoAccountResponse> => {
-      const { data, error } = await supabase.functions.invoke<DemoAccountResponse>('create-demo-account', {
+      const { data, error } = await supabase.functions.invoke('create-demo-account', {
         body: {}
       });
 

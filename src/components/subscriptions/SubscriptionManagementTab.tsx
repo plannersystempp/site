@@ -189,11 +189,14 @@ export function SubscriptionManagementTab() {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Vencimento:</span>
                           <span>
-                            {format(
-                              new Date(sub.trial_ends_at || sub.current_period_ends_at),
-                              'dd/MM/yyyy',
-                              { locale: ptBR }
-                            )}
+                            {sub.subscription_plans.name === 'lifetime' 
+                              ? 'Sem vencimento'
+                              : format(
+                                  new Date(sub.trial_ends_at || sub.current_period_ends_at),
+                                  'dd/MM/yyyy',
+                                  { locale: ptBR }
+                                )
+                            }
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
@@ -316,11 +319,14 @@ export function SubscriptionManagementTab() {
                         <TableCell>{sub.subscription_plans.display_name}</TableCell>
                         <TableCell>{getStatusBadge(sub.status)}</TableCell>
                         <TableCell>
-                          {format(
-                            new Date(sub.trial_ends_at || sub.current_period_ends_at),
-                            'dd/MM/yyyy',
-                            { locale: ptBR }
-                          )}
+                          {sub.subscription_plans.name === 'lifetime' 
+                            ? 'Sem vencimento'
+                            : format(
+                                new Date(sub.trial_ends_at || sub.current_period_ends_at),
+                                'dd/MM/yyyy',
+                                { locale: ptBR }
+                              )
+                          }
                         </TableCell>
                         <TableCell>R$ {sub.subscription_plans.price.toFixed(2)}</TableCell>
                         <TableCell>
