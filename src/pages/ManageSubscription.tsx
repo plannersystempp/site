@@ -68,12 +68,17 @@ export default function ManageSubscription() {
       if (error) throw error;
 
       if (data) {
+        const limits = (data.subscription_plans as any)?.limits || {};
         setSubscription({
           plan_name: (data.subscription_plans as any)?.display_name || 'Desconhecido',
           status: data.status,
           current_period_ends_at: data.current_period_ends_at,
           trial_ends_at: data.trial_ends_at,
-          limits: (data.subscription_plans as any)?.limits || {}
+          limits: {
+            max_team_members: limits.max_team_members ?? null,
+            max_events_per_month: limits.max_events_per_month ?? null,
+            max_personnel: limits.max_personnel ?? null,
+          }
         });
       }
     } catch (error) {
@@ -85,8 +90,8 @@ export default function ManageSubscription() {
 
   // Exibição de status de assinatura padronizada
 
-  const formatLimit = (value: number | null) => {
-    return value === null ? 'Ilimitado' : value.toString();
+  const formatLimit = (value: number | null | undefined) => {
+    return value == null ? 'Ilimitado' : String(value);
   };
 
   if (loading || checkingSuperAdmin) {
@@ -162,7 +167,10 @@ export default function ManageSubscription() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-2xl font-bold">{subscription.plan_name}</p>
-                  <p className="text-sm text-muted-foreground">Status: <SubscriptionStatusBadge status={subscription.status as any} /></p>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <span>Status:</span>
+                    <SubscriptionStatusBadge status={subscription.status as any} />
+                  </div>
                 </div>
               </div>
 
