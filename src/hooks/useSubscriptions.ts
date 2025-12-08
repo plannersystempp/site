@@ -17,6 +17,7 @@ export interface Subscription {
     is_system?: boolean;
   };
   subscription_plans: {
+    name: string;
     display_name: string;
     price: number;
     billing_cycle: string;
@@ -41,7 +42,7 @@ export function useSubscriptions(options: UseSubscriptionsOptions = {}) {
         .select(`
           *,
           teams!inner(name, cnpj, is_system),
-          subscription_plans!inner(display_name, price, billing_cycle)
+          subscription_plans!inner(name, display_name, price, billing_cycle)
         `, { count: 'exact' })
         .eq('teams.is_system', false)
         .order('created_at', { ascending: false });

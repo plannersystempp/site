@@ -37,9 +37,9 @@ export const SupplierCostsByEvent = ({ groups, status, onStatusChange, onNavigat
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm truncate">{g.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {g.start_date ? formatDateShort(g.start_date) : '-'}
+                    {g.start_date ? formatDateShort(typeof g.start_date === 'string' ? g.start_date : g.start_date.toISOString()) : '-'}
                     {' '}–{' '}
-                    {g.end_date ? formatDateShort(g.end_date) : '-'}
+                    {g.end_date ? formatDateShort(typeof g.end_date === 'string' ? g.end_date : g.end_date.toISOString()) : '-'}
                   </div>
                 </div>
                 <Badge className="bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300">

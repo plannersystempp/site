@@ -28,7 +28,7 @@ import { usePersonnelPaymentsQuery } from '@/hooks/queries/usePersonnelPaymentsQ
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { KpiGroup } from '@/components/dashboard/KpiGroup';
 import { FilterChips } from '@/components/dashboard/FilterChips';
-import { filterByDateRange, filterPaymentsByDateRange, sortByNearestDate, sortPaymentsByNearestDate, filterSupplierCostsByDateRange, type DateRange, type PaymentStatusFilter } from '@/utils/dashboardFilters';
+import { filterByDateRange, filterPaymentsByDateRange, sortByNearestDate, sortPaymentsByNearestDate, filterSupplierCostsByDateRange, type DateRange, type PaymentStatusFilter, type SupplierStatusFilter } from '@/utils/dashboardFilters';
 import { useSupplierCostsByEvent } from '@/hooks/dashboard/useSupplierCostsByEvent';
 import { SupplierCostsByEvent } from '@/components/dashboard/SupplierCostsByEvent';
 import { countEventsByRanges, countPaymentsByRanges } from '@/utils/dashboardFilterCounts';
@@ -61,7 +61,7 @@ const Dashboard = () => {
     userId: user?.id,
     teamId: activeTeam?.id,
   });
-  const { value: suppliersStatus, setValue: setSuppliersStatus } = usePersistentFilter<PaymentStatusFilter>({
+  const { value: suppliersStatus, setValue: setSuppliersStatus } = usePersistentFilter<SupplierStatusFilter>({
     filterName: 'suppliersStatus',
     defaultValue: 'todos',
     userId: user?.id,

@@ -142,6 +142,87 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_logs: {
+        Row: {
+          checksum: string | null
+          compressed: boolean | null
+          created_at: string
+          error: string | null
+          file_key: string | null
+          file_name: string | null
+          file_size: number | null
+          format: string | null
+          id: number
+          metadata: Json | null
+          retention_expires_at: string | null
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          checksum?: string | null
+          compressed?: boolean | null
+          created_at?: string
+          error?: string | null
+          file_key?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          format?: string | null
+          id?: number
+          metadata?: Json | null
+          retention_expires_at?: string | null
+          status: string
+          triggered_by?: string | null
+        }
+        Update: {
+          checksum?: string | null
+          compressed?: boolean | null
+          created_at?: string
+          error?: string | null
+          file_key?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          format?: string | null
+          id?: number
+          metadata?: Json | null
+          retention_expires_at?: string | null
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      backup_settings: {
+        Row: {
+          checksum_algorithm: string
+          compression: string
+          created_by: string | null
+          format: string
+          id: number
+          max_backups: number
+          retention_days: number
+          updated_at: string
+        }
+        Insert: {
+          checksum_algorithm?: string
+          compression?: string
+          created_by?: string | null
+          format?: string
+          id?: number
+          max_backups?: number
+          retention_days?: number
+          updated_at?: string
+        }
+        Update: {
+          checksum_algorithm?: string
+          compression?: string
+          created_by?: string | null
+          format?: string
+          id?: number
+          max_backups?: number
+          retention_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coordinator_event_permissions: {
         Row: {
           can_edit: boolean

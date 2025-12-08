@@ -3,6 +3,7 @@
 
 export type DateRange = 'hoje' | '7dias' | '30dias' | 'todos';
 export type PaymentStatusFilter = 'pendente' | 'vencido' | 'pago' | 'todos';
+export type SupplierStatusFilter = 'pendente' | 'pago' | 'todos';
 
 interface EventLike {
   id: string;
@@ -22,6 +23,8 @@ interface SupplierCostLike {
   created_at?: string | Date | null;
   payment_date?: string | Date | null;
   payment_status?: 'pending' | 'paid' | string | null;
+  total_amount?: number | null;
+  paid_amount?: number | null;
 }
 
 const toDate = (d?: string | Date | null) => (d ? new Date(d) : null);
