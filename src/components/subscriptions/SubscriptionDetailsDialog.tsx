@@ -118,16 +118,19 @@ export function SubscriptionDetailsDialog({
                   </p>
                 </div>
 
-                <div>
+              <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">
                     {subscription.status === 'trial' ? 'Trial Expira em' : 'Período Atual Termina em'}
                   </h3>
                   <p className="text-sm">
-                    {format(
-                      new Date(subscription.trial_ends_at || subscription.current_period_ends_at),
-                      'dd/MM/yyyy',
-                      { locale: ptBR }
-                    )}
+                    {subscription.subscription_plans.billing_cycle === 'lifetime' 
+                      ? 'Sem vencimento' 
+                      : format(
+                          new Date(subscription.trial_ends_at || subscription.current_period_ends_at),
+                          'dd/MM/yyyy',
+                          { locale: ptBR }
+                        )
+                    }
                   </p>
                 </div>
 
@@ -141,7 +144,10 @@ export function SubscriptionDetailsDialog({
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">Fim do Período</h3>
                   <p className="text-sm">
-                    {format(new Date(subscription.current_period_ends_at), 'dd/MM/yyyy', { locale: ptBR })}
+                    {subscription.subscription_plans.billing_cycle === 'lifetime'
+                      ? 'Sem vencimento'
+                      : format(new Date(subscription.current_period_ends_at), 'dd/MM/yyyy', { locale: ptBR })
+                    }
                   </p>
                 </div>
               </div>
