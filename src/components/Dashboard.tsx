@@ -256,8 +256,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Banner de Aviso de Assinatura - ação disponível só para admin */}
-      {!isSuperAdmin && subscription && subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0 && subscription.status !== 'trial_expired' && (
+      {/* Banner de Aviso de Assinatura - ação disponível só para admin, nunca para planos vitalícios */}
+      {!isSuperAdmin && subscription && !subscription.isLifetime && subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0 && subscription.status !== 'trial_expired' && (
         <Card className="border-orange-200 bg-orange-50/50">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
