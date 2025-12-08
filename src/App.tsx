@@ -390,23 +390,7 @@ const AppContent = () => {
                   </FormErrorBoundary>
                 </RouteErrorBoundary>
               } />
-              <Route path="/upgrade" element={
-                <RouteErrorBoundary routeName="Upgrade">
-                  <UpgradePlan />
-                </RouteErrorBoundary>
-              } />
-              <Route path="/plans" element={
-                <RouteErrorBoundary routeName="Planos">
-                  <PlansPage />
-                </RouteErrorBoundary>
-              } />
-              <Route path="/subscription" element={
-                <RouteErrorBoundary routeName="Assinatura">
-                  <FormErrorBoundary formName="Assinatura">
-                    <ManageSubscription />
-                  </FormErrorBoundary>
-                </RouteErrorBoundary>
-              } />
+              
               {user.role === 'admin' && (
                 <Route path="/admin/configuracoes" element={
                   <RouteErrorBoundary routeName="Admin - Configurações">
