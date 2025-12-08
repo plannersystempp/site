@@ -61,10 +61,13 @@ export function useSubscriptionGuard(teamId: string | undefined) {
       // Confiar no status do banco - não sobrescrever
       const isActive = ['active', 'trial'].includes(data.status);
       const expiresAt = data.trial_ends_at || data.current_period_ends_at;
+      const billingCycle = (data.subscription_plans as any)?.billing_cycle;
+      const isLifetime = billingCycle === 'lifetime';
       
       let daysUntilExpiration = undefined;
       
-      if (expiresAt) {
+      // Planos vitalícios nunca expiram
+      if (!isLifetime && expiresAt) {
         const expirationDate = parseDateSafe(expiresAt);
         
         // Validar se a data é válida
@@ -81,7 +84,8 @@ export function useSubscriptionGuard(teamId: string | undefined) {
             expiresAt,
             expirationDate: expirationDate.toISOString(),
             now: now.toISOString(),
-            daysUntilExpiration
+            daysUntilExpiration,
+            isLifetime
           });
         }
       }
