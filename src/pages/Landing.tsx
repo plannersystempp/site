@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Calendar, Users, DollarSign, BarChart3, Clock, FileText, LogIn, Monitor, Smartphone, Tablet, Play, Star, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { company } from '@/config/company';
 
 export const Landing: React.FC = () => {
   const [dashboardPreviewLoaded, setDashboardPreviewLoaded] = useState(false);
@@ -57,7 +58,7 @@ export const Landing: React.FC = () => {
 
       {/* Hero Section */}
       <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
+        <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
           <div className="space-y-7 sm:space-y-7 lg:space-y-8">
             <div className="space-y-6 sm:space-y-6">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
@@ -89,13 +90,13 @@ export const Landing: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative w-full flex items-center justify-center lg:justify-end mb-8 sm:mb-10 lg:mb-0">
-            <div className="absolute inset-0 -z-10 blur-2xl opacity-30 bg-gradient-to-br from-primary/40 via-chart-blue/40 to-chart-purple/40 rounded-[48px]" />
-            <div className="w-full max-w-xs sm:max-w-sm lg:max-w-sm xl:max-w-md rounded-2xl shadow-xl">
+          <div className="relative w-full flex items-center justify-center lg:justify-end mb-0 lg:mb-0">
+            <div className="absolute inset-0 -z-10 blur-2xl opacity-30 bg-gradient-to-br from-primary/40 via-chart-blue/40 to-chart-purple/40 rounded-[48px] hidden lg:block" />
+            <div className="w-full max-w-xs sm:max-w-sm lg:max-w-sm xl:max-w-md lg:rounded-2xl lg:shadow-xl">
               <img
                 src="/images/landing/hero-tablet.png.png"
                 alt="Profissional segurando um tablet com a tela do sistema PlannerSystem"
-                className="w-full h-auto object-contain object-center p-1"
+                className="w-full h-auto object-contain object-center"
                 loading="eager"
                 decoding="async"
               />
@@ -427,16 +428,16 @@ export const Landing: React.FC = () => {
             <div className="space-y-4 sm:space-y-4 text-center md:text-left">
               <h4 className="text-base sm:text-lg font-bold">Contato</h4>
               <div className="space-y-3 sm:space-y-3 text-sm sm:text-base text-muted-foreground">
-                <p>suporte@plannersystem.com.br</p>
+                <p>{company.contact.email}</p>
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <span>WhatsApp:</span>
                   <a 
-                    href="https://wa.me/5521965865470" 
+                    href={company.contact.whatsapp.link}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-success hover:text-chart-green transition-colors font-medium"
                   >
-                    (21) 96586-5470
+                    {company.contact.whatsapp.formatted}
                   </a>
                 </div>
                 <p>Segunda a Sexta, 9h às 18h</p>

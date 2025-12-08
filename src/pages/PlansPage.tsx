@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { company } from '@/config/company';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -466,7 +467,7 @@ export default function PlansPage() {
                 <Button 
                   size="sm"
                   className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
-                  onClick={() => window.location.href = 'mailto:suporte@plannersystem.com.br'}
+                  onClick={() => window.location.href = `mailto:${company.contact.email}`}
                 >
                   <Star className="mr-2 h-3 w-3" />
                   Falar com Vendas
@@ -475,7 +476,7 @@ export default function PlansPage() {
                   size="sm"
                   variant="outline"
                   className="hover:bg-primary/5 hover:border-primary/50 transition-all duration-300"
-                  onClick={() => window.open('https://wa.me/5521965232224', '_blank')}
+                  onClick={() => window.open(company.contact.whatsapp.link, '_blank')}
                 >
                   <Zap className="mr-2 h-3 w-3" />
                   WhatsApp

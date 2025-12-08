@@ -1,4 +1,5 @@
 import React from 'react';
+import { company } from '@/config/company';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,9 @@ export const PoliticaPrivacidade: React.FC = () => {
             <p>
               Esta Política de Privacidade descreve como o PlannerSystem ("nós", "nosso") coleta, usa, 
               compartilha e protege suas informações pessoais quando você usa nossa plataforma.
+            </p>
+            <p>
+              O PlannerSystem é operado por {company.legalName}, inscrita no CNPJ nº {company.cnpj}.
             </p>
 
             <div className="space-y-4">
@@ -167,21 +171,23 @@ export const PoliticaPrivacidade: React.FC = () => {
                 <li>
                   Email: 
                   <a 
-                    href="mailto:suporte@plannersystem.com.br" 
+                    href={`mailto:${company.contact.email}`}
                     className="text-primary hover:underline ml-1"
                   >
-                    suporte@plannersystem.com.br
+                    {company.contact.email}
                   </a>
                 </li>
+                <li>Razão Social: {company.legalName}</li>
+                <li>CNPJ: {company.cnpj}</li>
                 <li>
                   WhatsApp: 
                   <a 
-                    href="https://wa.me/5521965232224" 
+                    href={company.contact.whatsapp.link}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:underline ml-1"
                   >
-                    (21) 96523-2224
+                    {company.contact.whatsapp.formatted}
                   </a>
                 </li>
                 <li>Assunto: "Privacidade - Planner System"</li>

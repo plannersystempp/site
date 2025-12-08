@@ -1,4 +1,5 @@
 import React from 'react';
+import { company } from '@/config/company';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +37,9 @@ export const TermosDeUso: React.FC = () => {
               Estes Termos de Uso ("Termos") governam o seu acesso e uso da nossa plataforma e serviços. 
               Ao se cadastrar ou usar o PlannerSystem, você e a empresa que você representa ("Cliente", "você") 
               concordam em cumprir estes Termos.
+            </p>
+            <p>
+              Este serviço é fornecido por {company.legalName}, inscrita no CNPJ nº {company.cnpj}.
             </p>
             <p className="font-bold text-foreground">
               POR FAVOR, LEIA ESTES TERMOS CUIDADOSAMENTE. SE VOCÊ NÃO CONCORDAR COM ELES, NÃO USE A PLATAFORMA.
@@ -178,21 +182,23 @@ export const TermosDeUso: React.FC = () => {
                 <li>
                   Email: 
                   <a 
-                    href="mailto:suporte@plannersystem.com.br" 
+                    href={`mailto:${company.contact.email}`}
                     className="text-primary hover:underline ml-1"
                   >
-                    suporte@plannersystem.com.br
+                    {company.contact.email}
                   </a>
                 </li>
+                <li>Razão Social: {company.legalName}</li>
+                <li>CNPJ: {company.cnpj}</li>
                 <li>
                   WhatsApp: 
                   <a 
-                    href="https://wa.me/5521965232224" 
+                    href={company.contact.whatsapp.link}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:underline ml-1"
                   >
-                    (21) 96523-2224
+                    {company.contact.whatsapp.formatted}
                   </a>
                 </li>
               </ul>
