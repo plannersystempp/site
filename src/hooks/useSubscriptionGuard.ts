@@ -136,7 +136,8 @@ export function useSubscriptionGuard(teamId: string | undefined) {
         }, 3000);
       }
       // Avisar se estiver próximo da expiração (últimos 7 dias)
-      else if (subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0) {
+      // Avisar se estiver próximo da expiração (últimos 7 dias) - NUNCA para planos vitalícios
+      else if (!subscription.isLifetime && subscription.daysUntilExpiration && subscription.daysUntilExpiration <= 7 && subscription.daysUntilExpiration > 0) {
         toast({
           title: 'Assinatura Expirando em Breve',
           description: `Sua assinatura ${subscription.planName} expira em ${subscription.daysUntilExpiration} dia(s).`,

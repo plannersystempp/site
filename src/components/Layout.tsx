@@ -53,19 +53,26 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       }
 
       const nestedPlan = (data.subscription_plans as any) || null;
-      let planName = nestedPlan?.display_name
-        || (nestedPlan?.billing_cycle === 'lifetime' ? 'Plano Vitalício' : undefined);
+      let planName = nestedPlan?.display_name;
+      let billingCycle = nestedPlan?.billing_cycle;
 
       // Fallback: se o join não trouxe o plano, buscar direto por plan_id
-      if (!planName && data.plan_id) {
+      if ((!planName || !billingCycle) && data.plan_id) {
         const { data: planRow } = await supabase
           .from('subscription_plans')
           .select('display_name, billing_cycle')
           .eq('id', data.plan_id)
           .single();
         if (planRow) {
-          planName = planRow.display_name || (planRow.billing_cycle === 'lifetime' ? 'Plano Vitalício' : undefined);
+          planName = planRow.display_name || planName;
+          billingCycle = planRow.billing_cycle || billingCycle;
         }
+      }
+
+      // Planos vitalícios devem mostrar "Plano Vitalício" mesmo se display_name estiver diferente
+      const isLifetime = billingCycle === 'lifetime';
+      if (isLifetime && !planName) {
+        planName = 'Plano Vitalício';
       }
 
       if (!planName) {
@@ -74,7 +81,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       return {
         status: data.status,
-        planName
+        planName,
+        isLifetime
       };
     },
     enabled: !!activeTeam?.id && !isSuperAdmin
