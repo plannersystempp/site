@@ -63,34 +63,6 @@ export function useSubscriptionGuard(teamId: string | undefined) {
       const isActive = ['active', 'trial'].includes(data.status);
       const expiresAt = data.trial_ends_at || data.current_period_ends_at;
       const billingCycle = (data.subscription_plans as any)?.billing_cycle;
-      const isLifetime = billingCycle === 'lifetime';
-      
-      let daysUntilExpiration = undefined;
-      
-      // Planos vitalícios nunca expiram
-      if (!isLifetime && expiresAt) {
-        const expirationDate = parseDateSafe(expiresAt);
-        
-        // Validar se a data é válida
-        if (isNaN(expirationDate.getTime())) {
-          console.error('⚠️ [useSubscriptionGuard] Data de expiração inválida:', expiresAt);
-          // NÃO marcar como inativa, apenas alertar
-        } else {
-          const now = new Date();
-          // Comparação direta funciona porque ambas são timestamps UTC internamente
-          daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          
-          console.log('🔍 [useSubscriptionGuard] Debug:', {
-            status: data.status,
-            expiresAt,
-            expirationDate: expirationDate.toISOString(),
-            now: now.toISOString(),
-            daysUntilExpiration,
-            isLifetime
-          });
-        }
-      }
-      
       let planName = (data.subscription_plans as any)?.display_name;
       const cycle = (data.subscription_plans as any)?.billing_cycle;
       if (!planName && cycle === 'lifetime') planName = 'Plano Vitalício';
@@ -104,8 +76,21 @@ export function useSubscriptionGuard(teamId: string | undefined) {
       }
       if (!planName) planName = 'Free';
 
+      const isLifetime = billingCycle === 'lifetime' || data.status === 'free' || planName === 'Free' || planName === 'Plano Vitalício';
+
+      let daysUntilExpiration = undefined;
+      if (!isLifetime && expiresAt) {
+        const expirationDate = parseDateSafe(expiresAt);
+        if (!isNaN(expirationDate.getTime())) {
+          const now = new Date();
+          daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        } else {
+          console.error('⚠️ [useSubscriptionGuard] Data de expiração inválida:', expiresAt);
+        }
+      }
+
       return {
-        isActive, // Usar status do banco, não sobrescrever
+        isActive,
         status: data.status,
         planName,
         expiresAt,

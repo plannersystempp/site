@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+\.env
+supabase/.temp/
+/backup_supabase/
+/backup*.sql
+/backup_*.sql
+backup_supabase.ps1
+backup_supabase.sh
+backup_supabase_simples.ps1
+bun.lockb
+test-results/
