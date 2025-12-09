@@ -12,6 +12,7 @@ import { useWorkLogsRealtime } from './useWorkLogsRealtime';
 import { useFunctionsRealtime } from './useFunctionsRealtime';
 import { usePersonnelPaymentsRealtime } from './usePersonnelPaymentsRealtime';
 import { useCrossTabSync } from './useCrossTabSync';
+import { logger } from '@/utils/logger';
 
 export const useRealtimeSync = () => {
   // Ativar todos os sistemas de Realtime
@@ -26,5 +27,5 @@ export const useRealtimeSync = () => {
   // FASE 4: Ativar sincronização cross-tab
   useCrossTabSync();
   
-  console.log('[RealtimeSync] All realtime subscriptions active + cross-tab sync enabled');
+  logger.realtime.info('SUBSCRIPTIONS_ACTIVE');
 };

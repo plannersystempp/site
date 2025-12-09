@@ -18,7 +18,6 @@ export const useFunctionsRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
-    console.log('🔌 [Realtime Functions] Connecting for team:', activeTeam.id);
 
     const channel = supabase
       .channel('functions-changes')
@@ -33,16 +32,11 @@ export const useFunctionsRealtime = () => {
         async (payload) => {
           const functionId = (payload.new as any)?.id || (payload.old as any)?.id;
           
-          console.log('🔄 [Realtime Functions] Change detected:', {
-            type: payload.eventType,
-            functionId,
-            timestamp: new Date().toISOString(),
-          });
           
           logger.realtime.change(payload.eventType, { id: functionId });
 
           // ⚡ OTIMIZADO: Invalidar queries de funções
-          console.log('♻️ [Realtime Functions] Invalidating functions queries');
+          logger.cache.invalidate('functionKeys.all');
           
           queryClient.invalidateQueries({ 
             queryKey: functionKeys.all,
@@ -54,15 +48,21 @@ export const useFunctionsRealtime = () => {
             refetchType: 'none'
           });
 
-          console.log('✅ [Realtime Functions] Cache invalidated successfully');
+
         }
       )
       .subscribe((status) => {
-        console.log('📡 [Realtime Functions] Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          logger.realtime.info('SUBSCRIBED');
+        } else if (status === 'CHANNEL_ERROR') {
+          logger.realtime.error('CHANNEL_ERROR');
+        } else if (status === 'TIMED_OUT') {
+          logger.realtime.error('TIMED_OUT');
+        }
       });
 
     return () => {
-      console.log('🔌 [Realtime Functions] Unsubscribing from functions changes');
+      logger.realtime.debug('UNSUBSCRIBE');
       supabase.removeChannel(channel);
     };
   }, [activeTeam?.id, queryClient]);

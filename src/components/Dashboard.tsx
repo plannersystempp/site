@@ -34,9 +34,11 @@ import { SupplierCostsByEvent } from '@/components/dashboard/SupplierCostsByEven
 import { countEventsByRanges, countPaymentsByRanges } from '@/utils/dashboardFilterCounts';
 import { usePersistentFilter } from '@/hooks/usePersistentFilter';
 import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import { logger } from '@/utils/logger';
 
 const Dashboard = () => {
-  console.log('🏠 Dashboard: Iniciando renderização');
+  
   
   // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - BEFORE ANY CONDITIONAL RETURNS
   const { events, personnel, functions, eventSupplierCosts, suppliers, loading } = useEnhancedData();
@@ -49,6 +51,7 @@ const Dashboard = () => {
   // All useState hooks must be at the top level
   const [superAdminPersonnelCount, setSuperAdminPersonnelCount] = useState<number | null>(null);
   const [eventsWithCompletePayments, setEventsWithCompletePayments] = useState<string[]>([]);
+  const [showSupplierDetails, setShowSupplierDetails] = useState(false);
   const { value: eventsRange, setValue: setEventsRange } = usePersistentFilter<DateRange>({
     filterName: 'eventsRange',
     defaultValue: '7dias',
@@ -67,6 +70,7 @@ const Dashboard = () => {
     userId: user?.id,
     teamId: activeTeam?.id,
   });
+  const supplierStatusSafe: 'todos' | 'pendente' | 'pago' = (suppliersStatus === 'vencido' ? 'pendente' : suppliersStatus) as any;
 
   // Custom dashboard hooks MUST be called unconditionally before any conditional returns
   const eventsInProgress = useEventsInProgress();
@@ -97,13 +101,13 @@ const Dashboard = () => {
             .select('*', { head: true, count: 'exact' });
           
           if (error) {
-            console.error('Error fetching personnel count:', error);
+            logger.query.error('personnelCount', error);
             return;
           }
           
           setSuperAdminPersonnelCount(count || 0);
         } catch (error) {
-          console.error('Error fetching personnel count:', error);
+          logger.query.error('personnelCount', error);
         }
       };
 
@@ -127,22 +131,24 @@ const Dashboard = () => {
 
         setEventsWithCompletePayments(completedEventIds);
       } catch (error) {
-        console.error('Error in checkCompletedPayments:', error);
+        logger.query.error('checkCompletedPayments', error);
       }
     };
 
     checkCompletedPayments();
   }, [events, activeTeam, isSuperAdmin]);
 
-  console.log('🏠 Dashboard: Dados carregados', {
-    eventsCount: events?.length || 0,
-    personnelCount: personnel?.length || 0,
-    functionsCount: functions?.length || 0,
-    loading,
-    subscriptionLoading,
-    activeTeam: activeTeam?.id,
-    isSuperAdmin
-  });
+  useEffect(() => {
+    if (loading || subscriptionLoading) return;
+    const summary = {
+      eventsCount: events?.length || 0,
+      personnelCount: isSuperAdmin && superAdminPersonnelCount !== null ? superAdminPersonnelCount : personnel?.length || 0,
+      functionsCount: functions?.length || 0,
+      activeTeam: activeTeam?.id,
+      isSuperAdmin,
+    };
+    logger.query.info('DASHBOARD_SUMMARY', summary);
+  }, [loading, subscriptionLoading, events, personnel, functions, activeTeam?.id, isSuperAdmin, superAdminPersonnelCount]);
   
   // Hooks e cálculos baseados em hooks DEVEM ser chamados antes de returns condicionais
   // Data atual usada para filtrar próximos eventos
@@ -182,7 +188,7 @@ const Dashboard = () => {
     eventSupplierCosts as any,
     events as any,
     'todos',
-    suppliersStatus
+    supplierStatusSafe
   );
   
   // CONDITIONAL RETURNS ONLY AFTER ALL HOOKS HAVE BEEN CALLED
@@ -382,13 +388,22 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <Separator className="my-3" />
-            <SupplierCostsByEvent
-              groups={supplierGroups}
-              status={suppliersStatus}
-              onStatusChange={setSuppliersStatus}
-              onNavigate={(id) => navigate(`/app/eventos/${id}`)}
-            />
+            <div className="mt-3 flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => setShowSupplierDetails(v => !v)}>
+                {showSupplierDetails ? 'Ocultar detalhes' : 'Exibir detalhes'}
+              </Button>
+            </div>
+            <Collapsible open={showSupplierDetails} onOpenChange={setShowSupplierDetails}>
+              <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                <Separator className="my-3" />
+                <SupplierCostsByEvent
+                  groups={supplierGroups}
+                  status={supplierStatusSafe}
+                  onStatusChange={(s) => setSuppliersStatus(s as any)}
+                  onNavigate={(id) => navigate(`/app/eventos/${id}`)}
+                />
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
       )}

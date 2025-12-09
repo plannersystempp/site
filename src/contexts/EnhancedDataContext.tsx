@@ -19,6 +19,7 @@ import { useTeam } from './TeamContext';
 import { useToast } from '@/hooks/use-toast';
 import { fetchPersonnelByRole, type PersonnelRedacted } from '@/services/personnelService';
 import { sanitizePersonnelData } from '@/utils/dataTransform';
+import { logger } from '@/utils/logger';
 
 // Aviso de depreciação no console
 console.warn('[DEPRECATED] EnhancedDataContext is deprecated. Use React Query hooks instead.');
@@ -217,12 +218,12 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const { toast } = useToast();
 
   const fetchPersonnelWithFunctions = async (teamId: string): Promise<Personnel[]> => {
-    console.log('Fetching personnel with functions for team:', teamId);
+    logger.query.start('personnelWithFunctions');
     
     try {
       // Use the personnel service that handles role-based access
       const personnelData = await fetchPersonnelByRole(teamId);
-      console.log('Personnel data fetched:', personnelData.length, 'records');
+      logger.query.success('personnelWithFunctions', personnelData.length);
       
       // Fetch personnel functions associations (safe to fetch for all roles)
       const { data: personnelFunctionsData, error: personnelFunctionsError } = await supabase
@@ -240,7 +241,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .eq('team_id', teamId);
 
       if (personnelFunctionsError) {
-        console.error('Error fetching personnel functions:', personnelFunctionsError);
+        logger.query.error('personnelFunctions', personnelFunctionsError);
         // Continue without functions rather than failing completely
       }
 
@@ -268,24 +269,22 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
         };
       });
 
-      console.log('Personnel with functions processed:', personnelWithFunctions.length, 'records');
+      logger.query.success('personnelWithFunctionsProcessed', personnelWithFunctions.length);
       return personnelWithFunctions;
     } catch (error) {
-      console.error('Error in fetchPersonnelWithFunctions:', error);
+      logger.query.error('fetchPersonnelWithFunctions', error);
       return [];
     }
   };
 
   const initializeData = async () => {
     if (!user) {
-      console.log('User not available');
       return;
     }
 
     // Super admins não precisam de equipe ativa - podem ver todos os dados
     const isSuperAdmin = user.role === 'superadmin';
     if (!activeTeam && !isSuperAdmin) {
-      console.log('Active team not available and user is not super admin');
       return;
     }
 
@@ -294,7 +293,7 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (startedLoadingFlag) {
         setLoading(true);
       }
-      console.log('Initializing data for:', isSuperAdmin ? 'super admin (all teams)' : `team: ${activeTeam?.id}`);
+      logger.query.info('INIT_START', isSuperAdmin ? 'superadmin' : `team:${activeTeam?.id}`);
 
       // Para super admins, buscar todos os dados sem filtro de team_id
       // Para usuários normais, filtrar por team_id
@@ -519,16 +518,16 @@ export const EnhancedDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
           }
         }
         setWorkLogs(validWorkRecords);
-        console.log('Work records loaded:', validWorkRecords.length, validWorkRecords);
+        logger.query.success('workRecords', validWorkRecords.length);
       } else {
         setWorkLogs([]);
-        console.log('No work records found');
+        logger.query.warn('workRecords:EMPTY');
       }
 
-      console.log('Data initialization completed successfully');
+      logger.query.info('INIT_COMPLETED');
       setIsInitialized(true);
     } catch (error) {
-      console.error('Error initializing data:', error);
+      logger.query.error('initializeData', error);
       toast({
         title: "Erro",
         description: "Falha ao carregar dados da equipe",

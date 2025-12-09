@@ -18,7 +18,6 @@ export const useAllocationsRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
-    console.log('🔌 [Realtime Allocations] Connecting for team:', activeTeam.id);
 
     const channel = supabase
       .channel('allocations-changes')
@@ -34,17 +33,11 @@ export const useAllocationsRealtime = () => {
           const allocationId = (payload.new as any)?.id || (payload.old as any)?.id;
           const eventId = (payload.new as any)?.event_id || (payload.old as any)?.event_id;
           
-          console.log('🔄 [Realtime Allocations] Change detected:', {
-            type: payload.eventType,
-            allocationId,
-            eventId,
-            timestamp: new Date().toISOString(),
-          });
           
           logger.realtime.change(payload.eventType, { id: allocationId });
 
           // ⚡ OTIMIZADO: Invalidar queries de alocações
-          console.log('♻️ [Realtime Allocations] Invalidating allocations queries');
+          logger.cache.invalidate('allocationsKeys.all');
           
           queryClient.invalidateQueries({ 
             queryKey: allocationsKeys.all,
@@ -62,18 +55,24 @@ export const useAllocationsRealtime = () => {
               queryKey: ['payroll', 'event', eventId],
               refetchType: 'active'
             });
-            console.log('♻️ [Realtime Allocations] Invalidated payroll cache for event:', eventId);
+            logger.cache.invalidate(`payroll:event:${eventId}`);
           }
 
-          console.log('✅ [Realtime Allocations] Cache invalidated successfully');
+
         }
       )
       .subscribe((status) => {
-        console.log('📡 [Realtime Allocations] Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          logger.realtime.info('SUBSCRIBED');
+        } else if (status === 'CHANNEL_ERROR') {
+          logger.realtime.error('CHANNEL_ERROR');
+        } else if (status === 'TIMED_OUT') {
+          logger.realtime.error('TIMED_OUT');
+        }
       });
 
     return () => {
-      console.log('🔌 [Realtime Allocations] Unsubscribing from allocations changes');
+      logger.realtime.debug('UNSUBSCRIBE');
       supabase.removeChannel(channel);
     };
   }, [activeTeam?.id, queryClient]);

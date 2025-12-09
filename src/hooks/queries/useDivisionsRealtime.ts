@@ -18,7 +18,6 @@ export const useDivisionsRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
-    console.log('🔌 [Realtime Divisions] Connecting for team:', activeTeam.id);
 
     const channel = supabase
       .channel('divisions-changes')
@@ -33,16 +32,11 @@ export const useDivisionsRealtime = () => {
         async (payload) => {
           const divisionId = (payload.new as any)?.id || (payload.old as any)?.id;
           
-          console.log('🔄 [Realtime Divisions] Change detected:', {
-            type: payload.eventType,
-            divisionId,
-            timestamp: new Date().toISOString(),
-          });
           
           logger.realtime.change(payload.eventType, { id: divisionId });
 
           // ⚡ OTIMIZADO: Invalidar queries de divisões
-          console.log('♻️ [Realtime Divisions] Invalidating divisions queries');
+          logger.cache.invalidate('divisionsKeys.all');
           
           queryClient.invalidateQueries({ 
             queryKey: divisionsKeys.all,
@@ -54,15 +48,21 @@ export const useDivisionsRealtime = () => {
             refetchType: 'none'
           });
 
-          console.log('✅ [Realtime Divisions] Cache invalidated successfully');
+
         }
       )
       .subscribe((status) => {
-        console.log('📡 [Realtime Divisions] Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          logger.realtime.info('SUBSCRIBED');
+        } else if (status === 'CHANNEL_ERROR') {
+          logger.realtime.error('CHANNEL_ERROR');
+        } else if (status === 'TIMED_OUT') {
+          logger.realtime.error('TIMED_OUT');
+        }
       });
 
     return () => {
-      console.log('🔌 [Realtime Divisions] Unsubscribing from divisions changes');
+      logger.realtime.debug('UNSUBSCRIBE');
       supabase.removeChannel(channel);
     };
   }, [activeTeam?.id, queryClient]);

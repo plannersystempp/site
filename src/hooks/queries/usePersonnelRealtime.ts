@@ -25,7 +25,7 @@ const fetchPersonnelFunctions = async (personnelId: string, teamId: string) => {
     .eq('team_id', teamId);
 
   if (error) {
-    console.error('[Realtime] Error fetching functions:', error);
+    logger.query.error('personnelFunctions', error);
     return [];
   }
 
@@ -49,7 +49,6 @@ export const usePersonnelRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
-    console.log('🔌 [Realtime Personnel] Connecting for team:', activeTeam.id);
 
     const channel = supabase
       .channel(`realtime-personnel-${activeTeam.id}`)
@@ -67,17 +66,12 @@ export const usePersonnelRealtime = () => {
           const matchesTeam = newTeamId === activeTeam.id || oldTeamId === activeTeam.id;
           if (!matchesTeam) return;
           
-          console.log('🔄 [Realtime Personnel] Change detected:', {
-            type: payload.eventType,
-            personnelId,
-            timestamp: new Date().toISOString(),
-          });
           
           logger.realtime.change(payload.eventType, { id: personnelId });
 
           // ⚡ OTIMIZADO: Invalidar queries em vez de manipular cache manualmente
           // Isso garante dados sempre frescos e evita problemas de sincronização
-          console.log('♻️ [Realtime Personnel] Invalidating personnel queries');
+          logger.cache.invalidate('personnelKeys.all');
           
           queryClient.invalidateQueries({ 
             queryKey: personnelKeys.all,
@@ -90,24 +84,21 @@ export const usePersonnelRealtime = () => {
             refetchType: 'none' // Apenas marcar como stale sem refetch
           });
 
-          console.log('✅ [Realtime Personnel] Cache invalidated successfully');
         }
       )
       .subscribe((status) => {
-        console.log('📡 [Realtime Personnel] Subscription status:', status);
-        
         if (status === 'SUBSCRIBED') {
-          logger.realtime.info('✅ [Realtime Personnel] Successfully subscribed');
+          logger.realtime.info('SUBSCRIBED');
           lastStatusRef.current = status;
           if (fallbackIntervalRef.current) {
             clearInterval(fallbackIntervalRef.current);
             fallbackIntervalRef.current = null;
           }
         } else if (status === 'CHANNEL_ERROR') {
-          logger.realtime.error('❌ [Realtime Personnel] Channel error');
+          logger.realtime.error('CHANNEL_ERROR');
           lastStatusRef.current = status;
         } else if (status === 'TIMED_OUT') {
-          logger.realtime.error('⏱️ [Realtime Personnel] Subscription timed out');
+          logger.realtime.error('TIMED_OUT');
           lastStatusRef.current = status;
         } else if (status === 'CLOSED') {
           lastStatusRef.current = status;
@@ -140,7 +131,7 @@ export const usePersonnelRealtime = () => {
     }
 
     return () => {
-      console.log('🔌 [Realtime Personnel] Unsubscribing from personnel changes');
+      logger.realtime.debug('UNSUBSCRIBE');
       supabase.removeChannel(channel);
       supabase.removeChannel(functionsChannel);
       if (fallbackIntervalRef.current) {

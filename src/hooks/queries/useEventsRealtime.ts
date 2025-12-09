@@ -18,7 +18,6 @@ export const useEventsRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
-    console.log('🔌 [Realtime Events] Connecting to events channel for team:', activeTeam.id);
 
     const channel = supabase
       .channel('events-changes')
@@ -33,17 +32,12 @@ export const useEventsRealtime = () => {
         async (payload) => {
           const eventId = (payload.new as any)?.id || (payload.old as any)?.id;
           
-          console.log('🔄 [Realtime Events] Change detected:', {
-            type: payload.eventType,
-            eventId,
-            timestamp: new Date().toISOString(),
-          });
           
           logger.realtime.change(payload.eventType, { id: eventId });
 
           // ⚡ OTIMIZADO: Invalidar queries em vez de setQueryData
           // Isso garante que tanto queries ativas quanto inativas sejam marcadas como stale
-          console.log('♻️ [Realtime Events] Invalidating queries for team:', activeTeam.id);
+          logger.cache.invalidate('eventKeys.all');
           
           queryClient.invalidateQueries({ 
             queryKey: eventKeys.all,
@@ -56,23 +50,21 @@ export const useEventsRealtime = () => {
             refetchType: 'none' // Apenas marcar como stale sem refetch
           });
 
-          console.log('✅ [Realtime Events] Cache invalidated successfully');
+
         }
       )
       .subscribe((status) => {
-        console.log('📡 [Realtime Events] Subscription status:', status);
-        
         if (status === 'SUBSCRIBED') {
-          logger.realtime.info('✅ [Realtime Events] Successfully subscribed to events changes');
+          logger.realtime.info('SUBSCRIBED');
         } else if (status === 'CHANNEL_ERROR') {
-          logger.realtime.error('❌ [Realtime Events] Channel error');
+          logger.realtime.error('CHANNEL_ERROR');
         } else if (status === 'TIMED_OUT') {
-          logger.realtime.error('⏱️ [Realtime Events] Subscription timed out');
+          logger.realtime.error('TIMED_OUT');
         }
       });
 
     return () => {
-      console.log('🔌 [Realtime Events] Unsubscribing from events changes');
+      logger.realtime.debug('UNSUBSCRIBE');
       supabase.removeChannel(channel);
     };
   }, [activeTeam?.id, queryClient]);

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTeam } from '@/contexts/TeamContext';
+import { logger } from '@/utils/logger';
 import { personnelPaymentsKeys } from './usePersonnelPaymentsQuery';
 
 export const usePersonnelPaymentsRealtime = () => {
@@ -22,10 +23,10 @@ export const usePersonnelPaymentsRealtime = () => {
           filter: `team_id=eq.${activeTeam.id}`,
         },
         (payload) => {
-          console.log('🔄 [Personnel Payments Realtime]', payload.eventType, payload.new);
+          logger.realtime.change(payload.eventType as any, { id: (payload.new as any)?.id });
           
           // ⚡ FASE 2 OTIMIZADO: Invalidar queries em vez de setQueryData
-          console.log('♻️ [Personnel Payments Realtime] Invalidating queries');
+          logger.cache.invalidate('personnelPaymentsKeys.all');
           
           queryClient.invalidateQueries({ 
             queryKey: personnelPaymentsKeys.all,
@@ -38,7 +39,7 @@ export const usePersonnelPaymentsRealtime = () => {
             refetchType: 'none' // Apenas marcar como stale sem refetch
           });
           
-          console.log('✅ [Personnel Payments Realtime] Cache invalidated successfully');
+
         }
       )
       .subscribe();

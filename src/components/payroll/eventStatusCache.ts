@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 const CACHE_TTL = 30000; // 30 segundos
 
@@ -42,11 +43,11 @@ export const getCachedEventStatus = async (
     cache.teamId === teamId &&
     now - cache.timestamp < CACHE_TTL
   ) {
-    console.log('[EventStatusCache] Retornando dados do cache');
+    logger.cache.hit('eventStatusCache');
     return cache.data;
   }
 
-  console.log('[EventStatusCache] Cache expirado ou inválido, buscando do banco');
+  logger.cache.miss('eventStatusCache');
 
   try {
     const { data, error } = await supabase.rpc(
@@ -55,7 +56,7 @@ export const getCachedEventStatus = async (
     );
 
     if (error) {
-      console.error('[EventStatusCache] Erro ao buscar eventos:', error);
+      logger.query.error('eventStatusCache.fetch', error);
       throw error;
     }
 
@@ -68,11 +69,11 @@ export const getCachedEventStatus = async (
 
     return cache.data;
   } catch (error) {
-    console.error('[EventStatusCache] Falha ao buscar status de eventos:', error);
+    logger.query.error('eventStatusCache.fetch', error);
     
     // Em caso de erro, retornar cache antigo se existir (fallback)
     if (cache && cache.teamId === teamId) {
-      console.warn('[EventStatusCache] Retornando cache expirado como fallback');
+      logger.cache.warn('eventStatusCache:FALLBACK');
       return cache.data;
     }
     
@@ -85,7 +86,7 @@ export const getCachedEventStatus = async (
  * Útil após operações que modificam status de pagamento
  */
 export const invalidateCache = (): void => {
-  console.log('[EventStatusCache] Cache invalidado manualmente');
+  logger.cache.invalidate('eventStatusCache');
   cache = null;
 };
 

@@ -242,36 +242,17 @@ export const LoginScreen: React.FC = () => {
         }
       }
     } else {
-      // Login flow
-      const { data: existingUser } = await supabase
-        .from('user_profiles')
-        .select('email')
-        .eq('email', email.trim().toLowerCase())
-        .maybeSingle();
-      
+      // Login flow otimizado: evitar consulta extra antes do login
       const { error } = await login(email, password);
       if (error) {
         // Verificar se o erro é de credenciais inválidas mas usuário existe
         if (error.message?.includes('Invalid login credentials')) {
-          if (existingUser) {
-            // Usuário existe, mas senha está incorreta
-            toast({
-              title: "Senha incorreta",
-              description: "A senha informada está incorreta. Tente novamente ou use 'Esqueci minha senha'.",
-              variant: "destructive"
-            });
-          } else {
-            // Usuário não existe, redirecionar para signup
-            setSignupMessage('Você não possui uma conta cadastrada.');
-            setIsSignUp(true);
-            setName(''); // Limpar nome para que o usuário preencha
-            setPassword(''); // Limpar senha por segurança
-            toast({
-              title: "Conta não encontrada",
-              description: "Você não possui uma conta cadastrada. Complete o cadastro abaixo.",
-              variant: "default"
-            });
-          }
+          // Não consultar base antes do login: manter mensagem amigável
+          toast({
+            title: "Credenciais inválidas",
+            description: "Verifique seu e-mail e senha ou use 'Esqueci minha senha'.",
+            variant: "destructive"
+          });
         } else if (error.message?.includes('Email not confirmed')) {
         toast({
           title: "Email não confirmado",

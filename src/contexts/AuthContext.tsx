@@ -8,6 +8,9 @@ import { queryClient } from '@/providers/QueryProvider';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const DEBUG_LOGS = (import.meta as any)?.env?.VITE_DEBUG_LOGS === 'false';
+const debugLog = (...args: any[]) => { if (DEBUG_LOGS) console.log(...args); };
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -26,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mounted = true;
 
     const handleAuthChange = (event: string, session: Session | null) => {
-      console.log('Auth state change:', event, session?.user?.email);
+      debugLog('Auth state change:', event, session?.user?.email);
       
       if (!mounted) return;
 
@@ -35,8 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Detect user change or signout
       if (previousUserId !== currentUserId) {
-        console.log('[AuthContext] User changed from', previousUserId, 'to', currentUserId);
-        console.log('[AuthContext] Clearing React Query cache');
+        debugLog('[AuthContext] User changed from', previousUserId, 'to', currentUserId);
+        debugLog('[AuthContext] Clearing React Query cache');
         queryClient.clear();
         
         // Clear any session storage items related to the app
@@ -56,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       
       if (session?.user) {
-        console.log('User authenticated, deferring profile fetch');
+        debugLog('User authenticated, deferring profile fetch');
         // Defer the async profile fetch to avoid deadlocks
         setTimeout(() => {
           if (mounted) {
@@ -64,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }, 0);
       } else {
-        console.log('No session user, setting user to null');
+        debugLog('No session user, setting user to null');
         setUser(null);
         setIsLoading(false);
       }
@@ -74,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!mounted) return;
       
       try {
-        console.log('Fetching user profile for:', userEmail);
+        debugLog('Fetching user profile for:', userEmail);
         
         // Use maybeSingle to avoid errors when no profile exists
         const { data: profile, error } = await supabase
@@ -118,10 +121,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isApproved: profile.is_approved
           };
           
-          console.log('Enhanced user created:', enhancedUser);
+          debugLog('Enhanced user created:', enhancedUser);
           setUser(enhancedUser);
         } else {
-          console.log('No profile found for user, creating one');
+          debugLog('No profile found for user, creating one');
           // Create profile using RPC function
           const { error: createError } = await supabase.rpc('ensure_user_profile', {
             p_user_id: userId,
@@ -153,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initializeAuth = async () => {
       try {
-        console.log('Initializing auth...');
+        debugLog('Initializing auth...');
         
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -184,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
 
-        console.log('Initial session retrieved:', session?.user?.email);
+        debugLog('Initial session retrieved:', session?.user?.email);
         handleAuthChange('INITIAL_SESSION', session);
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -209,13 +212,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    console.log('Login attempt for:', email);
+    debugLog('Login attempt for:', email);
     try {
       const result = await loginUser(email, password);
       if (result.error) {
         console.error('Login error:', result.error);
       } else {
-        console.log('Login successful');
+        debugLog('Login successful');
       }
       return result;
     } catch (error) {
@@ -225,13 +228,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signup = async (email: string, password: string, name: string) => {
-    console.log('Signup attempt for:', email);
+    debugLog('Signup attempt for:', email);
     try {
       const result = await signupUser(email, password, name);
       if (result.error) {
         console.error('Signup error:', result.error);
       } else {
-        console.log('Signup successful');
+        debugLog('Signup successful');
       }
       return result;
     } catch (error) {
@@ -241,11 +244,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    console.log('Logout attempt');
+    debugLog('Logout attempt');
     setIsLoading(true);
     try {
       await logoutUser();
-      console.log('Logout successful');
+      debugLog('Logout successful');
       setUser(null);
       setSession(null);
     } catch (error) {
@@ -255,7 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  console.log('Auth state:', { user: user?.email, role: user?.role, isLoading });
+  debugLog('Auth state:', { user: user?.email, role: user?.role, isLoading });
 
   return (
     <AuthContext.Provider value={{ user, session, login, signup, logout, isLoading }}>

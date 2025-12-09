@@ -28,6 +28,7 @@ export const useAbsencesRealtime = () => {
         async (payload) => {
           logger.realtime.change(payload.eventType, { id: (payload.new as any)?.id || (payload.old as any)?.id });
 
+          logger.cache.invalidate('absenceKeys.all');
           queryClient.invalidateQueries({ queryKey: absenceKeys.all });
 
           const assignmentId = (payload.new as any)?.assignment_id || (payload.old as any)?.assignment_id;
@@ -40,6 +41,7 @@ export const useAbsencesRealtime = () => {
 
             const eventId = allocation?.event_id;
             if (eventId) {
+              logger.cache.invalidate(`payroll:event:${eventId}`);
               queryClient.invalidateQueries({ queryKey: payrollKeys.event(eventId) });
             }
           }

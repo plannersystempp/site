@@ -18,7 +18,6 @@ export const useWorkLogsRealtime = () => {
     if (!activeTeam?.id) return;
 
     logger.realtime.connected();
-    console.log('🔌 [Realtime WorkLogs] Connecting for team:', activeTeam.id);
 
     const channel = supabase
       .channel('work-logs-changes')
@@ -34,17 +33,11 @@ export const useWorkLogsRealtime = () => {
           const workLogId = (payload.new as any)?.id || (payload.old as any)?.id;
           const eventId = (payload.new as any)?.event_id || (payload.old as any)?.event_id;
           
-          console.log('🔄 [Realtime WorkLogs] Change detected:', {
-            type: payload.eventType,
-            workLogId,
-            eventId,
-            timestamp: new Date().toISOString(),
-          });
           
           logger.realtime.change(payload.eventType, { id: workLogId });
 
           // ⚡ OTIMIZADO: Invalidar queries de work logs
-          console.log('♻️ [Realtime WorkLogs] Invalidating work logs queries');
+          logger.cache.invalidate('workLogsKeys.all');
           
           queryClient.invalidateQueries({ 
             queryKey: workLogsKeys.all,
@@ -62,18 +55,24 @@ export const useWorkLogsRealtime = () => {
               queryKey: ['payroll', 'event', eventId],
               refetchType: 'active'
             });
-            console.log('♻️ [Realtime WorkLogs] Invalidated payroll cache for event:', eventId);
+            logger.cache.invalidate(`payroll:event:${eventId}`);
           }
 
-          console.log('✅ [Realtime WorkLogs] Cache invalidated successfully');
+
         }
       )
       .subscribe((status) => {
-        console.log('📡 [Realtime WorkLogs] Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          logger.realtime.info('SUBSCRIBED');
+        } else if (status === 'CHANNEL_ERROR') {
+          logger.realtime.error('CHANNEL_ERROR');
+        } else if (status === 'TIMED_OUT') {
+          logger.realtime.error('TIMED_OUT');
+        }
       });
 
     return () => {
-      console.log('🔌 [Realtime WorkLogs] Unsubscribing from work logs changes');
+      logger.realtime.debug('UNSUBSCRIBE');
       supabase.removeChannel(channel);
     };
   }, [activeTeam?.id, queryClient]);
