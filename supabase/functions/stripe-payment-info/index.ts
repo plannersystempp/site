@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
     );
 
     // Fetch payment method
-    let paymentMethod = null;
+    let paymentMethod: any = null;
     if (stripeSubscription.default_payment_method) {
       paymentMethod = await stripe.paymentMethods.retrieve(
         stripeSubscription.default_payment_method as string
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
     });
 
     // Fetch upcoming invoice (next charge)
-    let upcomingInvoice = null;
+    let upcomingInvoice: any = null;
     try {
       upcomingInvoice = await stripe.invoices.retrieveUpcoming({
         customer: subscription.gateway_customer_id,

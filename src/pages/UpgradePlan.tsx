@@ -63,6 +63,7 @@ export default function UpgradePlan() {
       .from('subscription_plans')
       .select('*')
       .eq('is_active', true)
+      .eq('is_hidden', false)
       .order('sort_order');
 
     if (plansData) {

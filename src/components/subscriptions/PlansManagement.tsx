@@ -24,6 +24,7 @@ interface Plan {
   };
   features: string[];
   is_active: boolean;
+  is_hidden: boolean;
   is_popular: boolean;
   sort_order: number;
   stripe_product_id?: string;
@@ -33,7 +34,7 @@ interface Plan {
 export function PlansManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const { togglePlanStatus } = usePlanMutations();
+  const { togglePlanStatus, togglePlanVisibility } = usePlanMutations();
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ['subscription-plans'],
@@ -77,6 +78,10 @@ export function PlansManagement() {
     togglePlanStatus.mutate({ id: plan.id, is_active: !plan.is_active });
   };
 
+  const handleToggleVisibility = async (plan: Plan) => {
+    togglePlanVisibility.mutate({ id: plan.id, is_hidden: !plan.is_hidden });
+  };
+
   const getPlanIcon = (planName: string) => {
     if (planName.includes('basic')) return <Zap className="h-6 w-6 text-blue-500" />;
     if (planName.includes('professional')) return <Star className="h-6 w-6 text-purple-500" />;
@@ -113,44 +118,46 @@ export function PlansManagement() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6 items-stretch">
         {plans?.map((plan) => (
           <Card 
             key={plan.id}
-            className={`relative transition-all hover:shadow-lg ${
+            className={`relative overflow-hidden transition-all hover:shadow-lg flex flex-col h-full ${
               plan.is_popular ? 'border-primary ring-1 ring-primary/20' : ''
             } ${!plan.is_active ? 'opacity-60' : ''}`}
           >
-            {plan.is_popular && (
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                <Badge className="bg-primary">
-                  ⭐ Popular
-                </Badge>
-              </div>
-            )}
             
-            <CardHeader className="space-y-3">
+            
+            <CardHeader className="space-y-3 min-h-[120px]">
               <div className="flex items-center justify-between">
                 <div className="p-2 rounded-lg bg-muted">
                   {getPlanIcon(plan.name)}
                 </div>
-                <Badge variant={plan.is_active ? 'default' : 'secondary'}>
-                  {plan.is_active ? 'Ativo' : 'Inativo'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {plan.is_popular && (
+                    <Badge className="bg-primary">⭐ Popular</Badge>
+                  )}
+                  <Badge variant={plan.is_active ? 'default' : 'secondary'}>
+                    {plan.is_active ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                  {plan.is_hidden && (
+                    <Badge variant="secondary">Oculto</Badge>
+                  )}
+                </div>
               </div>
               
               <div>
                 <CardTitle className="text-lg">{plan.display_name}</CardTitle>
-                <CardDescription className="text-xs mt-1">
+                <CardDescription className="text-xs mt-1 line-clamp-2">
                   {plan.description}
                 </CardDescription>
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 flex-1">
               <div className="text-center py-2">
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-2xl font-bold text-primary">
+                  <span className="text-2xl md:text-3xl font-bold text-primary">
                     R$ {plan.price.toFixed(2)}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -206,11 +213,11 @@ export function PlansManagement() {
               )}
             </CardContent>
 
-            <CardFooter className="flex gap-2">
+            <CardFooter className="mt-auto flex flex-col sm:flex-row sm:flex-wrap gap-2 justify-between">
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1"
+                className="w-full sm:flex-1"
                 onClick={() => handleEdit(plan)}
               >
                 <Edit className="h-3 w-3 mr-1" />
@@ -219,12 +226,21 @@ export function PlansManagement() {
               <Button
                 variant={plan.is_active ? 'secondary' : 'default'}
                 size="sm"
-                className="flex-1"
+                className="w-full sm:flex-1"
                 onClick={() => handleToggleStatus(plan)}
                 disabled={togglePlanStatus.isPending}
               >
                 <Power className="h-3 w-3 mr-1" />
                 {plan.is_active ? 'Desativar' : 'Ativar'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:flex-1"
+                onClick={() => handleToggleVisibility(plan)}
+                disabled={togglePlanVisibility.isPending}
+              >
+                {plan.is_hidden ? 'Exibir' : 'Ocultar'}
               </Button>
             </CardFooter>
           </Card>

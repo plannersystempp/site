@@ -15,6 +15,7 @@ interface PlanFormData {
   };
   features: string[];
   is_active: boolean;
+  is_hidden: boolean;
   is_popular: boolean;
   sort_order: number;
   stripe_product_id?: string;
@@ -78,6 +79,15 @@ export function usePlanMutations() {
 
       if (error) throw error;
     },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['subscription-plans'] });
+      const previous = queryClient.getQueryData<any>(['subscription-plans']);
+      if (Array.isArray(previous)) {
+        const updated = previous.map((p) => p.id === variables.id ? { ...p, is_active: variables.is_active } : p);
+        queryClient.setQueryData(['subscription-plans'], updated);
+      }
+      return { previous };
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
       queryClient.invalidateQueries({ queryKey: ['public-plans'] });
@@ -97,9 +107,47 @@ export function usePlanMutations() {
     }
   });
 
+  const togglePlanVisibility = useMutation({
+    mutationFn: async ({ id, is_hidden }: { id: string; is_hidden: boolean }) => {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .update({ is_hidden, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['subscription-plans'] });
+      const previous = queryClient.getQueryData<any>(['subscription-plans']);
+      if (Array.isArray(previous)) {
+        const updated = previous.map((p) => p.id === variables.id ? { ...p, is_hidden: variables.is_hidden } : p);
+        queryClient.setQueryData(['subscription-plans'], updated);
+      }
+      return { previous };
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['public-plans'] });
+      toast({
+        title: variables.is_hidden ? 'Plano ocultado!' : 'Plano visível!',
+        description: variables.is_hidden
+          ? 'O plano não aparecerá na lista pública'
+          : 'O plano voltará a aparecer na lista pública'
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao alterar visibilidade',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
   return {
     createPlan,
     updatePlan,
-    togglePlanStatus
+    togglePlanStatus,
+    togglePlanVisibility
   };
 }

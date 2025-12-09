@@ -24,6 +24,7 @@ interface Plan {
   };
   features: string[];
   is_active: boolean;
+  is_hidden: boolean;
   is_popular: boolean;
   sort_order: number;
   stripe_product_id?: string;
@@ -53,6 +54,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, returnFocusTo }: Plan
   const [features, setFeatures] = useState<string[]>([]);
   const [newFeature, setNewFeature] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [isHidden, setIsHidden] = useState(false);
   const [isPopular, setIsPopular] = useState(false);
   const [sortOrder, setSortOrder] = useState('0');
   const [stripeProductId, setStripeProductId] = useState('');
@@ -71,6 +73,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, returnFocusTo }: Plan
       setMaxPersonnel(plan.limits.max_personnel?.toString() || '');
       setFeatures(Array.isArray(plan.features) ? plan.features : []);
       setIsActive(plan.is_active);
+      setIsHidden(!!plan.is_hidden);
       setIsPopular(plan.is_popular);
       setSortOrder(plan.sort_order.toString());
       setStripeProductId(plan.stripe_product_id || '');
@@ -88,6 +91,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, returnFocusTo }: Plan
       setFeatures([]);
       setNewFeature('');
       setIsActive(true);
+      setIsHidden(false);
       setIsPopular(false);
       setSortOrder('0');
       setStripeProductId('');
@@ -120,6 +124,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, returnFocusTo }: Plan
       },
       features,
       is_active: isActive,
+      is_hidden: isHidden,
       is_popular: isPopular,
       sort_order: parseInt(sortOrder),
       stripe_product_id: stripeProductId || undefined,
@@ -305,7 +310,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, returnFocusTo }: Plan
           </div>
 
           {/* Settings */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="sortOrder">Ordem de Exibição</Label>
               <Input
@@ -322,6 +327,14 @@ export function PlanFormDialog({ open, onOpenChange, plan, returnFocusTo }: Plan
                 id="isActive"
                 checked={isActive}
                 onCheckedChange={setIsActive}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-6">
+              <Label htmlFor="isHidden">Ocultar na lista</Label>
+              <Switch
+                id="isHidden"
+                checked={isHidden}
+                onCheckedChange={setIsHidden}
               />
             </div>
             <div className="flex items-center justify-between pt-6">

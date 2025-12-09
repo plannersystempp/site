@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
     }
 
     // Se solicitado, deletar usuários órfãos resultantes
-    const orphanedUsers = [];
+    const orphanedUsers: any[] = [];
     if (deleteOrphanUsers && members) {
       for (const member of members) {
         // Verificar se o usuário ficou sem equipe

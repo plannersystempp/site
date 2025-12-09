@@ -370,7 +370,7 @@ Deno.serve(async (req) => {
 
     // Criar itens de fornecedores
     if (createdSuppliers) {
-      const supplierItemsData = [];
+      const supplierItemsData: any[] = [];
       for (const supplier of createdSuppliers) {
         if (supplier.name.includes('Som')) {
           supplierItemsData.push(
@@ -478,7 +478,7 @@ Deno.serve(async (req) => {
             const func = functions?.[Math.floor(Math.random() * functions.length)];
             
             // Gerar dias de trabalho baseado nas datas do evento
-            const workDays = [];
+            const workDays: string[] = [];
             const startDate = new Date(event.start_date);
             const endDate = new Date(event.end_date);
             
@@ -587,7 +587,7 @@ Deno.serve(async (req) => {
     if (createdPersonnel) {
       console.log('💵 Criando pagamentos avulsos...');
       
-      const paymentsData = [];
+      const paymentsData: any[] = [];
       for (let i = 0; i < 20; i++) {
         const person = createdPersonnel[Math.floor(Math.random() * createdPersonnel.length)];
         const amount = 500 + Math.random() * 2000;
@@ -619,7 +619,7 @@ Deno.serve(async (req) => {
       console.log('⭐ Criando avaliações...');
       
       const freelancers = createdPersonnel.filter(p => p.type === 'freelancer');
-      const ratingsData = [];
+      const ratingsData: any[] = [];
 
       for (const freelancer of freelancers.slice(0, 10)) {
         const numRatings = 1 + Math.floor(Math.random() * 3);
@@ -654,7 +654,7 @@ Deno.serve(async (req) => {
         .limit(50);
 
       if (allocations) {
-        const absencesData = [];
+        const absencesData: any[] = [];
         for (let i = 0; i < 12; i++) {
           const allocation = allocations[Math.floor(Math.random() * allocations.length)];
           if (allocation.work_days && allocation.work_days.length > 0) {
@@ -683,7 +683,7 @@ Deno.serve(async (req) => {
       console.log('📊 Criando fechamentos de folha...');
       
       const completedEvents = createdEvents.filter(e => e.status === 'concluido');
-      const closingsData = [];
+      const closingsData: any[] = [];
 
       for (const event of completedEvents) {
         const { data: eventAllocations } = await supabaseAdmin

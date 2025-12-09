@@ -69,13 +69,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         }
       }
 
-      // Planos vitalícios devem mostrar "Plano Vitalício" mesmo se display_name estiver diferente
-      const isLifetime = billingCycle === 'lifetime';
-      if (isLifetime && !planName) {
+      // Planos vitalícios ou status free devem ser mostrados como Plano Vitalício
+      const isLifetime = (billingCycle === 'lifetime') || (data.status === 'free');
+      if (isLifetime) {
         planName = 'Plano Vitalício';
-      }
-
-      if (!planName) {
+      } else if (!planName) {
         planName = data.plan_id ? 'Assinante' : 'Free';
       }
 

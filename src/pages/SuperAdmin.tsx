@@ -606,19 +606,19 @@ export default function SuperAdmin() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         {/* FASE 2: Remover overflow-x-auto, manter tabs apenas em desktop */}
-        <TabsList className="hidden md:grid w-full md:grid-cols-12">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="users">Usuários</TabsTrigger>
-          <TabsTrigger value="teams">Equipes</TabsTrigger>
-          <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
-          <TabsTrigger value="plans">Planos</TabsTrigger>
-          <TabsTrigger value="stripe-sync">Stripe Sync</TabsTrigger>
-          <TabsTrigger value="metrics">Métricas</TabsTrigger>
-          <TabsTrigger value="orphans">Órfãos</TabsTrigger>
-          <TabsTrigger value="deletion-logs">Exclusões</TabsTrigger>
-          <TabsTrigger value="audit">Auditoria</TabsTrigger>
-          <TabsTrigger value="error-reports">Reportes</TabsTrigger>
-          <TabsTrigger value="backups">Backups</TabsTrigger>
+        <TabsList className="hidden md:flex md:flex-wrap md:gap-2 w-full h-auto">
+          <TabsTrigger className="shrink-0" value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="users">Usuários</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="teams">Equipes</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="subscriptions">Assinaturas</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="plans">Planos</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="stripe-sync">Stripe Sync</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="metrics">Métricas</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="orphans">Órfãos</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="deletion-logs">Exclusões</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="audit">Auditoria</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="error-reports">Reportes</TabsTrigger>
+          <TabsTrigger className="shrink-0" value="backups">Backups</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6 animate-in fade-in duration-300">

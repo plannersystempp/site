@@ -70,7 +70,7 @@ const Dashboard = () => {
     userId: user?.id,
     teamId: activeTeam?.id,
   });
-  const supplierStatusSafe: 'todos' | 'pendente' | 'pago' = (suppliersStatus === 'vencido' ? 'pendente' : suppliersStatus) as any;
+  const supplierStatusSafe: 'todos' | 'pendente' | 'pago' = suppliersStatus;
 
   // Custom dashboard hooks MUST be called unconditionally before any conditional returns
   const eventsInProgress = useEventsInProgress();

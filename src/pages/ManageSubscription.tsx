@@ -16,6 +16,8 @@ interface SubscriptionData {
   status: string;
   current_period_ends_at: string;
   trial_ends_at: string | null;
+  billing_cycle?: string | null;
+  is_lifetime?: boolean;
   limits: {
     max_team_members: number | null;
     max_events_per_month: number | null;
@@ -60,7 +62,7 @@ export default function ManageSubscription() {
           status,
           current_period_ends_at,
           trial_ends_at,
-          subscription_plans(display_name, limits)
+          subscription_plans(display_name, limits, billing_cycle)
         `)
         .eq('team_id', activeTeam.id)
         .single();
@@ -69,11 +71,23 @@ export default function ManageSubscription() {
 
       if (data) {
         const limits = (data.subscription_plans as any)?.limits || {};
+        const cycle = (data.subscription_plans as any)?.billing_cycle as string | undefined;
+        const isLifetime = (cycle === 'lifetime') || (data.status === 'free');
+        let planName = (data.subscription_plans as any)?.display_name as string | undefined;
+        // Sempre padronizar nome para vitalício
+        if (isLifetime) {
+          planName = 'Plano Vitalício';
+        } else if (!planName) {
+          planName = 'Free';
+        }
+        const periodEnds = isLifetime ? null : data.current_period_ends_at;
         setSubscription({
-          plan_name: (data.subscription_plans as any)?.display_name || 'Desconhecido',
+          plan_name: planName,
           status: data.status,
-          current_period_ends_at: data.current_period_ends_at,
+          current_period_ends_at: periodEnds as any,
           trial_ends_at: data.trial_ends_at,
+          billing_cycle: cycle || null,
+          is_lifetime: isLifetime,
           limits: {
             max_team_members: limits.max_team_members ?? null,
             max_events_per_month: limits.max_events_per_month ?? null,
@@ -178,10 +192,11 @@ export default function ManageSubscription() {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <span className="text-sm">
-                    {subscription.trial_ends_at 
-                      ? `Trial expira em: ${formatDateShort(subscription.trial_ends_at)}`
-                      : `Renovação em: ${formatDateShort(subscription.current_period_ends_at)}`
-                    }
+                    {subscription.is_lifetime
+                      ? 'Sem renovação'
+                      : subscription.trial_ends_at
+                        ? `Trial expira em: ${formatDateShort(subscription.trial_ends_at)}`
+                        : `Renovação em: ${formatDateShort(subscription.current_period_ends_at)}`}
                   </span>
                 </div>
               </div>

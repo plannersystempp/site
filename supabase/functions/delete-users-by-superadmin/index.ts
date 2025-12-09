@@ -71,8 +71,8 @@ Deno.serve(async (req) => {
       }
     );
 
-    const deletedUsers = [];
-    const errors = [];
+    const deletedUsers: any[] = [];
+    const errors: any[] = [];
 
     // Delete each user
     for (const userId of userIds) {
