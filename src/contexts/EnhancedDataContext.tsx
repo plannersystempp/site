@@ -22,7 +22,7 @@ import { sanitizePersonnelData } from '@/utils/dataTransform';
 import { logger } from '@/utils/logger';
 
 // Aviso de depreciação no console
-console.warn('[DEPRECATED] EnhancedDataContext is deprecated. Use React Query hooks instead.');
+if (import.meta.env.DEV) console.warn('[DEPRECATED] EnhancedDataContext is deprecated. Use React Query hooks instead.');
 import {
   fetchSuppliers,
   createSupplier,

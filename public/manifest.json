@@ -31,12 +31,6 @@
       "type": "image/svg+xml",
       "sizes": "800x200",
       "purpose": "any"
-    },
-    {
-      "src": "/icons/logo_plannersystem.png",
-      "type": "image/png",
-      "sizes": "any",
-      "purpose": "any"
     }
   ],
   "start_url": "/",
