@@ -328,7 +328,7 @@ export const AllocationForm: React.FC<AllocationFormProps> = ({
         onOpenChange(isOpen);
       }}
     >
-      <DialogContent className={`${isMobile ? 'top-0 left-0 translate-x-0 translate-y-0 w-screen h-[92vh] max-w-none rounded-none px-2 sm:px-3 border-0' : 'max-w-4xl'} max-h-[90vh] overflow-y-auto overflow-x-hidden`} aria-modal="true" data-modal="true">
+      <DialogContent className={`${isMobile ? 'top-0 left-0 translate-x-0 translate-y-0 w-screen h-[92vh] max-w-none rounded-none px-2 sm:px-3 border-0' : 'max-w-5xl md:max-w-6xl'} max-h-[92vh] overflow-y-auto overflow-x-hidden`} aria-modal="true" data-modal="true">
         <DialogHeader className="pb-6">
           <DialogTitle>Nova Alocação</DialogTitle>
         </DialogHeader>

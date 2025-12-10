@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "icons:gen": "node scripts/gen-icons.js",
-    "test": "vitest"
+    "test": "vitest",
+    "db:copy": "node scripts/db-copy.mjs",
+    "db:dump": "node scripts/db-dump.mjs",
+    "db:upload": "node scripts/db-upload.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

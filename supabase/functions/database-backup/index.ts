@@ -23,7 +23,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ success: false, error: 'Authorization header required' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
           status: 401 
         }
       )
@@ -37,7 +37,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ success: false, error: 'Missing environment variables' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
           status: 500 
         }
       )
@@ -61,7 +61,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ success: false, error: 'Unauthorized' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
           status: 401 
         }
       )
@@ -74,7 +74,7 @@ serve(async (req: Request) => {
         return new Response(
           JSON.stringify({ success: false, error: 'Acesso negado: apenas superadmin pode fazer backup' }),
           { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
             status: 403 
           }
         )
@@ -84,7 +84,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ success: false, error: 'Erro ao verificar permissões' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
           status: 500 
         }
       )
@@ -295,7 +295,7 @@ serve(async (req: Request) => {
         sqlFileKey
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
         status: 200,
       }
     )
@@ -319,7 +319,7 @@ function toSqlValue(v: any): string {
         error: error.message || 'Erro ao fazer backup do banco de dados' 
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
         status: 500,
       }
     )

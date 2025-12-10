@@ -528,8 +528,7 @@
 
 /* Mobile optimizations to prevent auto-zoom */
 html {
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -562,9 +561,28 @@ input, select, textarea {
 }
 
 /* Firefox */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+/* Firefox-only scrollbar styles */
+@-moz-document url-prefix() {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+}
+
+/* Safari/WebKit fallback */
+html::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+html::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 8px;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Chrome, Safari e navegadores WebKit */
@@ -786,8 +804,8 @@ html {
 @supports (-webkit-touch-callout: none) {
   /* Fix para viewport em iOS PWA quando instalado via A2HS */
   .is-pwa body {
-    min-height: 100dvh;
     min-height: -webkit-fill-available;
+    min-height: 100dvh;
   }
 
   /* Melhorar toque em botões no iOS PWA */
@@ -803,8 +821,8 @@ html {
 /* Aplicar regras também quando em display-mode: standalone */
 @media (display-mode: standalone) {
   body {
-    min-height: 100dvh;
     min-height: -webkit-fill-available;
+    min-height: 100dvh;
   }
 
   button,
@@ -960,3 +978,4 @@ body > a:last-child[style*="position:fixed"]:not([data-allow-fixed="true"]):not(
   visibility: hidden !important;
   opacity: 0 !important;
 }
+

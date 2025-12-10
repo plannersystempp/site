@@ -6,6 +6,11 @@ import './index.css'
 import './styles/mobile-utils.css'
 import { QueryProvider } from './providers/QueryProvider'
 
+// Sinalizar que o app carregou para evitar o botão de emergência
+if (typeof window !== 'undefined') {
+  (window as any).__appLoaded = true;
+}
+
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryProvider>

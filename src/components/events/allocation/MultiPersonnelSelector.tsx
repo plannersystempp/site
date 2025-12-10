@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Users, X } from 'lucide-react';
+import { Search, Users, X, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -60,19 +60,32 @@ export const MultiPersonnelSelector: React.FC<MultiPersonnelSelectorProps> = ({
   return <div className="space-y-4 relative">
       {/* Search and Controls */}
       <div className="space-y-2 md:space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Label className="text-sm md:text-base font-medium">Selecionar Pessoal</Label>
-          <Badge variant="secondary" className="text-xs md:text-sm">
-            {selectedCount} selecionado{selectedCount !== 1 ? 's' : ''}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCreateForm(true)}
+                className="h-8 md:h-9 px-2 md:px-3"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Cadastrar Pessoa
+              </Button>
+            )}
+            <Badge variant="secondary" className="text-xs md:text-sm">
+              {selectedCount} selecionado{selectedCount !== 1 ? 's' : ''}
+            </Badge>
+          </div>
         </div>
         
-        <div className={`flex flex-col sm:flex-row gap-2 ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
+        <div className={`flex flex-col gap-2 ${blocked ? 'pointer-events-none opacity-50' : ''}`}>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar por nome ou email..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-9 text-sm" />
           </div>
-          <div className="w-full sm:w-56">
+          <div className="w-full">
             <Select value={functionFilter} onValueChange={setFunctionFilter}>
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Filtrar por função" />
