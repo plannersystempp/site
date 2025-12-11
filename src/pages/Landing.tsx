@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { UsefulLinks } from '@/components/shared/UsefulLinks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Calendar, Users, DollarSign, BarChart3, Clock, FileText, LogIn, Monitor, Smartphone, Tablet, Play, Star, CheckCircle } from 'lucide-react';
@@ -408,21 +409,7 @@ export const Landing: React.FC = () => {
               </p>
             </div>
 
-            {/* Links Column */}
-            <div className="space-y-4 sm:space-y-4">
-              <h4 className="text-base sm:text-lg font-bold">Links Úteis</h4>
-              <div className="space-y-3 sm:space-y-3">
-                <Link to="/plans" className="block text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors">
-                  Planos e Preços
-                </Link>
-                <Link to="/auth" className="block text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors">
-                  Fazer Login
-                </Link>
-                <Link to="/support" className="block text-sm sm:text-base text-muted-foreground hover:text-primary transition-colors">
-                  Suporte
-                </Link>
-              </div>
-            </div>
+            <UsefulLinks />
 
             {/* Contact Column */}
             <div className="space-y-4 sm:space-y-4 text-center md:text-left">

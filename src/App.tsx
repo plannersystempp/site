@@ -10,8 +10,10 @@ import { TeamProvider } from './contexts/TeamContext';
 import { LoginScreen } from './components/LoginScreen';
 import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { Landing } from './pages/Landing';
+import { SalesLanding } from './pages/SalesLanding';
 import { TermosDeUso } from './pages/TermosDeUso';
 import { PoliticaPrivacidade } from './pages/PoliticaPrivacidade';
+import { QuemSomos } from './pages/QuemSomos';
 import { Layout } from './components/Layout';
 import { Toaster } from './components/ui/toaster';
 import Dashboard from './components/Dashboard';
@@ -27,6 +29,7 @@ import { PayrollReportPage } from './pages/PayrollReportPage';
 import PersonnelPaymentsPage from './pages/PersonnelPayments';
 import PersonnelPaymentsReportPage from './pages/PersonnelPaymentsReportPage';
 import PaymentForecastReportPage from './pages/PaymentForecastReportPage';
+import ReportarErroPage from './pages/ReportarErro';
 import { Settings } from './components/admin/Settings';
 import { SettingsPage } from './components/SettingsPage';
 import { TeamManagement } from './components/teams/TeamManagement';
@@ -48,6 +51,7 @@ import UpgradePlan from './pages/UpgradePlan';
 import PlansPage from './pages/PlansPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import ManageSubscription from './pages/ManageSubscription';
+import ErrorReportingTelemetry from './components/admin/ErrorReportingTelemetry';
 import MonthlyPayrollPage from './pages/MonthlyPayrollPage';
 import PaymentForecastPage from './pages/PaymentForecastPage';
 import { useRealtimeSync } from './hooks/queries/useRealtimeSync';
@@ -378,6 +382,11 @@ const AppContent = () => {
                   <PaymentForecastReportPage />
                 </RouteErrorBoundary>
               } />
+              <Route path="/reportar-erro" element={
+                <RouteErrorBoundary routeName="Reportar Erro">
+                  <ReportarErroPage />
+                </RouteErrorBoundary>
+              } />
               <Route path="/equipe" element={
                 <RouteErrorBoundary routeName="Equipe">
                   <TeamManagement />
@@ -397,6 +406,15 @@ const AppContent = () => {
                     <FormErrorBoundary formName="AdminConfiguracoes">
                       <Settings />
                     </FormErrorBoundary>
+                  </RouteErrorBoundary>
+                } />
+              )}
+              {user.role === 'admin' && (
+                <Route path="/admin/telemetria-erros" element={
+                  <RouteErrorBoundary routeName="Admin - Telemetria de Erros">
+                    <AdminGuard>
+                      <ErrorReportingTelemetry />
+                    </AdminGuard>
                   </RouteErrorBoundary>
                 } />
               )}
@@ -428,10 +446,12 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/oferta" element={<SalesLanding />} />
             <Route path="/auth" element={<LoginScreen />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/termos-de-uso" element={<TermosDeUso />} />
             <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/quem-somos" element={<QuemSomos />} />
             <Route path="/plans" element={<PlansPage />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/app/*" element={
