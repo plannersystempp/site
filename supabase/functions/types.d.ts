@@ -47,7 +47,4 @@ declare module 'https://esm.sh/web-push@3.6.7' {
   export default webpush
 }
 
-declare const Deno: {
-  env: { get(name: string): string | undefined },
-  serve: (handler: (req: Request) => Response | Promise<Response>) => void
-}
+// Deno types are provided by the runtime - no need to declare
