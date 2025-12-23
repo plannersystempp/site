@@ -11,7 +11,7 @@ global.ResizeObserver = global.ResizeObserver || ResizeObserverMock as any
 
 // jsdom não implementa scrollIntoView; fornecer stub
 // @ts-ignore
-if (!Element.prototype.scrollIntoView) {
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
   // @ts-ignore
   Element.prototype.scrollIntoView = function() {}
 }

@@ -2,11 +2,50 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/utils/formatters';
 import { EventData } from './types';
 import { invalidateCache } from './eventStatusCache';
 import { notificationService } from '@/services/notificationService';
+import { payrollKeys } from '@/hooks/queries/usePayrollQuery';
+import { monthlyPayrollKeys } from '@/hooks/queries/useMonthlyPayrollQuery';
+import { personnelHistoryKeys } from '@/hooks/queries/usePersonnelHistoryQuery';
+
+export const invalidateAfterPayrollClosingChange = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  eventId: string,
+  personnelId?: string
+) => {
+  if (eventId) {
+    queryClient.invalidateQueries({
+      queryKey: payrollKeys.event(eventId),
+      refetchType: 'active',
+    });
+  }
+
+  queryClient.invalidateQueries({
+    queryKey: payrollKeys.all,
+    refetchType: 'active',
+  });
+
+  queryClient.invalidateQueries({
+    queryKey: monthlyPayrollKeys.all,
+    refetchType: 'active',
+  });
+
+  if (personnelId) {
+    queryClient.invalidateQueries({
+      queryKey: personnelHistoryKeys.all(personnelId),
+      refetchType: 'active',
+    });
+  } else {
+    queryClient.invalidateQueries({
+      queryKey: ['personnel-history'],
+      refetchType: 'active',
+    });
+  }
+};
 
 export const usePayrollActions = (
   selectedEventId: string,
@@ -15,6 +54,7 @@ export const usePayrollActions = (
   const { user } = useAuth();
   const { activeTeam } = useTeam();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleRegisterPayment = async (personnelId: string, totalAmount: number, notes?: string) => {
     if (!user || !activeTeam) return;
@@ -102,8 +142,10 @@ export const usePayrollActions = (
         );
       }
       
-      // Invalidar cache para forçar atualização nos dashboards
+      // Invalidar cache para foru007far atualizau007fu007fo nos dashboards
       invalidateCache();
+
+      invalidateAfterPayrollClosingChange(queryClient, selectedEventId, personnelId);
     } catch (error) {
       console.error('Error registering payment:', error);
       toast({
@@ -200,8 +242,10 @@ export const usePayrollActions = (
         );
       }
       
-      // Invalidar cache para forçar atualização nos dashboards
+      // Invalidar cache para foru007far atualizau007fu007fo nos dashboards
       invalidateCache();
+
+      invalidateAfterPayrollClosingChange(queryClient, selectedEventId, personnelId);
     } catch (error) {
       console.error('Error registering partial payment:', error);
       toast({
@@ -223,7 +267,7 @@ export const usePayrollActions = (
         return;
       }
 
-      // Diagnóstico: checar se o registro está visível antes de apagar
+      // Diagnu007fstico: checar se o registro estu007f visu007fvel antes de apagar
       const { data: closingRow } = await supabase
         .from('payroll_closings')
         .select('id, event_id, team_id, personnel_id, paid_by_id')
@@ -252,13 +296,24 @@ export const usePayrollActions = (
         description: `Pagamento de ${personName} foi cancelado com sucesso`,
       });
       
-      // Invalidar cache para forçar atualização nos dashboards
+      // Invalidar cache para foru007far atualizau007fu007fo nos dashboards
       invalidateCache();
-    } catch (error: any) {
+
+      const closingPersonnelId = closingRow?.personnel_id
+        ? String(closingRow.personnel_id)
+        : undefined;
+
+      invalidateAfterPayrollClosingChange(
+        queryClient,
+        selectedEventId,
+        closingPersonnelId
+      );
+    } catch (error) {
       console.error('Error canceling payment:', error);
+      const message = error instanceof Error ? error.message : 'Falha ao cancelar pagamento';
       toast({
         title: "Erro",
-        description: error?.message ? String(error.message) : "Falha ao cancelar pagamento",
+        description: message,
         variant: "destructive"
       });
     }

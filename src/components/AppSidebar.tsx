@@ -144,7 +144,7 @@ export const AppSidebar = () => {
         <Link to="/app" className="block">
           <div className="flex items-center gap-2">
             <img 
-              src="/icons/plannersystem-logo.svg" 
+              src="/icons/logo_plannersystem.png" 
               alt="PlannerSystem Logo" 
               className="w-8 h-8 object-contain"
             />

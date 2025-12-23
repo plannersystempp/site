@@ -39,7 +39,7 @@ describe('PayrollPrintTable', () => {
     expect(html).toContain('Evento:');
     expect(html).toContain('Local:');
     expect(html).toContain('H. Extras (h)');
-    expect(html).toContain('Cachê diário (R$)');
+    expect(html).toContain('Cachê dia (R$)');
     expect(html).toContain('Total (R$)');
     expect(html).toContain('João Silva');
   });

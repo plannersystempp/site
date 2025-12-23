@@ -318,6 +318,13 @@ export const LoginScreen: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/icons/logo_plannersystem.png" 
+                alt="PlannerSystem Logo" 
+                className="h-12 w-auto object-contain"
+              />
+            </div>
             <div className="flex items-center justify-between mb-4">
               <Link to="/">
                 <Button variant="ghost" size="sm">
@@ -373,6 +380,13 @@ export const LoginScreen: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/icons/logo_plannersystem.png" 
+              alt="PlannerSystem Logo" 
+              className="h-12 w-auto object-contain"
+            />
+          </div>
           <div className="flex items-center justify-between mb-4">
             <Link to="/">
               <Button variant="ghost" size="sm">
