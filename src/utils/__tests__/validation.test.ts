@@ -59,26 +59,26 @@ describe('validateUniqueCPF', () => {
 describe('validateUniqueCNPJ', () => {
   it('should reject duplicate CNPJ', () => {
     const existing = [
-      { id: '1', name: 'Empresa LTDA', cnpj: '11.222.333/0001-81' }
+      { id: '1', name: 'Empresa LTDA', cnpj: '12.345.678/0001-90' }
     ];
-    const result = validateUniqueCNPJ('11222333000181', existing);
+    const result = validateUniqueCNPJ('12345678000190', existing);
     expect(result.isValid).toBe(false);
     expect(result.message).toContain('Empresa LTDA');
   });
 
   it('should allow same CNPJ when editing', () => {
     const existing = [
-      { id: '1', name: 'Empresa LTDA', cnpj: '11.222.333/0001-81' }
+      { id: '1', name: 'Empresa LTDA', cnpj: '12.345.678/0001-90' }
     ];
-    const result = validateUniqueCNPJ('11222333000181', existing, '1');
+    const result = validateUniqueCNPJ('12345678000190', existing, '1');
     expect(result.isValid).toBe(true);
   });
 
   it('should allow new unique CNPJ', () => {
     const existing = [
-      { id: '1', name: 'Empresa LTDA', cnpj: '11.222.333/0001-81' }
+      { id: '1', name: 'Empresa LTDA', cnpj: '12.345.678/0001-90' }
     ];
-    const result = validateUniqueCNPJ('11444777000161', existing);
+    const result = validateUniqueCNPJ('98765432000199', existing);
     expect(result.isValid).toBe(true);
   });
 });

@@ -144,7 +144,7 @@ export const AppSidebar = () => {
         <Link to="/app" className="block">
           <div className="flex items-center gap-2">
             <img 
-              src="/icons/logo_plannersystem.png" 
+              src="/icons/plannersystem-logo.svg" 
               alt="PlannerSystem Logo" 
               className="w-8 h-8 object-contain"
             />
@@ -285,10 +285,10 @@ export const AppSidebar = () => {
 
       <SidebarFooter className="p-4 space-y-2">
         <Button
-          variant="secondary"
+          variant="ghost"
           size="sm"
           onClick={() => setShowErrorReportDialog(true)}
-          className="w-full justify-start text-xs"
+          className="w-full justify-start text-xs text-muted-foreground hover:text-foreground"
           ref={reportButtonRef}
         >
           <Bug className="mr-2 h-3 w-3" />

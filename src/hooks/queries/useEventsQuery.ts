@@ -155,11 +155,6 @@ export const useUpdateEventMutation = () => {
           start_date: event.start_date,
           end_date: event.end_date,
           status: event.status,
-          location: event.location,
-          client_contact_phone: event.client_contact_phone,
-          payment_due_date: event.payment_due_date,
-          setup_start_date: event.setup_start_date,
-          setup_end_date: event.setup_end_date,
         })
         .eq('id', event.id)
         .eq('team_id', activeTeam!.id)
@@ -202,11 +197,6 @@ export const useUpdateEventMutation = () => {
         refetchType: 'active'
       });
       
-      // Invalidar histórico de pessoal para refletir mudanças de data/status
-      queryClient.invalidateQueries({
-        queryKey: ['personnel-history']
-      });
-
       // ✅ FASE 3: Notificar outras abas
       broadcast(eventKeys.all);
       

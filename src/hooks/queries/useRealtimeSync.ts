@@ -11,7 +11,6 @@ import { useDivisionsRealtime } from './useDivisionsRealtime';
 import { useWorkLogsRealtime } from './useWorkLogsRealtime';
 import { useFunctionsRealtime } from './useFunctionsRealtime';
 import { usePersonnelPaymentsRealtime } from './usePersonnelPaymentsRealtime';
-import { usePayrollClosingsRealtime } from './usePayrollClosingsRealtime';
 import { useCrossTabSync } from './useCrossTabSync';
 import { logger } from '@/utils/logger';
 
@@ -24,7 +23,6 @@ export const useRealtimeSync = () => {
   useWorkLogsRealtime();
   useFunctionsRealtime();
   usePersonnelPaymentsRealtime();
-  usePayrollClosingsRealtime();
   
   // FASE 4: Ativar sincronização cross-tab
   useCrossTabSync();

@@ -57,13 +57,6 @@ export const PayrollPrintTable: React.FC<PayrollPrintTableProps> = ({ teamName, 
     <div className="payroll-report-page print-section p-8 max-w-[210mm] mx-auto">
       {/* Cabeçalho Completo */}
       <div className="mb-6">
-        <div className="flex justify-center mb-4">
-          <img 
-            src="/icons/logo_plannersystem.png" 
-            alt="PlannerSystem Logo" 
-            className="h-12 w-auto object-contain"
-          />
-        </div>
         <h2 className="payroll-report-subtitle text-center">Relatório de Folha de Pagamento</h2>
         <div className="payroll-report-info">
           <div style={{fontSize: '18px', fontWeight: 'bold', color: '#1e40af', marginBottom: '8px', textAlign: 'center'}}>

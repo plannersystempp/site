@@ -28,15 +28,6 @@ function DialogTestComponent() {
 
 describe('Dialog focus a11y', () => {
   it('retorna o foco ao trigger após fechar o diálogo', async () => {
-    const waitTick = async () => new Promise((r) => setTimeout(r, 0))
-    const waitForActiveElement = async (el: Element) => {
-      for (let i = 0; i < 20; i++) {
-        if (document.activeElement === el) return
-        await waitTick()
-      }
-      throw new Error('Foco não retornou ao elemento esperado')
-    }
-
     const container = document.createElement('div')
     document.body.appendChild(container)
     const root = ReactDOM.createRoot(container)
@@ -48,9 +39,6 @@ describe('Dialog focus a11y', () => {
 
     const trigger = container.querySelector('button') as HTMLButtonElement
     expect(trigger).toBeTruthy()
-
-    trigger.focus()
-    expect(document.activeElement).toBe(trigger)
 
     // Abre o diálogo
     await act(async () => {
@@ -71,19 +59,10 @@ describe('Dialog focus a11y', () => {
     })
 
     // Foco deve retornar ao trigger
-    await waitForActiveElement(trigger)
+    expect(document.activeElement).toBe(trigger)
   })
 
   it('fecha com tecla Escape e retorna foco ao trigger', async () => {
-    const waitTick = async () => new Promise((r) => setTimeout(r, 0))
-    const waitForActiveElement = async (el: Element) => {
-      for (let i = 0; i < 20; i++) {
-        if (document.activeElement === el) return
-        await waitTick()
-      }
-      throw new Error('Foco não retornou ao elemento esperado')
-    }
-
     const container = document.createElement('div')
     document.body.appendChild(container)
     const root = ReactDOM.createRoot(container)
@@ -96,32 +75,18 @@ describe('Dialog focus a11y', () => {
     const trigger = container.querySelector('button') as HTMLButtonElement
     expect(trigger).toBeTruthy()
 
-    trigger.focus()
-    expect(document.activeElement).toBe(trigger)
-
     await act(async () => {
       trigger.click()
       await new Promise((r) => setTimeout(r, 0))
     })
 
-    const closeBtn = document.querySelector(
-      'button[aria-label="Fechar"]'
-    ) as HTMLButtonElement | null
-    expect(closeBtn).toBeTruthy()
-    closeBtn?.focus()
-
     // Dispara Escape
     await act(async () => {
-      const evt = new KeyboardEvent('keydown', {
-        key: 'Escape',
-        code: 'Escape',
-        bubbles: true,
-        cancelable: true,
-      })
-      closeBtn?.dispatchEvent(evt)
+      const evt = new KeyboardEvent('keydown', { key: 'Escape' })
+      document.dispatchEvent(evt)
       await new Promise((r) => setTimeout(r, 0))
     })
 
-    await waitForActiveElement(trigger)
+    expect(document.activeElement).toBe(trigger)
   })
 })

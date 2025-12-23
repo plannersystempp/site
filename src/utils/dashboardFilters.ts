@@ -27,29 +27,16 @@ interface SupplierCostLike {
   paid_amount?: number | null;
 }
 
-const ISO_DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
-const toDate = (d?: string | Date | null) => {
-  if (!d) return null;
-  if (d instanceof Date) return d;
-
-  if (typeof d === 'string' && ISO_DATE_ONLY_REGEX.test(d)) {
-    return new Date(`${d}T12:00:00`);
-  }
-
-  return new Date(d);
-};
+const toDate = (d?: string | Date | null) => (d ? new Date(d) : null);
 
 export const filterByDateRange = <T extends EventLike>(items: T[], range: DateRange, now = new Date()): T[] => {
   if (range === 'todos') return items;
   const start = new Date(now);
   const end = new Date(now);
-
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-
   if (range === 'hoje') {
     // Apenas eventos com start_date hoje ou futuro de hoje
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
   } else if (range === '7dias') {
     end.setDate(end.getDate() + 7);
   } else if (range === '30dias') {
