@@ -9,6 +9,7 @@ import PlansModal from '../components/Modals/PlansModal';
 import ContactModal from '../components/Modals/ContactModal';
 import WhatsAppFloating from '../components/WhatsAppFloating';
 import PrivacyWidget from '../components/PrivacyWidget';
+import SEO from '../components/SEO';
 
 function Landing() {
   const [showPlansModal, setShowPlansModal] = useState(false);
@@ -22,6 +23,10 @@ function Landing() {
 
   return (
     <div className="font-sans text-slate-600 bg-white selection:bg-blue-900 selection:text-white overflow-x-hidden relative">
+      <SEO 
+        title="O Sistema Completo para Gestão de Eventos" 
+        description="Simplifique a gestão dos seus eventos com o PlannerSystem. Controle financeiro, gestão de equipe, escalas e relatórios em uma única plataforma."
+      />
       
       <Navbar 
         onContactClick={openContactModal}

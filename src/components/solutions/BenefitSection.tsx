@@ -7,6 +7,8 @@ interface BenefitSectionProps {
   imageAlt?: string;
   reverse?: boolean; // Se true, imagem à esquerda
   benefits?: string[]; // Lista de checkmarks
+  customVisual?: React.ReactNode; // Componente visual customizado (substitui imagem)
+  cleanImage?: boolean; // Se true, remove moldura (shadow e rounded)
 }
 
 const BenefitSection: React.FC<BenefitSectionProps> = ({ 
@@ -15,7 +17,9 @@ const BenefitSection: React.FC<BenefitSectionProps> = ({
   imageSrc, 
   imageAlt = "Ilustração do benefício", 
   reverse = false,
-  benefits = []
+  benefits = [],
+  customVisual,
+  cleanImage = false
 }) => {
   return (
     <section className={`py-16 ${reverse ? 'bg-slate-50' : 'bg-white'}`}>
@@ -47,8 +51,12 @@ const BenefitSection: React.FC<BenefitSectionProps> = ({
 
           {/* Imagem / Mockup */}
           <div className="flex-1 w-full">
-            {imageSrc ? (
-              <img src={imageSrc} alt={imageAlt} className="rounded-2xl shadow-2xl w-full object-cover transform hover:scale-[1.02] transition-transform duration-500" />
+            {customVisual ? (
+              <div className="w-full transform hover:scale-[1.02] transition-transform duration-500">
+                {customVisual}
+              </div>
+            ) : imageSrc ? (
+              <img src={imageSrc} alt={imageAlt} className={`${cleanImage ? '' : 'rounded-2xl shadow-2xl'} w-full object-cover transform hover:scale-[1.02] transition-transform duration-500`} />
             ) : (
               // Mockup Padrão Abstrato
               <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl shadow-inner border border-slate-200 relative overflow-hidden group">

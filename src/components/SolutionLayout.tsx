@@ -4,6 +4,7 @@ import Footer from './Footer';
 import WhatsAppFloating from './WhatsAppFloating';
 import ContactModal from './Modals/ContactModal';
 import PlansModal from './Modals/PlansModal';
+import SEO from './SEO';
 import { useState } from 'react';
 import { LucideIcon } from 'lucide-react';
 
@@ -37,6 +38,8 @@ const SolutionLayout: React.FC<SolutionLayoutProps> = ({
 
   return (
     <div className="font-sans text-slate-600 bg-white selection:bg-blue-900 selection:text-white overflow-x-hidden relative min-h-screen flex flex-col">
+      <SEO title={title} description={description} />
+      
       <Navbar 
         onContactClick={openContactModal}
         onPlansClick={openPlansModal}
