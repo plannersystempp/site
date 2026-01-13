@@ -23,7 +23,7 @@ const slides = [
     description: "Seu time de campo conectado. Check-in, check-out e comunicação direta pelo celular.",
     type: "mobile" as const,
     gradient: "from-purple-600 to-pink-600",
-    image: "/images/app-staff-preview.png",
+    image: "/images/WhatsApp%20Image%202026-01-13%20at%2010.06.54.jpeg",
     useImage: true
   },
   {
@@ -126,41 +126,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
                     </button>
                   </div>
 
-                  <div className="w-full md:w-2/3 h-full relative z-10 perspective-1000 flex items-center justify-center">
-                    <div className={`relative w-full h-full bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/50 p-2 transform transition-all duration-700 ${position === 'active' ? 'rotate-y-[-5deg] translate-x-0' : 'rotate-y-0 scale-95'}`}>
-                      <div className="w-full h-full bg-slate-50 rounded-lg overflow-hidden relative group">
-                        {slide.type === 'desktop' ? (
-                          <DashboardPreview />
-                        ) : (
-                          <div className="flex items-center justify-center h-full bg-slate-100">
-                            <div className="w-40 h-72 bg-white border-4 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden flex flex-col relative">
-                              <div className="h-6 bg-slate-800 w-full flex justify-center pt-1 shrink-0 z-20"><div className="w-10 h-2 bg-black rounded-b-xl"></div></div>
-                              {/* @ts-ignore */}
-                              {slide.useImage ? (
-                                <img 
-                                  src={slide.image} 
-                                  alt={slide.title}
-                                  className="w-full h-full object-contain absolute inset-0 z-10"
-                                  decoding="async"
-                                />
-                              ) : (
-                                <div className="flex-1 p-2 space-y-2 relative z-10">
-                                  <div className="h-6 w-full bg-blue-100 rounded mb-1"></div>
-                                  <div className="h-14 w-full bg-slate-50 rounded border border-slate-100"></div>
-                                  <div className="h-14 w-full bg-slate-50 rounded border border-slate-100"></div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-lg shadow font-bold text-slate-800 text-sm">
-                            Prévia do Sistema
-                          </div>
-                        </div>
+                  <div className="w-full md:w-2/3 h-full relative z-10 flex items-center justify-center">
+                    {slide.type === 'desktop' ? (
+                      <DashboardPreview />
+                    ) : (
+                      <div className="w-40 h-72 border-4 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden relative bg-black">
+                        <div className="h-6 bg-slate-800 w-full flex justify-center pt-1 shrink-0 z-20"><div className="w-10 h-2 bg-black rounded-b-xl"></div></div>
+                        <img 
+                          src={slide.image}
+                          alt={slide.title}
+                          className="absolute inset-0 w-full h-full object-cover z-10"
+                          decoding="async"
+                        />
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               );
