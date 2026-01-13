@@ -35,10 +35,7 @@ function Landing() {
         <div className="container mx-auto px-6 text-center">
           <p className="text-sm font-medium text-slate-500 mb-8">Empresas líderes confiam na PlannerSystem</p>
           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-            <img src="https://placehold.co/140x50/e2e8f0/475569?text=LAF+TECH" alt="LAF TECH" className="h-8 md:h-10 w-auto object-contain" />
-            <img src="https://placehold.co/140x50/e2e8f0/475569?text=EVENTPRO" alt="EVENTPRO" className="h-8 md:h-10 w-auto object-contain" />
-            <img src="https://placehold.co/140x50/e2e8f0/475569?text=GlobalStage" alt="GlobalStage" className="h-8 md:h-10 w-auto object-contain" />
-            <img src="https://placehold.co/140x50/e2e8f0/475569?text=AUDIO" alt="AUDIO" className="h-8 md:h-10 w-auto object-contain" />
+            <img src="https://placehold.co/200x80/ffffff/000000?text=LAFTECH" alt="LAFTECH" className="h-10 md:h-12 w-auto object-contain" />
           </div>
         </div>
       </div>

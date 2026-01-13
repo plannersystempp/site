@@ -5,32 +5,16 @@ import { useCarousel } from '../hooks/useCarousel';
 const testimonials = [
   {
     id: 1,
-    quote: "O PlannerSystem eliminou completamente o caos das nossas planilhas. Reduzimos o tempo de fechamento financeiro em 80% já no primeiro mês.",
-    author: "Ricardo Mendes",
-    role: "Diretor de Operações",
-    company: "LAF TECH",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-  },
-  {
-    id: 2,
-    quote: "A gestão de staff era nosso maior gargalo. Hoje, com o app, sabemos exatamente quem está no evento e o custo em tempo real. É libertador.",
-    author: "Juliana Costa",
-    role: "Gerente de Produção",
-    company: "GlobalStage",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-  },
-  {
-    id: 3,
-    quote: "Conseguimos escalar de 5 para 15 eventos simultâneos sem aumentar a equipe administrativa, apenas centralizando tudo na plataforma.",
-    author: "Carlos Eduardo",
-    role: "CEO",
-    company: "EventPro",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+    quote: "O PlannerSystem veio acrescentar qualidade no dia a dia dos nossos pagamentos. É uma ferramenta que proporciona visibilidade abrangente a respeito dos eventos em andamento, realizados e futuros. Integra informações importantes sobre a equipe técnica, permite lançamento de custos por evento e aumenta a produtividade financeira da empresa. Tenho certeza de que fizemos um excelente investimento.",
+    author: "Gabriela Marinho",
+    role: "Controle Operacional",
+    company: "Laftech",
+    image: "/images/gabriela-marinho.jpg"
   }
 ];
 
 const Testimonials: React.FC = () => {
-  const { current: currentTestimonial, next: nextTestimonial, prev: prevTestimonial } = useCarousel(testimonials);
+  const { current: currentTestimonial, next: nextTestimonial, prev: prevTestimonial } = useCarousel(testimonials, testimonials.length > 1 ? 5000 : null);
 
   return (
     <div className="pt-10 max-w-6xl mx-auto">
@@ -75,14 +59,16 @@ const Testimonials: React.FC = () => {
                    ))}
                 </div>
 
-                <div className="flex gap-4 mt-12">
-                   <button onClick={prevTestimonial} className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-600 transition-all bg-white shadow-sm">
-                      <ChevronLeft size={24} />
-                   </button>
-                   <button onClick={nextTestimonial} className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-600 transition-all bg-white shadow-sm">
-                      <ChevronRight size={24} />
-                   </button>
-                </div>
+                {testimonials.length > 1 && (
+                  <div className="flex gap-4 mt-12">
+                     <button onClick={prevTestimonial} className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-600 transition-all bg-white shadow-sm">
+                        <ChevronLeft size={24} />
+                     </button>
+                     <button onClick={nextTestimonial} className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-600 transition-all bg-white shadow-sm">
+                        <ChevronRight size={24} />
+                     </button>
+                  </div>
+                )}
              </div>
           </div>
        </div>

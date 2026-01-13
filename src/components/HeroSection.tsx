@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronRight, ChevronLeft, Play } from 'lucide-react';
 import { useCarousel } from '../hooks/useCarousel';
 import DashboardPreview from './previews/DashboardPreview';
+import FinancialPreview from './previews/FinancialPreview';
 
 interface HeroSectionProps {
   onContactClick: () => void;
@@ -19,17 +20,17 @@ const slides = [
   },
   {
     id: 2,
-    title: "App do Staff",
-    description: "Seu time de campo conectado. Check-in, check-out e comunicação direta pelo celular.",
+    title: "Banco de dados organizado",
+    description: "Tenha o controle de cada colaborador, com todas as informações cruciais.",
     type: "mobile" as const,
     gradient: "from-purple-600 to-pink-600",
-    image: "/images/WhatsApp%20Image%202026-01-13%20at%2010.06.54.jpeg",
+    image: "/images/Pessoal.png",
     useImage: true
   },
   {
     id: 3,
     title: "Controle Financeiro",
-    description: "Fechamento de caixa automático e relatórios de margem de lucro por evento.",
+    description: "Tenha estimativas de custos dos seus eventos antes mesmo deles acontecerem.",
     type: "desktop" as const,
     gradient: "from-emerald-600 to-teal-600",
     image: "/images/finance-preview.png",
@@ -128,14 +129,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
 
                   <div className="w-full md:w-2/3 h-full relative z-10 flex items-center justify-center">
                     {slide.type === 'desktop' ? (
-                      <DashboardPreview />
+                      slide.id === 3 ? <FinancialPreview /> : <DashboardPreview />
                     ) : (
-                      <div className="w-40 h-72 border-4 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden relative bg-black">
-                        <div className="h-6 bg-slate-800 w-full flex justify-center pt-1 shrink-0 z-20"><div className="w-10 h-2 bg-black rounded-b-xl"></div></div>
+                      <div className="w-52 h-96 rounded-[2rem] shadow-xl overflow-hidden relative bg-transparent">
                         <img 
                           src={slide.image}
                           alt={slide.title}
                           className="absolute inset-0 w-full h-full object-cover z-10"
+                          onError={(e) => { if (e.currentTarget.src.includes('Pessoal.png')) e.currentTarget.src = '/images/Pessoal.jpeg'; }}
                           decoding="async"
                         />
                       </div>
