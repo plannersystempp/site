@@ -175,9 +175,6 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
           >
             Falar com vendas
           </button>
-          <button className="flex items-center gap-1 text-slate-500 hover:text-slate-800">
-             <Globe size={18} /> <span className="text-xs font-semibold">PT</span>
-          </button>
         </div>
 
         <button 
