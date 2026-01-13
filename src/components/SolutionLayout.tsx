@@ -77,8 +77,8 @@ const SolutionLayout: React.FC<SolutionLayoutProps> = ({
       <Footer onContactClick={openContactModal} />
       <WhatsAppFloating />
       
-      {showContactModal && <ContactModal onClose={closeContactModal} />}
-      {showPlansModal && <PlansModal onClose={closePlansModal} onContactClick={() => { closePlansModal(); openContactModal(); }} />}
+      {showContactModal && <ContactModal isOpen={true} onClose={closeContactModal} />}
+      {showPlansModal && <PlansModal isOpen={true} onClose={closePlansModal} onContactClick={() => { closePlansModal(); openContactModal(); }} />}
     </div>
   );
 };

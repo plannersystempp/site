@@ -4,6 +4,7 @@ import { X, Zap, Star, Crown, Check, CreditCard } from 'lucide-react';
 interface PlansModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onContactClick?: () => void;
 }
 
 const plansData = [
@@ -55,7 +56,7 @@ const plansData = [
   }
 ];
 
-const PlansModal: React.FC<PlansModalProps> = ({ isOpen, onClose }) => {
+const PlansModal: React.FC<PlansModalProps> = ({ isOpen, onClose, onContactClick }) => {
   if (!isOpen) return null;
 
   return (
@@ -133,7 +134,9 @@ const PlansModal: React.FC<PlansModalProps> = ({ isOpen, onClose }) => {
                   ))}
                 </div>
 
-                <button className={`w-full py-2.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-300 ${
+                <button 
+                  onClick={onContactClick}
+                  className={`w-full py-2.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-300 ${
                   plan.popular 
                     ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-blue-200/50' 
                     : 'border border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
@@ -148,7 +151,10 @@ const PlansModal: React.FC<PlansModalProps> = ({ isOpen, onClose }) => {
              <h3 className="text-sm font-bold text-slate-900 mb-2">Planos que não limitam o seu crescimento!</h3>
              
              <div className="flex flex-col items-center gap-3 mt-3">
-                <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-md shadow-green-100 hover:scale-105 flex items-center gap-1.5 group">
+                <button 
+                  onClick={onContactClick}
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-md shadow-green-100 hover:scale-105 flex items-center gap-1.5 group"
+                >
                    <Zap size={14} fill="currentColor" className="group-hover:animate-pulse" /> Teste Grátis
                 </button>
                 <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1 bg-white border border-slate-100 px-3 py-1 rounded-full shadow-sm">
