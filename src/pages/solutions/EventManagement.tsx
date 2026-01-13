@@ -30,8 +30,8 @@ const EventManagement: React.FC = () => {
           />
           <FeatureCard 
             icon={Calendar}
-            title="Calendário Inteligente"
-            description="Interface drag-and-drop para organizar cronogramas e evitar conflitos de agenda."
+            title="Gestão de Eventos"
+            description="Controle múltiplos eventos de forma simultaneamente com total organização."
           />
           <FeatureCard 
             icon={Sliders}
