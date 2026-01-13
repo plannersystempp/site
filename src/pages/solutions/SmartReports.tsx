@@ -1,6 +1,8 @@
 import React from 'react';
-import { FileText, CheckCircle, Printer, Share2 } from 'lucide-react';
+import { FileText, Download, Filter, Share2, LayoutDashboard } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
+import FeatureCard from '../../components/solutions/FeatureCard';
+import BenefitSection from '../../components/solutions/BenefitSection';
 
 const SmartReports: React.FC = () => {
   return (
@@ -10,54 +12,65 @@ const SmartReports: React.FC = () => {
       icon={FileText}
       gradient="from-slate-700 to-slate-900"
     >
-      <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-        <div className="order-2 md:order-1 bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-sm">
-           <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100 transform rotate-1 hover:rotate-0 transition-transform duration-300">
-              <div className="border-b border-slate-100 p-4 flex justify-between items-center">
-                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                 </div>
-                 <div className="text-xs text-slate-400 font-mono">relatorio_final.pdf</div>
-              </div>
-              <div className="p-8 space-y-4">
-                 <div className="h-4 bg-slate-100 w-3/4 rounded"></div>
-                 <div className="h-4 bg-slate-100 w-1/2 rounded"></div>
-                 <div className="h-32 bg-slate-50 rounded border border-slate-100 mt-4 flex items-center justify-center">
-                    <div className="text-center">
-                       <FileText className="mx-auto text-slate-300 mb-2" size={32} />
-                       <span className="text-xs text-slate-400">Visualização de Dados</span>
-                    </div>
-                 </div>
-                 <div className="grid grid-cols-3 gap-2 mt-4">
-                    <div className="h-2 bg-slate-100 rounded"></div>
-                    <div className="h-2 bg-slate-100 rounded"></div>
-                    <div className="h-2 bg-slate-100 rounded"></div>
-                 </div>
-              </div>
-           </div>
+      <div className="space-y-24 mb-20">
+        
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-8">
+          <FeatureCard 
+            icon={Filter}
+            title="Filtros Avançados"
+            description="Cruze dados por evento, período, cliente, profissional ou centro de custo."
+          />
+          <FeatureCard 
+            icon={Download}
+            title="Múltiplos Formatos"
+            description="Exporte seus dados em PDF, Excel (XLSX) ou CSV para integração com outros sistemas."
+          />
+          <FeatureCard 
+            icon={LayoutDashboard}
+            title="Dashboards Visuais"
+            description="Gráficos intuitivos que facilitam a leitura e apresentação de resultados para stakeholders."
+          />
         </div>
 
-        <div className="order-1 md:order-2">
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">Dados para tomada de decisão</h2>
-          <p className="text-slate-500 text-lg leading-relaxed mb-6">
-            Transforme dados operacionais em insights estratégicos. Exporte informações detalhadas para clientes, diretoria ou contabilidade com apenas um clique.
+        {/* Benefit 1 */}
+        <BenefitSection
+          title="Dados para tomada de decisão"
+          description="Transforme dados operacionais em insights estratégicos. Elimine o tempo gasto montando apresentações manuais e tenha relatórios profissionais prontos em segundos."
+          benefits={[
+            "Relatórios gerenciais e operacionais prontos",
+            "Personalização de colunas e dados exibidos",
+            "Templates de relatórios recorrentes",
+            "Envio automático por email"
+          ]}
+          imageSrc="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2015"
+          imageAlt="Análise de Dados em Tablet"
+        />
+
+        {/* Benefit 2 */}
+        <BenefitSection
+          title="Transparência com Clientes"
+          description="Gere prestações de contas detalhadas e confiáveis para seus clientes finais. Comprove cada centavo gasto com relatórios auditáveis e organizados."
+          reverse={true}
+          benefits={[
+            "Área do cliente para visualização de relatórios",
+            "Links de compartilhamento seguros",
+            "Marca d'água e branding personalizado",
+            "Anexos de comprovantes digitalizados"
+          ]}
+        />
+
+        {/* CTA */}
+        <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
+          <h2 className="text-3xl font-bold mb-6">Inteligência de dados ao seu alcance</h2>
+          <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
+            Pare de tomar decisões baseadas em "achismos". Use dados reais para crescer sua empresa.
           </p>
-          <ul className="space-y-4">
-            {[
-              "Relatórios personalizados por evento",
-              "Exportação em múltiplos formatos (PDF, Excel, CSV)",
-              "Dashboards de BI integrados",
-              "Histórico e auditoria de alterações"
-            ].map((item, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
-                <span className="text-slate-700">{item}</span>
-              </li>
-            ))}
-          </ul>
+          <button className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-slate-900/20">
+            Explorar Relatórios
+          </button>
         </div>
+
       </div>
     </SolutionLayout>
   );

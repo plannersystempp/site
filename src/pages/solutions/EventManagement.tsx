@@ -1,6 +1,8 @@
 import React from 'react';
-import { Calendar, CheckCircle, Clock, MapPin } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, MapPin, Layout, Users, Sliders } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
+import FeatureCard from '../../components/solutions/FeatureCard';
+import BenefitSection from '../../components/solutions/BenefitSection';
 
 const EventManagement: React.FC = () => {
   return (
@@ -10,60 +12,65 @@ const EventManagement: React.FC = () => {
       icon={Calendar}
       gradient="from-blue-500 to-cyan-500"
     >
-      <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">Controle total do cronograma</h2>
-          <p className="text-slate-500 text-lg leading-relaxed mb-6">
-            Chega de planilhas descentralizadas. Com o PlannerSystem, você centraliza todas as datas, horários e locais dos seus eventos em um único dashboard intuitivo.
+      <div className="space-y-24 mb-20">
+        
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-8">
+          <FeatureCard 
+            icon={Layout}
+            title="Dashboard Centralizado"
+            description="Visualize todos os seus eventos em uma única tela com indicadores de status em tempo real."
+          />
+          <FeatureCard 
+            icon={Calendar}
+            title="Calendário Inteligente"
+            description="Interface drag-and-drop para organizar cronogramas e evitar conflitos de agenda."
+          />
+          <FeatureCard 
+            icon={Sliders}
+            title="Status Personalizáveis"
+            description="Defina seu próprio fluxo de trabalho: Proposta, Pré-produção, Confirmado, Realizado."
+          />
+        </div>
+
+        {/* Benefit 1 */}
+        <BenefitSection
+          title="Controle total do cronograma"
+          description="Chega de planilhas descentralizadas. Com o PlannerSystem, você centraliza todas as datas, horários e locais dos seus eventos em um único dashboard intuitivo."
+          benefits={[
+            "Visualização de calendário mensal, semanal e diária",
+            "Gestão de múltiplos locais e palcos simultâneos",
+            "Timeline detalhada de produção minuto a minuto",
+            "Notificações automáticas de prazos"
+          ]}
+          imageSrc="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=2068"
+          imageAlt="Dashboard de Eventos"
+        />
+
+        {/* Benefit 2 */}
+        <BenefitSection
+          title="Gestão de Múltiplos Locais"
+          description="Coordene operações complexas em diferentes cidades ou venues. O sistema permite segmentar a visão por local, garantindo que cada coordenador veja apenas o que importa."
+          reverse={true}
+          benefits={[
+            "Filtros avançados por região e tipo de evento",
+            "Atribuição de equipes específicas por localidade",
+            "Controle de logística e deslocamento integrado",
+            "Mapas interativos de venues"
+          ]}
+        />
+
+        {/* CTA */}
+        <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
+          <h2 className="text-3xl font-bold mb-6">Pronto para organizar seus eventos?</h2>
+          <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
+            Junte-se a centenas de produtores que já simplificaram sua gestão com o PlannerSystem.
           </p>
-          <ul className="space-y-4">
-            {[
-              "Status de eventos (Proposta, Confirmado, Cancelado)",
-              "Visualização de calendário mensal e semanal",
-              "Gestão de múltiplos locais e palcos",
-              "Timeline detalhada de produção"
-            ].map((item, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
-                <span className="text-slate-700">{item}</span>
-              </li>
-            ))}
-          </ul>
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-blue-900/20">
+            Começar Agora
+          </button>
         </div>
-        <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-sm">
-          <div className="space-y-4">
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-                   <Calendar size={24} />
-                </div>
-                <div>
-                   <h4 className="font-bold text-slate-800">Festival de Verão</h4>
-                   <p className="text-sm text-slate-500">15-20 Dezembro • São Paulo, SP</p>
-                </div>
-                <span className="ml-auto px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">CONFIRMADO</span>
-             </div>
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4 opacity-75">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
-                   <Clock size={24} />
-                </div>
-                <div>
-                   <h4 className="font-bold text-slate-800">Convenção Tech 2025</h4>
-                   <p className="text-sm text-slate-500">10 Janeiro • Rio de Janeiro, RJ</p>
-                </div>
-                <span className="ml-auto px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">PROPOSTA</span>
-             </div>
-             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4 opacity-75">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600">
-                   <MapPin size={24} />
-                </div>
-                <div>
-                   <h4 className="font-bold text-slate-800">Show Corporativo</h4>
-                   <p className="text-sm text-slate-500">05 Fevereiro • Curitiba, PR</p>
-                </div>
-                <span className="ml-auto px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">PRE-PROD</span>
-             </div>
-          </div>
-        </div>
+
       </div>
     </SolutionLayout>
   );

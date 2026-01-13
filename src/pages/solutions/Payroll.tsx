@@ -1,6 +1,8 @@
 import React from 'react';
-import { DollarSign, CheckCircle, FileText, Download } from 'lucide-react';
+import { DollarSign, FileText, Calculator, CreditCard, Receipt } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
+import FeatureCard from '../../components/solutions/FeatureCard';
+import BenefitSection from '../../components/solutions/BenefitSection';
 
 const Payroll: React.FC = () => {
   return (
@@ -10,59 +12,65 @@ const Payroll: React.FC = () => {
       icon={DollarSign}
       gradient="from-emerald-500 to-green-600"
     >
-      <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-        <div className="order-2 md:order-1 bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-sm">
-           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
-              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-                 <div>
-                    <p className="text-xs text-slate-500 uppercase font-bold">Total a Pagar</p>
-                    <h3 className="text-2xl font-bold text-slate-900">R$ 145.250,00</h3>
-                 </div>
-                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                    <DollarSign size={20} />
-                 </div>
-              </div>
-              
-              <div className="space-y-3">
-                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600">Cachês (Diárias)</span>
-                    <span className="font-medium">R$ 120.000,00</span>
-                 </div>
-                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600">Horas Extras</span>
-                    <span className="font-medium text-orange-600">+ R$ 22.500,00</span>
-                 </div>
-                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-600">Reembolsos</span>
-                    <span className="font-medium">+ R$ 2.750,00</span>
-                 </div>
-              </div>
-
-              <button className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white py-3 rounded-lg font-bold text-sm hover:bg-slate-800 transition-colors mt-2">
-                 <FileText size={16} /> Gerar Relatório PDF
-              </button>
-           </div>
+      <div className="space-y-24 mb-20">
+        
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-8">
+          <FeatureCard 
+            icon={Calculator}
+            title="Cálculo Automático"
+            description="O sistema processa horas, diárias e descontos para gerar o valor líquido final."
+          />
+          <FeatureCard 
+            icon={Receipt}
+            title="Holerites Digitais"
+            description="Geração e envio automático de comprovantes de pagamento para todos os profissionais."
+          />
+          <FeatureCard 
+            icon={CreditCard}
+            title="Lote de Pagamentos"
+            description="Gere arquivos CNAB para pagamento em lote no seu banco de preferência."
+          />
         </div>
 
-        <div className="order-1 md:order-2">
-          <h2 className="text-3xl font-bold text-slate-900 mb-6">Fechamento financeiro sem erros</h2>
-          <p className="text-slate-500 text-lg leading-relaxed mb-6">
-            Automatize o processo de fechamento de folha. O sistema consolida horas, cachês e despesas para gerar o valor exato a ser pago para cada profissional.
+        {/* Benefit 1 */}
+        <BenefitSection
+          title="Fechamento financeiro sem erros"
+          description="Automatize o processo de fechamento de folha. O sistema consolida horas, cachês e despesas para gerar o valor exato a ser pago, eliminando erros manuais e recálculos."
+          benefits={[
+            "Consolidação automática de valores de múltiplos eventos",
+            "Gestão de reembolsos e despesas extras aprovadas",
+            "Cálculo de impostos e retenções na fonte",
+            "Histórico completo de pagamentos por evento e profissional"
+          ]}
+          imageSrc="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=2026"
+          imageAlt="Gestão Financeira e Pagamentos"
+        />
+
+        {/* Benefit 2 */}
+        <BenefitSection
+          title="Agilidade no Pagamento"
+          description="Transforme dias de trabalho operacional em minutos. Com a aprovação em lote e integração bancária, sua equipe recebe mais rápido e você perde menos tempo."
+          reverse={true}
+          benefits={[
+            "Geração de arquivos de remessa bancária (CNAB)",
+            "Integração com principais bancos e fintechs",
+            "Notificação de pagamento realizado via WhatsApp/Email",
+            "Conciliação bancária automática"
+          ]}
+        />
+
+        {/* CTA */}
+        <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
+          <h2 className="text-3xl font-bold mb-6">Simplifique seu financeiro</h2>
+          <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
+            Garanta pagamentos pontuais e corretos, melhorando a relação com seus prestadores de serviço.
           </p>
-          <ul className="space-y-4">
-            {[
-              "Consolidação automática de valores",
-              "Geração de recibos e holerites",
-              "Gestão de reembolsos e despesas extras",
-              "Histórico completo de pagamentos por evento"
-            ].map((item, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
-                <span className="text-slate-700">{item}</span>
-              </li>
-            ))}
-          </ul>
+          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-emerald-900/20">
+            Ver Planos
+          </button>
         </div>
+
       </div>
     </SolutionLayout>
   );
