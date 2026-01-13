@@ -13,7 +13,8 @@ const slides = [
     description: "Visão macro de todos os seus eventos em tempo real. Acompanhe custos, staff e status.",
     type: "desktop" as const,
     gradient: "from-blue-600 to-indigo-600",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80"
+    image: "/images/dashboard-preview.png",
+    useImage: true
   },
   {
     id: 2,
@@ -21,7 +22,8 @@ const slides = [
     description: "Seu time de campo conectado. Check-in, check-out e comunicação direta pelo celular.",
     type: "mobile" as const,
     gradient: "from-purple-600 to-pink-600",
-    image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=400&q=80"
+    image: "/images/app-staff-preview.png",
+    useImage: true
   },
   {
     id: 3,
@@ -29,7 +31,8 @@ const slides = [
     description: "Fechamento de caixa automático e relatórios de margem de lucro por evento.",
     type: "desktop" as const,
     gradient: "from-emerald-600 to-teal-600",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80"
+    image: "/images/finance-preview.png",
+    useImage: true
   }
 ];
 
@@ -136,11 +139,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
                             </div>
                             {/* @ts-ignore */}
                             {slide.useImage ? (
-                              <div className="flex-1 relative overflow-hidden bg-white">
+                              <div className="flex-1 relative bg-white flex items-center justify-center">
                                 <img 
                                   src={slide.image} 
                                   alt={slide.title}
-                                  className="w-full h-full object-cover object-top"
+                                  className="max-w-full max-h-full object-contain"
+                                  decoding="async"
                                 />
                               </div>
                             ) : (
@@ -174,7 +178,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
                                 <img 
                                   src={slide.image} 
                                   alt={slide.title}
-                                  className="w-full h-full object-cover absolute inset-0 z-10"
+                                  className="w-full h-full object-contain absolute inset-0 z-10"
+                                  decoding="async"
                                 />
                               ) : (
                                 <div className="flex-1 p-2 space-y-2 relative z-10">
