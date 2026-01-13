@@ -1,9 +1,9 @@
 import React, { ReactNode } from 'react';
-import Navbar from '../Navbar';
-import Footer from '../Footer';
-import WhatsAppFloating from '../WhatsAppFloating';
-import ContactModal from '../Modals/ContactModal';
-import PlansModal from '../Modals/PlansModal';
+import Navbar from './Navbar';
+import Footer from './Footer';
+import WhatsAppFloating from './WhatsAppFloating';
+import ContactModal from './Modals/ContactModal';
+import PlansModal from './Modals/PlansModal';
 import { useState } from 'react';
 import { LucideIcon } from 'lucide-react';
 

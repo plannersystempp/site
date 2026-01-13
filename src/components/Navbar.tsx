@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, ChevronDown, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useModal } from '../hooks/useModal';
 
 interface NavbarProps {
@@ -11,32 +12,38 @@ const solutionsMenu = [
   {
     icon: 'Calendar',
     title: 'Gestão de Eventos',
-    description: 'Crie e gerencie eventos com datas precisas, controle de status e organização completa.'
+    description: 'Crie e gerencie eventos com datas precisas, controle de status e organização completa.',
+    path: '/solucoes/gestao-eventos'
   },
   {
     icon: 'Users',
     title: 'Controle Pessoal',
-    description: 'Cadastre funcionários fixos e freelancers, defina funções e gerencie alocações por divisão.'
+    description: 'Cadastre funcionários fixos e freelancers, defina funções e gerencie alocações por divisão.',
+    path: '/solucoes/controle-pessoal'
   },
   {
     icon: 'Clock',
     title: 'Lançamento de Horas',
-    description: 'Registre horas trabalhadas com regras claras de HE e geração automática de cachês.'
+    description: 'Registre horas trabalhadas com regras claras de HE e geração automática de cachês.',
+    path: '/solucoes/lancamento-horas'
   },
   {
     icon: 'DollarSign',
     title: 'Folha de Pagamento',
-    description: 'Cálculo automático de pagamentos baseados em cachês diários e horas extras.'
+    description: 'Cálculo automático de pagamentos baseados em cachês diários e horas extras.',
+    path: '/solucoes/folha-pagamento'
   },
   {
     icon: 'BarChart',
     title: 'Estimativa de Custos',
-    description: 'Visualize custos estimados por evento e acompanhe o orçamento em tempo real.'
+    description: 'Visualize custos estimados por evento e acompanhe o orçamento em tempo real.',
+    path: '/solucoes/estimativa-custos'
   },
   {
     icon: 'FileText',
     title: 'Relatórios Inteligentes',
-    description: 'Gere relatórios completos de pagamentos com filtros avançados por período e profissional.'
+    description: 'Gere relatórios completos de pagamentos com filtros avançados por período e profissional.',
+    path: '/solucoes/relatorios-inteligentes'
   }
 ];
 
@@ -98,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
                   <div className="grid grid-cols-2 gap-4">
                      {solutionsMenu.map((item, index) => (
-                        <a key={index} href="#funcionalidades" onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); }} className="flex items-start gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors group/item">
+                        <Link key={index} to={item.path} className="flex items-start gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors group/item">
                            <div className="mt-1 p-2 bg-blue-50 rounded-lg group-hover/item:bg-blue-100 transition-colors">
                               {getIconComponent(item.icon)}
                            </div>
@@ -106,7 +113,7 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
                               <h4 className="text-sm font-bold text-slate-900 mb-1 group-hover/item:text-blue-600 transition-colors">{item.title}</h4>
                               <p className="text-xs text-slate-500 leading-relaxed">{item.description}</p>
                            </div>
-                        </a>
+                        </Link>
                      ))}
                   </div>
                </div>
@@ -133,9 +140,10 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
                         <p className="text-sm text-slate-500 leading-relaxed mb-4">
                            Nossa missão é eliminar o caos operacional e trazer eficiência real para equipes e finanças de eventos.
                         </p>
-                        <p className="text-sm text-slate-500 leading-relaxed">
-                           Oferecemos tecnologia acessível e poderosa para qualquer tamanho de operação, com transparência e eficiência.
-                        </p>
+                        <Link to="/sobre" className="mt-4 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group/link">
+                          Conheça nossa história completa
+                          <span className="group-hover/link:translate-x-1 transition-transform">→</span>
+                        </Link>
                      </div>
                      
                      <div className="w-2/5 bg-slate-50 p-2">
@@ -190,16 +198,16 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
             <span className="text-lg font-medium text-slate-800 mb-2 block">Soluções</span>
             <div className="pl-4 border-l-2 border-slate-100 space-y-3">
                {solutionsMenu.map((item, idx) => (
-                  <a key={idx} href="#funcionalidades" className="block py-2 group" onClick={() => setIsMenuOpen(false)}>
+                  <Link key={idx} to={item.path} className="block py-2 group" onClick={() => setIsMenuOpen(false)}>
                      <span className="font-bold block text-slate-800 group-hover:text-blue-600 transition-colors">{item.title}</span>
                      <span className="text-xs text-slate-500">{item.description}</span>
-                  </a>
+                  </Link>
                ))}
             </div>
           </div>
 
           <div>
-            <a href="#sobre" className="text-lg font-medium text-slate-800 mb-2 block" onClick={(e) => { e.preventDefault(); scrollToSection('sobre'); setIsMenuOpen(false); }}>Sobre</a>
+            <Link to="/sobre" className="text-lg font-medium text-slate-800 mb-2 block" onClick={() => setIsMenuOpen(false)}>Sobre</Link>
             <div className="pl-4 border-l-2 border-slate-100 py-2">
                 <p className="text-sm text-slate-600 italic">Construímos tecnologia para simplificar a gestão de eventos. Nossa missão é eliminar o caos operacional.</p>
             </div>

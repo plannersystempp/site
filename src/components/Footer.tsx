@@ -57,14 +57,14 @@ const Footer: React.FC<FooterProps> = ({ onContactClick }) => {
           <div className="flex flex-col items-center md:items-start">
             <h4 className="text-white font-bold mb-6 text-sm">Produto</h4>
             <ul className="space-y-3 text-sm text-slate-400">
-              <li><a href="#funcionalidades" className="hover:text-blue-400 transition-colors">Funcionalidades</a></li>
+              <li><a href="/#funcionalidades" className="hover:text-blue-400 transition-colors">Funcionalidades</a></li>
             </ul>
           </div>
           
           <div className="flex flex-col items-center md:items-start">
             <h4 className="text-white font-bold mb-6 text-sm">Empresa</h4>
             <ul className="space-y-3 text-sm text-slate-400">
-              <li><a href="#sobre" className="hover:text-blue-400 transition-colors">Sobre nós</a></li>
+              <li><Link to="/sobre" className="hover:text-blue-400 transition-colors">Sobre nós</Link></li>
               <li>
                 <button onClick={onContactClick} className="hover:text-blue-400 transition-colors text-left">
                   Contato
