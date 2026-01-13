@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight, ChevronLeft, Play } from 'lucide-react';
 import { useCarousel } from '../hooks/useCarousel';
+import DashboardPreview from './previews/DashboardPreview';
 
 interface HeroSectionProps {
   onContactClick: () => void;
@@ -129,46 +130,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
                     <div className={`relative w-full h-full bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/50 p-2 transform transition-all duration-700 ${position === 'active' ? 'rotate-y-[-5deg] translate-x-0' : 'rotate-y-0 scale-95'}`}>
                       <div className="w-full h-full bg-slate-50 rounded-lg overflow-hidden relative group">
                         {slide.type === 'desktop' ? (
-                          <div className="flex flex-col h-full">
-                            <div className="h-8 bg-white border-b border-slate-200 flex items-center px-4 justify-between shrink-0">
-                              <div className="flex gap-2">
-                                <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                                <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                                <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                              </div>
-                            </div>
-                            {/* @ts-ignore */}
-                            {slide.useImage ? (
-                              <div className="flex-1 relative bg-white flex items-center justify-center">
-                                <img 
-                                  src={slide.image} 
-                                  alt={slide.title}
-                                  className="max-w-full max-h-full object-contain"
-                                  decoding="async"
-                                />
-                              </div>
-                            ) : (
-                              <div className="p-4 grid grid-cols-3 gap-3 h-full overflow-hidden">
-                                <div className="col-span-1 h-24 bg-white rounded border border-slate-100 p-3 shadow-sm">
-                                  <div className="w-6 h-6 rounded bg-blue-100 mb-2"></div>
-                                  <div className="w-12 h-3 bg-slate-200 rounded"></div>
-                                </div>
-                                <div className="col-span-1 h-24 bg-white rounded border border-slate-100 p-3 shadow-sm">
-                                  <div className="w-6 h-6 rounded bg-purple-100 mb-2"></div>
-                                  <div className="w-12 h-3 bg-slate-200 rounded"></div>
-                                </div>
-                                <div className="col-span-1 h-24 bg-white rounded border border-slate-100 p-3 shadow-sm">
-                                  <div className="w-6 h-6 rounded bg-green-100 mb-2"></div>
-                                  <div className="w-12 h-3 bg-slate-200 rounded"></div>
-                                </div>
-                                <div className="col-span-3 h-48 bg-white rounded border border-slate-100 shadow-sm p-4 flex items-end gap-2">
-                                  {[...Array(12)].map((_, i) => (
-                                    <div key={i} className="flex-1 bg-slate-100 rounded-t" style={{height: `${Math.random() * 80 + 20}%`}}></div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          <DashboardPreview />
                         ) : (
                           <div className="flex items-center justify-center h-full bg-slate-100">
                             <div className="w-40 h-72 bg-white border-4 border-slate-800 rounded-[2rem] shadow-xl overflow-hidden flex flex-col relative">
