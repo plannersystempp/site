@@ -1,36 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Calendar, CheckCircle, Clock, MapPin, Layout, Users, Sliders } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
 import BenefitSection from '../../components/solutions/BenefitSection';
-import ContactModal from '../../components/Modals/ContactModal';
-import PlansModal from '../../components/Modals/PlansModal';
+import useUIStore from '../../store/ui';
 
 const EventManagement: React.FC = () => {
-  const [showContactModal, setShowContactModal] = useState(false);
-  const [showPlansModal, setShowPlansModal] = useState(false);
-
-  const openContactModal = () => {
-    setShowPlansModal(false); // Fecha o modal de planos se estiver aberto
-    setShowContactModal(true);
-  }
-  const closeContactModal = () => setShowContactModal(false);
-
-  const openPlansModal = () => setShowPlansModal(true);
-  const closePlansModal = () => setShowPlansModal(false);
+  const { openPlansModal, openContactModal } = useUIStore();
 
   return (
     <>
     <SolutionLayout
       title="Gestão de Eventos"
       description="Crie e gerencie eventos com datas precisas, controle de status e organização completa. Tenha a visão macro de toda a sua operação."
-      icon={Calendar}
-      gradient="from-blue-500 to-cyan-500"
+      customHero={() => (
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-left">
+            <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+              Gestão de Eventos
+            </h1>
+            <p className="text-xl text-slate-500 mb-8 leading-relaxed max-w-lg">
+              Crie e gerencie eventos com datas precisas, controle de status e organização completa. Tenha a visão macro de toda a sua operação.
+            </p>
+            <button 
+              onClick={openContactModal}
+              className="bg-blue-600 text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5"
+            >
+              Começar Agora
+            </button>
+          </div>
+          <div>
+            <img 
+               src="/images/gestaodeeventos.png"
+               alt="Dashboard de Gestão de Eventos"
+               className="w-full h-auto object-contain"
+             />
+          </div>
+        </div>
+      )}
     >
       <div className="space-y-24 mb-20">
         
         {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8 -mt-16 relative z-10">
           <FeatureCard 
             icon={Layout}
             title="Dashboard Centralizado"
@@ -57,7 +69,7 @@ const EventManagement: React.FC = () => {
             "Gestão de múltiplos locais e palcos simultâneos",
             "Insira anotações e detalhes dos seus eventos"
           ]}
-          imageSrc="/images/gestaodeeventos.png"
+          imageSrc="/images/GestaodeeventosDashboard.jpeg"
           imageAlt="Dashboard de gestão de eventos do PlannerSystem"
           cleanImage
         />
@@ -78,8 +90,6 @@ const EventManagement: React.FC = () => {
 
       </div>
     </SolutionLayout>
-    <ContactModal isOpen={showContactModal} onClose={closeContactModal} />
-    <PlansModal isOpen={showPlansModal} onClose={closePlansModal} onContactClick={openContactModal} />
     </>
   );
 };

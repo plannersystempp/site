@@ -5,8 +5,8 @@ import WhatsAppFloating from './WhatsAppFloating';
 import ContactModal from './Modals/ContactModal';
 import PlansModal from './Modals/PlansModal';
 import SEO from './SEO';
-import { useState } from 'react';
 import { LucideIcon } from 'lucide-react';
+import useUIStore from '../store/ui';
 
 interface SolutionLayoutProps {
   title: string;
@@ -25,14 +25,14 @@ const SolutionLayout: React.FC<SolutionLayoutProps> = ({
   gradient = "from-blue-600 to-indigo-600",
   customHero
 }) => {
-  const [showPlansModal, setShowPlansModal] = useState(false);
-  const [showContactModal, setShowContactModal] = useState(false);
-
-  const openPlansModal = () => setShowPlansModal(true);
-  const closePlansModal = () => setShowPlansModal(false);
-  
-  const openContactModal = () => setShowContactModal(true);
-  const closeContactModal = () => setShowContactModal(false);
+  const {
+    showPlansModal,
+    showContactModal,
+    openPlansModal,
+    closePlansModal,
+    openContactModal,
+    closeContactModal,
+  } = useUIStore();
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
