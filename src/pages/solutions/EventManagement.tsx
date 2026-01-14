@@ -69,16 +69,17 @@ const EventManagement: React.FC = () => {
             Junte-se a empresas que já simplificaram sua gestão com o PlannerSystem.
           </p>
           <button 
-            onClick={openContactModal}
+            onClick={openPlansModal}
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-blue-900/20"
           >
-            Começar Agora
+            Ver Planos
           </button>
         </div>
 
       </div>
     </SolutionLayout>
     <ContactModal isOpen={showContactModal} onClose={closeContactModal} />
+    <PlansModal isOpen={showPlansModal} onClose={closePlansModal} onContactClick={openContactModal} />
     </>
   );
 };
