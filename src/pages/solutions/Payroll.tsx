@@ -66,8 +66,8 @@ const Payroll: React.FC = () => {
             "Filtre por pagamentos por pendentes ou pagos.",
             "Tenha o controle total de valores pagos, pendentes e percentual concluído."
           ]}
-          imageSrc="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=2026"
-          imageAlt="Gestão Financeira e Pagamentos"
+          imageSrc="/images/Folha de pagamento-fixo.jpeg"
+          imageAlt="Tela de fechamento de folha de pagamento do PlannerSystem"
         />
 
         {/* CTA */}

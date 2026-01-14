@@ -4,12 +4,20 @@ import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
 import BenefitSection from '../../components/solutions/BenefitSection';
 import ContactModal from '../../components/Modals/ContactModal';
+import PlansModal from '../../components/Modals/PlansModal';
 
 const EventManagement: React.FC = () => {
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showPlansModal, setShowPlansModal] = useState(false);
 
-  const openContactModal = () => setShowContactModal(true);
+  const openContactModal = () => {
+    setShowPlansModal(false); // Fecha o modal de planos se estiver aberto
+    setShowContactModal(true);
+  }
   const closeContactModal = () => setShowContactModal(false);
+
+  const openPlansModal = () => setShowPlansModal(true);
+  const closePlansModal = () => setShowPlansModal(false);
 
   return (
     <>
