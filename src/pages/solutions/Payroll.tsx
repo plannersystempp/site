@@ -37,51 +37,56 @@ const Payroll: React.FC = () => {
         </div>
       )}
     >
-      <div className="space-y-24 mb-20">
-        
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
-          <FeatureCard 
-            icon={Calculator}
-            title="Cálculo Automático"
-            description="O sistema processa horas extras, cachês e descontos para gerar o valor líquido final."
+      {({ openPlansModal }) => (
+        <div className="space-y-24 mb-20">
+          
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={Calculator}
+              title="Cálculo Automático"
+              description="O sistema processa horas extras, cachês e descontos para gerar o valor líquido final."
+            />
+            <FeatureCard 
+              icon={Receipt}
+              title="Pagamentos Parciais"
+              description="Registre pagamentos de forma parcial, com a opção de adicionar uma descrição ( ex. adiantamento)."
+            />
+            <FeatureCard 
+              icon={FileText}
+              title="Relatórios Detalhados"
+              description="Gere relatórios detalhados da folha de pagamento, com cachê, dias trabalhados, quantidade de dias e horas extras."
+            />
+          </div>
+
+          {/* Benefit 1 */}
+          <BenefitSection
+            title="Fechamento financeiro sem erros"
+            description="Automatize o processo de fechamento de folha. O sistema consolida horas, cachês e despesas para gerar o valor exato a ser pago, eliminando erros manuais e recálculos. Folha individualizada por evento, com todas as pessoas que trabalharam no evento."
+            benefits={[
+              "Filtre por pagamentos por pendentes ou pagos.",
+              "Tenha o controle total de valores pagos, pendentes e percentual concluído."
+            ]}
+            imageSrc="/images/Folha de pagamento-fixo.jpeg"
+            imageAlt="Tela de fechamento de folha de pagamento do PlannerSystem"
           />
-          <FeatureCard 
-            icon={Receipt}
-            title="Pagamentos Parciais"
-            description="Registre pagamentos de forma parcial, com a opção de adicionar uma descrição ( ex. adiantamento)."
-          />
-          <FeatureCard 
-            icon={FileText}
-            title="Relatórios Detalhados"
-            description="Gere relatórios detalhados da folha de pagamento, com cachê, dias trabalhados, quantidade de dias e horas extras."
-          />
+
+          {/* CTA */}
+          <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
+            <h2 className="text-3xl font-bold mb-6">Simplifique seu financeiro</h2>
+            <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
+              Garanta pagamentos pontuais e corretos, melhorando a relação com seus prestadores de serviço.
+            </p>
+            <button 
+              onClick={openPlansModal}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-emerald-900/20"
+            >
+              Ver Planos
+            </button>
+          </div>
+
         </div>
-
-        {/* Benefit 1 */}
-        <BenefitSection
-          title="Fechamento financeiro sem erros"
-          description="Automatize o processo de fechamento de folha. O sistema consolida horas, cachês e despesas para gerar o valor exato a ser pago, eliminando erros manuais e recálculos. Folha individualizada por evento, com todas as pessoas que trabalharam no evento."
-          benefits={[
-            "Filtre por pagamentos por pendentes ou pagos.",
-            "Tenha o controle total de valores pagos, pendentes e percentual concluído."
-          ]}
-          imageSrc="/images/Folha de pagamento-fixo.jpeg"
-          imageAlt="Tela de fechamento de folha de pagamento do PlannerSystem"
-        />
-
-        {/* CTA */}
-        <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-6">Simplifique seu financeiro</h2>
-          <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
-            Garanta pagamentos pontuais e corretos, melhorando a relação com seus prestadores de serviço.
-          </p>
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-emerald-900/20">
-            Ver Planos
-          </button>
-        </div>
-
-      </div>
+      )}
     </SolutionLayout>
   );
 };

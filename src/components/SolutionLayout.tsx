@@ -12,7 +12,7 @@ interface SolutionLayoutProps {
   title: string;
   description: string;
   icon?: LucideIcon;
-  children: ReactNode;
+  children: ReactNode | ((props: { openPlansModal: () => void; openContactModal: () => void }) => ReactNode);
   gradient?: string;
   customHero?: (onCtaClick: () => void) => ReactNode;
 }
@@ -79,7 +79,10 @@ const SolutionLayout: React.FC<SolutionLayoutProps> = ({
       {/* Main Content */}
       <main className="flex-grow pb-20">
         <div className="container mx-auto px-6 md:px-12">
-            {children}
+            {typeof children === 'function' 
+              ? children({ openPlansModal, openContactModal }) 
+              : children
+            }
         </div>
       </main>
 
