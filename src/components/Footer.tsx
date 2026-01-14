@@ -90,7 +90,7 @@ const Footer: React.FC<FooterProps> = ({ onContactClick }) => {
         </div>
         
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-center items-center text-sm text-slate-500">
-           <span className="text-slate-600 text-center">© 2024 PlannerSystem Tecnologia para Eventos Ltda. Todos os direitos reservados.</span>
+          <span className="text-slate-600 text-center">© 2026 Todos os direitos reservados.</span>
         </div>
       </div>
     </footer>

@@ -22,12 +22,6 @@ const solutionsMenu = [
     path: '/solucoes/controle-pessoal'
   },
   {
-    icon: 'Clock',
-    title: 'Lançamento de Horas',
-    description: 'Registre horas trabalhadas com regras claras de HE e geração automática de cachês.',
-    path: '/solucoes/lancamento-horas'
-  },
-  {
     icon: 'DollarSign',
     title: 'Folha de Pagamento',
     description: 'Cálculo automático de pagamentos baseados em cachês diários e horas extras.',
