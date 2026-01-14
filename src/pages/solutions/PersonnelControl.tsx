@@ -77,9 +77,14 @@ const PersonnelControl: React.FC = () => {
           <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
             Tenha total controle sobre quem trabalha nos seus eventos e garanta a qualidade da entrega.
           </p>
-          <button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-purple-900/20">
+          <a 
+            href="https://wa.me/5521965865470?text=Quero%20gerenciar%20minha%20equipe%20com%20o%20PlannerSystem" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-purple-900/20"
+          >
             Gerenciar Equipe
-          </button>
+          </a>
         </div>
 
       </div>
