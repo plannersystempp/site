@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { useCarousel } from '../hooks/useCarousel';
 
@@ -43,11 +44,13 @@ const Testimonials: React.FC = () => {
                           
                          <div className="flex flex-col items-center gap-2">
                             
-                           <img 
+                           <Image 
                              src={testi.image} 
                              alt={testi.author} 
+                             width={64}
+                             height={64}
                              className="w-16 h-16 rounded-full object-cover mb-4 shadow-lg border-4 border-white"
-                             loading="lazy" decoding="async" referrerPolicy="no-referrer"
+                             referrerPolicy="no-referrer"
                            />
                             
                             <div>

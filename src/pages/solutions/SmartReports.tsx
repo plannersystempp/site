@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
-import { FileText, Download, Filter, Share2, LayoutDashboard } from 'lucide-react';
+import Image from 'next/image';
+import { FileText, Calendar, DollarSign } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
 import BenefitSection from '../../components/solutions/BenefitSection';
@@ -8,69 +11,69 @@ const SmartReports: React.FC = () => {
   return (
     <SolutionLayout
       title="Relatórios Inteligentes"
-      description="Gere relatórios completos de pagamentos, custos e operações com filtros avançados por período e profissional."
+      description="Tenha previsões claras de pagamentos por semana, controle de extras e consolidação automática de eventos em relatórios profissionais."
       icon={FileText}
       gradient="from-slate-700 to-slate-900"
+      customHero={(onCtaClick) => (
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="text-left">
+            <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-4 leading-tight">
+              Relatórios Inteligentes
+            </h1>
+            <p className="text-xl text-slate-500 mb-6 leading-relaxed max-w-lg">
+              Visualize o fluxo semanal de pagamentos, custos avulsos e previsões consolidadas para cada evento em poucos cliques.
+            </p>
+            <button
+              onClick={onCtaClick}
+              className="bg-blue-600 text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5"
+            >
+              Começar Agora
+            </button>
+          </div>
+          <div>
+            <Image
+              src="/images/relatorios.png"
+              alt="Dashboard de Relatórios Inteligentes"
+              width={800}
+              height={600}
+              className="w-full h-auto object-contain"
+              priority
+            />
+          </div>
+        </div>
+      )}
     >
       <div className="space-y-24 mb-20">
-        
-        {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8">
-          <FeatureCard 
-            icon={Filter}
-            title="Filtros Avançados"
-            description="Cruze dados por evento, período, cliente, profissional ou centro de custo."
+          <FeatureCard
+            icon={Calendar}
+            title="Visibilidade de Fluxo Semanal"
+            description="Tenha uma visão clara dos compromissos financeiros futuros, com agrupamentos automáticos por semana que facilitam a gestão do caixa e evitam atrasos."
           />
-          <FeatureCard 
-            icon={Download}
-            title="Múltiplos Formatos"
-            description="Exporte seus dados em PDF, Excel (XLSX) ou CSV para integração com outros sistemas."
+          <FeatureCard
+            icon={DollarSign}
+            title="Gestão de Pagamentos Avulsos"
+            description="Monitore bônus, horas extras e despesas imprevistas de forma isolada, entendendo exatamente como cada custo variável impacta o fechamento da semana."
           />
-          <FeatureCard 
-            icon={LayoutDashboard}
-            title="Dashboards Visuais"
-            description="Gráficos intuitivos que facilitam a leitura e apresentação de resultados para stakeholders."
+          <FeatureCard
+            icon={FileText}
+            title="Consolidação Automática de Eventos"
+            description="Elimine o trabalho manual: o sistema consolida automaticamente os valores de cada projeto, local e data de vencimento em um relatório profissional pronto para exportação."
           />
         </div>
 
-        {/* Benefit 1 */}
         <BenefitSection
-          title="Dados para tomada de decisão"
-          description="Transforme dados operacionais em insights estratégicos. Elimine o tempo gasto montando apresentações manuais e tenha relatórios profissionais prontos em segundos."
+          title="Inteligência Financeira e Operacional"
+          description="Transforme sua planilha de pagamentos em uma ferramenta estratégica. Visualize o montante total a pagar por período e tome decisões baseadas na realidade financeira dos seus eventos, sem planilhas manuais."
           benefits={[
-            "Relatórios gerenciais e operacionais prontos",
-            "Personalização de colunas e dados exibidos",
-            "Templates de relatórios recorrentes",
-            "Envio automático por email"
+            "Relatórios de Previsão Dinâmicos: Dados organizados por evento, local e tipo de despesa.",
+            "Controle de Extras e Bônus: Visualize pagamentos avulsos detalhados por colaborador para evitar surpresas.",
+            "Filtros Personalizados: Escolha quais colunas e períodos quer visualizar para focar no que importa.",
+            "Exportação em Segundos: Relatórios gerenciais formatados e prontos para envio ou análise imediata.",
           ]}
-          imageSrc="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2015"
-          imageAlt="Análise de Dados em Tablet"
+          imageSrc="/images/Previsao de pagamentos.jpeg"
+          imageAlt="Dashboard de Previsão de Pagamentos"
         />
-
-        {/* Benefit 2 */}
-        <BenefitSection
-          title="Transparência com Clientes"
-          description="Gere prestações de contas detalhadas e confiáveis para seus clientes finais. Comprove cada centavo gasto com relatórios auditáveis e organizados."
-          reverse={true}
-          benefits={[
-            "Área do cliente para visualização de relatórios",
-            "Links de compartilhamento seguros",
-            "Marca d'água e branding personalizado",
-            "Anexos de comprovantes digitalizados"
-          ]}
-        />
-
-        {/* CTA */}
-        <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-6">Inteligência de dados ao seu alcance</h2>
-          <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">
-            Pare de tomar decisões baseadas em "achismos". Use dados reais para crescer sua empresa.
-          </p>
-          <button className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-slate-900/20">
-            Explorar Relatórios
-          </button>
-        </div>
-
       </div>
     </SolutionLayout>
   );

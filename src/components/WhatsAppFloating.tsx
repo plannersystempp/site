@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { MessageCircle, ArrowUp } from 'lucide-react';
 
 const WhatsAppFloating: React.FC = () => {
@@ -49,9 +50,11 @@ const WhatsAppFloating: React.FC = () => {
        {/* Avatar - DESKTOP ONLY */}
       {!isMobile && (
         <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-2xl cursor-pointer hover:scale-110 transition-transform relative group" onClick={toggleChat} role="button" aria-label="Abrir chat de atendimento">
-            <img 
+            <Image 
               src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" 
               alt="Atendente" 
+              width={64}
+              height={64}
               className="w-full h-full object-cover"
             />
             <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>

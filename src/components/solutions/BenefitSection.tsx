@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 interface BenefitSectionProps {
   title: string;
@@ -56,7 +57,13 @@ const BenefitSection: React.FC<BenefitSectionProps> = ({
                 {customVisual}
               </div>
             ) : imageSrc ? (
-              <img src={imageSrc} alt={imageAlt} className={`${cleanImage ? '' : 'rounded-2xl shadow-2xl'} w-full object-cover transform hover:scale-[1.02] transition-transform duration-500`} />
+              <Image 
+                src={imageSrc} 
+                alt={imageAlt} 
+                width={800} 
+                height={600} 
+                className={`${cleanImage ? '' : 'rounded-2xl shadow-2xl'} w-full object-cover transform hover:scale-[1.02] transition-transform duration-500`} 
+              />
             ) : (
               // Mockup Padrão Abstrato
               <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl shadow-inner border border-slate-200 relative overflow-hidden group">

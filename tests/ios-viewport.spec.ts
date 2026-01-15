@@ -5,7 +5,8 @@ test.describe('Viewport e Safe-Area em iOS/WebKit', () => {
     await page.goto('/')
     const isStandalone = await page.evaluate(() => {
       const mm = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
-      const iosStandalone = typeof navigator !== 'undefined' && (navigator as any).standalone === true
+      // @ts-expect-error: standalone is non-standard iOS property
+      const iosStandalone = typeof navigator !== 'undefined' && navigator.standalone === true
       const hasClass = document.documentElement.classList.contains('is-pwa')
       return mm || iosStandalone || hasClass
     })

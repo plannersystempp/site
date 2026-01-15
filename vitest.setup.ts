@@ -6,13 +6,11 @@ class ResizeObserverMock {
   unobserve() {}
   disconnect() {}
 }
-// @ts-ignore
-global.ResizeObserver = global.ResizeObserver || ResizeObserverMock as any
+// Mocking ResizeObserver for testing environment
+global.ResizeObserver = global.ResizeObserver || ResizeObserverMock
 
 // jsdom não implementa scrollIntoView; fornecer stub
-// @ts-ignore
 if (!Element.prototype.scrollIntoView) {
-  // @ts-ignore
   Element.prototype.scrollIntoView = function() {}
 }
 

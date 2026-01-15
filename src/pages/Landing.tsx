@@ -1,4 +1,8 @@
+"use client";
+
 import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import BentoGrid from '../components/BentoGrid';
@@ -9,7 +13,6 @@ import PlansModal from '../components/Modals/PlansModal';
 import ContactModal from '../components/Modals/ContactModal';
 import WhatsAppFloating from '../components/WhatsAppFloating';
 import PrivacyWidget from '../components/PrivacyWidget';
-import SEO from '../components/SEO';
 
 function Landing() {
   const [showPlansModal, setShowPlansModal] = useState(false);
@@ -23,11 +26,6 @@ function Landing() {
 
   return (
     <div className="font-sans text-slate-600 bg-white selection:bg-blue-900 selection:text-white overflow-x-hidden relative">
-      <SEO 
-        title="O Sistema Completo para Gestão de Eventos" 
-        description="Simplifique a gestão dos seus eventos com o PlannerSystem. Controle financeiro, gestão de equipe, escalas e relatórios em uma única plataforma."
-      />
-      
       <Navbar 
         onContactClick={openContactModal}
         onPlansClick={openPlansModal}
@@ -40,7 +38,7 @@ function Landing() {
         <div className="container mx-auto px-6 text-center">
           <p className="text-sm font-medium text-slate-500 mb-8">Empresas líderes confiam na PlannerSystem</p>
           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-            <img src="https://placehold.co/200x80/ffffff/000000?text=LAFTECH" alt="LAFTECH" className="h-10 md:h-12 w-auto object-contain" />
+            <Image src="https://placehold.co/200x80/ffffff/000000?text=LAFTECH" alt="LAFTECH" width={200} height={80} className="h-10 md:h-12 w-auto object-contain" unoptimized />
           </div>
         </div>
       </div>
@@ -70,9 +68,11 @@ function Landing() {
                    ].map((p, i) => (
                       <div key={i} className="bg-slate-50 rounded-xl p-6 border border-slate-100 text-left">
                          <div className="flex items-center gap-4 mb-4">
-                            <img 
+                            <Image 
                               src={p.image} 
                               alt={p.name} 
+                              width={48}
+                              height={48}
                               className="w-12 h-12 rounded-full object-cover shadow-sm border-2 border-white"
                             />
                             <div>
@@ -138,61 +138,6 @@ function Landing() {
 
       <PlansModal isOpen={showPlansModal} onClose={closePlansModal} />
       <ContactModal isOpen={showContactModal} onClose={closeContactModal} />
-
-      {/* Custom CSS for animations */}
-      <style>{`
-        .animate-in {
-          animation-fill-mode: both;
-        }
-        .fade-in {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .slide-in-from-top-5 {
-          animation: slideInFromTop 0.3s ease-out;
-        }
-        .slide-in-from-bottom-10 {
-          animation: slideInFromBottom 0.5s ease-out;
-        }
-        .zoom-in-95 {
-          animation: zoomIn 0.3s ease-out;
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes slideInFromTop {
-          from { transform: translateY(-20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        
-        @keyframes slideInFromBottom {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        
-        @keyframes zoomIn {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        
-        .rotate-y-\[-5deg\] {
-          transform: rotateY(-5deg);
-        }
-        
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 }

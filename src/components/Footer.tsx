@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
+import Image from 'next/image';
 import { Instagram, ArrowRight } from 'lucide-react';
 
 interface FooterProps {
@@ -45,7 +46,7 @@ const Footer: React.FC<FooterProps> = ({ onContactClick }) => {
            
            {/* LOGO FOOTER */}
            <div className="flex items-center gap-3 mb-6">
-              <img src="/logo_plannersystem.png" alt="PlannerSystem" className="h-6 w-auto object-contain brightness-0 invert" loading="lazy" decoding="async" />
+              <Image src="/logo_plannersystem.png" alt="PlannerSystem" width={150} height={30} className="h-6 w-auto object-contain brightness-0 invert" />
            </div>
 
            <p className="text-lg text-slate-400 font-light max-w-xl mx-auto">
@@ -64,7 +65,7 @@ const Footer: React.FC<FooterProps> = ({ onContactClick }) => {
           <div className="flex flex-col items-center md:items-start">
             <h4 className="text-white font-bold mb-6 text-sm">Empresa</h4>
             <ul className="space-y-3 text-sm text-slate-400">
-              <li><Link to="/sobre" className="hover:text-blue-400 transition-colors">Sobre nós</Link></li>
+              <li><Link href="/sobre" className="hover:text-blue-400 transition-colors">Sobre nós</Link></li>
               <li>
                 <button onClick={onContactClick} className="hover:text-blue-400 transition-colors text-left">
                   Contato
@@ -76,8 +77,8 @@ const Footer: React.FC<FooterProps> = ({ onContactClick }) => {
           <div className="flex flex-col items-center md:items-start">
             <h4 className="text-white font-bold mb-6 text-sm">Legal</h4>
             <ul className="space-y-3 text-sm text-slate-400">
-              <li><Link to="/privacidade" className="hover:text-blue-400 transition-colors">Privacidade</Link></li>
-              <li><Link to="/termos-de-uso" className="hover:text-blue-400 transition-colors">Termos de Uso</Link></li>
+              <li><Link href="/privacidade" className="hover:text-blue-400 transition-colors">Privacidade</Link></li>
+              <li><Link href="/termos-de-uso" className="hover:text-blue-400 transition-colors">Termos de Uso</Link></li>
             </ul>
           </div>
 

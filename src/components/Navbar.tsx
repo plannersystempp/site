@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X, ChevronDown, Globe } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useModal } from '../hooks/useModal';
 
 interface NavbarProps {
@@ -82,9 +83,9 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
       <div className="container mx-auto px-6 md:px-12 flex justify-between items-center relative">
         
         <div className="flex items-center gap-2">
-          <a href="/" aria-label="Ir para a página inicial" className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded">
-            <img src="/logo_plannersystem_Azul.png" alt="PlannerSystem" className="h-6 w-auto object-contain" />
-          </a>
+          <Link href="/" aria-label="Ir para a página inicial" className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded">
+            <Image src="/logo_plannersystem_Azul.png" alt="PlannerSystem" width={150} height={30} className="h-6 w-auto object-contain" priority />
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center justify-center space-x-1">
@@ -99,7 +100,7 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
                   <div className="grid grid-cols-2 gap-4">
                      {solutionsMenu.map((item, index) => (
-                        <Link key={index} to={item.path} className="flex items-start gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors group/item">
+                        <Link key={index} href={item.path} className="flex items-start gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors group/item">
                            <div className="mt-1 p-2 bg-blue-50 rounded-lg group-hover/item:bg-blue-100 transition-colors">
                               {getIconComponent(item.icon)}
                            </div>
@@ -126,15 +127,15 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
                      <div className="w-3/5 p-8 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-4">
                            <div className="w-4 h-4 text-blue-600">🎯</div>
-                           <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Nossa Missão</span>
+                           <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Missão, Visão e Valores</span>
                         </div>
                         <h4 className="text-lg font-bold text-slate-900 mb-4 leading-tight">
-                           Construímos tecnologia para simplificar a gestão de eventos.
+                           O PlannerSystem nasceu para transformar a complexidade da gestão de eventos em clareza estratégica.
                         </h4>
                         <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                           Nossa missão é eliminar o caos operacional e trazer eficiência real para equipes e finanças de eventos.
+                           Somos a plataforma definitiva para conectar sua equipe e centralizar toda a operação, eliminando planilhas manuais e a falta de visibilidade financeira.
                         </p>
-                        <Link to="/sobre" className="mt-4 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group/link">
+                        <Link href="/sobre" className="mt-4 text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group/link">
                           Conheça nossa história completa
                           <span className="group-hover/link:translate-x-1 transition-transform">→</span>
                         </Link>
@@ -189,7 +190,7 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
             <span className="text-lg font-medium text-slate-800 mb-2 block">Soluções</span>
             <div className="pl-4 border-l-2 border-slate-100 space-y-3">
                {solutionsMenu.map((item, idx) => (
-                  <Link key={idx} to={item.path} className="block py-2 group" onClick={() => setIsMenuOpen(false)}>
+                  <Link key={idx} href={item.path} className="block py-2 group" onClick={() => setIsMenuOpen(false)}>
                      <span className="font-bold block text-slate-800 group-hover:text-blue-600 transition-colors">{item.title}</span>
                      <span className="text-xs text-slate-500">{item.description}</span>
                   </Link>
@@ -198,7 +199,7 @@ const Navbar: React.FC<NavbarProps> = ({ onContactClick, onPlansClick }) => {
           </div>
 
           <div>
-            <Link to="/sobre" className="text-lg font-medium text-slate-800 mb-2 block" onClick={() => setIsMenuOpen(false)}>Sobre</Link>
+            <Link href="/sobre" className="text-lg font-medium text-slate-800 mb-2 block" onClick={() => setIsMenuOpen(false)}>Sobre</Link>
             <div className="pl-4 border-l-2 border-slate-100 py-2">
                 <p className="text-sm text-slate-600 italic">Construímos tecnologia para simplificar a gestão de eventos. Nossa missão é eliminar o caos operacional.</p>
             </div>

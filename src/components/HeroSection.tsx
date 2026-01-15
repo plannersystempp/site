@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { ChevronRight, ChevronLeft, Play } from 'lucide-react';
 import { useCarousel } from '../hooks/useCarousel';
 import DashboardPreview from './previews/DashboardPreview';
@@ -132,12 +133,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
                       slide.id === 3 ? <FinancialPreview /> : <DashboardPreview />
                     ) : (
                       <div className="w-52 h-96 rounded-[2rem] shadow-xl overflow-hidden relative bg-transparent">
-                        <img 
+                        <Image 
                           src={slide.image}
                           alt={slide.title}
+                          fill
                           className="absolute inset-0 w-full h-full object-cover z-10"
-                          onError={(e) => { if (e.currentTarget.src.includes('Pessoal.png')) e.currentTarget.src = '/images/Pessoal.jpeg'; }}
-                          decoding="async"
+                          priority={index === 0}
                         />
                       </div>
                     )}

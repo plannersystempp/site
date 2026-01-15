@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -5,7 +7,6 @@ import WhatsAppFloating from '../components/WhatsAppFloating';
 import PrivacyWidget from '../components/PrivacyWidget';
 import PlansModal from '../components/Modals/PlansModal';
 import ContactModal from '../components/Modals/ContactModal';
-import SEO from '../components/SEO';
 import { useState } from 'react';
 
 const TermsOfUse: React.FC = () => {
@@ -24,10 +25,6 @@ const TermsOfUse: React.FC = () => {
 
   return (
     <div className="font-sans text-slate-600 bg-white selection:bg-blue-900 selection:text-white overflow-x-hidden relative min-h-screen flex flex-col">
-      <SEO 
-        title="Termos de Uso" 
-        description="Termos de uso e condições gerais para utilização da plataforma PlannerSystem."
-      />
       <Navbar 
         onContactClick={openContactModal}
         onPlansClick={openPlansModal}

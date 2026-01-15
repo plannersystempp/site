@@ -1,4 +1,7 @@
+"use client";
+
 import React from 'react';
+import Image from 'next/image';
 import { Users, Star, Folder, History } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
@@ -26,10 +29,13 @@ const PersonnelControl: React.FC = () => {
             </button>
           </div>
           <div>
-            <img 
+            <Image 
                src="/images/gestaodepessoas.png"
                alt="Dashboard de Controle de Pessoal"
+               width={800}
+               height={600}
                className="w-full h-auto object-contain"
+               priority
              />
           </div>
         </div>

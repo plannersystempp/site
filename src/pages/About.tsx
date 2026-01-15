@@ -1,14 +1,48 @@
+"use client";
+
 import React from 'react';
-import { Info, Target, Heart, Shield, Users, Globe } from 'lucide-react';
+import Image from 'next/image';
+import { Target, Heart, Globe } from 'lucide-react';
 import SolutionLayout from '../components/SolutionLayout';
+
+const ABOUT_TITLE =
+  'O PlannerSystem nasceu para transformar a complexidade da gestão de eventos em clareza estratégica.';
+const ABOUT_DESCRIPTION =
+  'Somos a plataforma definitiva para conectar sua equipe e centralizar toda a sua operação, eliminando planilhas manuais e a falta de visibilidade financeira.';
 
 const About: React.FC = () => {
   return (
     <SolutionLayout
-      title="Sobre o PlannerSystem"
-      description="Transformando a maneira como você organiza sua vida e seus negócios através de tecnologia inteligente e design intuitivo."
-      icon={Info}
-      gradient="from-slate-600 to-zinc-600"
+      title={ABOUT_TITLE}
+      description={ABOUT_DESCRIPTION}
+      customHero={(onCtaClick) => (
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-left">
+            <h1 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+              {ABOUT_TITLE}
+            </h1>
+            <p className="text-xl text-slate-500 mb-8 leading-relaxed max-w-lg">
+              {ABOUT_DESCRIPTION}
+            </p>
+            <button
+              onClick={onCtaClick}
+              className="bg-blue-600 text-white px-8 py-4 rounded-full font-medium text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 hover:-translate-y-0.5"
+           >
+              Falar com especialistas
+            </button>
+          </div>
+          <div>
+            <Image
+              src="/images/plannersystem_img2.png"
+              alt="Operação de eventos utilizando o PlannerSystem em um ambiente real"
+              width={800}
+              height={600}
+              className="w-full h-auto object-cover rounded-2xl shadow-2xl"
+              priority
+            />
+          </div>
+        </div>
+      )}
     >
       <div className="space-y-20">
         {/* Nossa História */}
@@ -29,7 +63,8 @@ const About: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-4">Missão</h3>
             <p className="text-gray-600">
-              Empoderar indivíduos e empresas com ferramentas que eliminam o caos e promovem o crescimento sustentável.
+              Transformar o caos operacional em lucro e controle, fornecendo um ecossistema digital integrado que elimina
+              custos invisíveis e centraliza a gestão de staff, financeiro e recursos para o mercado de eventos.
             </p>
           </div>
           
@@ -39,7 +74,8 @@ const About: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-4">Visão</h3>
             <p className="text-gray-600">
-              Ser a referência global em sistemas de planejamento integrado, reconhecida pela inovação e excelência em UX.
+              Ser a plataforma definitiva e indispensável para agências e produtores de eventos que buscam escala,
+              tecnologia de ponta e previsibilidade total sobre seus resultados financeiros e operacionais.
             </p>
           </div>
 
@@ -48,56 +84,30 @@ const About: React.FC = () => {
               <Heart className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-4">Valores</h3>
-            <p className="text-gray-600">
-              Simplicidade radical, transparência total e foco obsessivo no sucesso do cliente.
+          <p className="text-gray-600">
+              Controle e Precisão: Substituímos processos manuais e planilhas por dados exatos, garantindo que o financeiro
+              e a operação falem a mesma língua.
             </p>
+            <ul className="mt-4 space-y-2 text-gray-600 list-disc pl-5">
+              <li>
+                Transparência Financeira: Expondo custos ocultos, como horas extras e cachês mal calculados, para proteger a
+                margem de lucro de cada projeto.
+              </li>
+              <li>
+                Eficiência Operacional: Conectamos equipes e departamentos em um ambiente intuitivo para aumentar a
+                produtividade e eliminar o retrabalho.
+              </li>
+              <li>
+                Segurança na Tomada de Decisão: Oferecemos visibilidade em tempo real para que nossos clientes possam
+                corrigir rotas e escalar seus negócios com confiança.
+              </li>
+              <li>
+                Foco no Sucesso do Cliente: Comprometimento com resultados reais, oferecendo suporte dedicado e tecnologia
+                que resolve as dores específicas do setor de eventos.
+              </li>
+            </ul>
           </div>
         </div>
-
-        {/* Números/Impacto */}
-        <section className="bg-slate-50 rounded-3xl p-12">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">+10k</div>
-              <div className="text-gray-600 font-medium">Usuários Ativos</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-600 mb-2">99.9%</div>
-              <div className="text-gray-600 font-medium">Uptime</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-indigo-600 mb-2">24/7</div>
-              <div className="text-gray-600 font-medium">Suporte</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-emerald-600 mb-2">4.9</div>
-              <div className="text-gray-600 font-medium">Avaliação Média</div>
-            </div>
-          </div>
-        </section>
-
-        {/* Time (Abstrato) */}
-        <section>
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Quem Faz Acontecer</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Somos um time multidisciplinar de engenheiros, designers e estrategistas apaixonados por resolver problemas complexos.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                  <Users className="w-8 h-8 text-gray-400" />
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900">Especialista Planner</div>
-                  <div className="text-sm text-blue-600">Liderança & Estratégia</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
     </SolutionLayout>
   );

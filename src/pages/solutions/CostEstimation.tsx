@@ -1,4 +1,7 @@
+"use client";
+
 import React from 'react';
+import Image from 'next/image';
 import { BarChart, TrendingUp, PieChart, AlertTriangle, Target } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
@@ -28,10 +31,13 @@ const CostEstimation: React.FC = () => {
             </button>
           </div>
           <div>
-            <img 
+            <Image 
               src="/images/custos.png"
               alt="Dashboard de Estimativa de Custos"
+              width={800}
+              height={600}
               className="w-full h-auto object-contain"
+              priority
             />
           </div>
         </div>

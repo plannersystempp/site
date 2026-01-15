@@ -1,4 +1,7 @@
+"use client";
+
 import React from 'react';
+import Image from 'next/image';
 import { Calendar, CheckCircle, Clock, MapPin, Layout, Users, Sliders } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
@@ -30,10 +33,13 @@ const EventManagement: React.FC = () => {
             </button>
           </div>
           <div>
-            <img 
+            <Image 
                src="/images/gestaodeeventos.png"
                alt="Dashboard de Gestão de Eventos"
+               width={800}
+               height={600}
                className="w-full h-auto object-contain"
+               priority
              />
           </div>
         </div>
