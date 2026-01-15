@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { X, MessageSquare, Phone, Mail, User, Building, MessageCircle } from 'lucide-react';
 
