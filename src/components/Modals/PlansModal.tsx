@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, Zap, Star, Crown, Check, CreditCard } from 'lucide-react';
+import { X, Zap, Star, Crown, Check, CreditCard, Loader2 } from 'lucide-react';
+import { useStripeCheckout } from '../../hooks/useStripeCheckout';
 
 interface PlansModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ const plansData = [
     title: "Básico",
     subtitle: "Para pequenas equipes",
     price: "99,90",
+    priceId: "price_1SQUKvDPzraaHVSiqT26nyDq",
     icon: <Zap className="w-4 h-4" />,
     features: [
       "Gestão de até 5 eventos/mês",
@@ -26,6 +28,7 @@ const plansData = [
     title: "Profissional",
     subtitle: "Para empresas em crescimento",
     price: "249,90",
+    priceId: "price_1SQUhBDPzraaHVSiuNub1VVO",
     icon: <Star className="w-4 h-4" />,
     features: [
       "Eventos ilimitados",
@@ -42,6 +45,7 @@ const plansData = [
     title: "Enterprise",
     subtitle: "Para grandes operações",
     price: "499,90",
+    priceId: "price_1SQUpPDPzraaHVSiMCzPhxHH",
     icon: <Crown className="w-4 h-4" />,
     features: [
       "Tudo do Profissional",
@@ -57,6 +61,8 @@ const plansData = [
 ];
 
 const PlansModal: React.FC<PlansModalProps> = ({ isOpen, onClose, onContactClick }) => {
+  const { checkout, loading } = useStripeCheckout();
+
   if (!isOpen) return null;
 
   return (
@@ -135,13 +141,14 @@ const PlansModal: React.FC<PlansModalProps> = ({ isOpen, onClose, onContactClick
                 </div>
 
                 <button 
-                  onClick={onContactClick}
-                  className={`w-full py-2.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-300 ${
+                  onClick={() => checkout(plan.priceId)}
+                  disabled={loading}
+                  className={`w-full py-2.5 rounded-lg font-bold text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2 ${
                   plan.popular 
                     ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-blue-200/50' 
                     : 'border border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
-                }`}>
-                  Assinar Agora
+                } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Assinar Agora'}
                 </button>
               </div>
             ))}
