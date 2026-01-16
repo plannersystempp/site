@@ -56,7 +56,7 @@ const About: React.FC = () => {
         </section>
 
         {/* Missão, Visão, Valores */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6 text-blue-600">
               <Target className="w-6 h-6" />

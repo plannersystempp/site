@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { X, MessageSquare, Phone, Mail, User, Building, MessageCircle } from 'lucide-react';
+import { X, MessageSquare, Phone, Mail, User, Building, MessageCircle, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -16,6 +16,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     role: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
 
@@ -24,10 +27,38 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    onClose();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', phone: '', email: '', company: '', role: '', message: '' });
+        setTimeout(() => {
+          onClose();
+          setSubmitStatus('idle');
+        }, 3000);
+      } else {
+        setSubmitStatus('error');
+        setErrorMessage(data.error || 'Ocorreu um erro ao enviar.');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      setErrorMessage('Erro de conexão. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -67,7 +98,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                     <Mail size={14} />
                  </div>
-                 <span className="text-sm font-medium">contato@plannersystem.com.br</span>
+                 <a href="mailto:contato@plannersystem.com.br" className="text-sm font-medium hover:text-blue-200 transition-colors">contato@plannersystem.com.br</a>
               </div>
            </div>
         </div>
@@ -169,11 +200,33 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                  ></textarea>
               </div>
 
+              {submitStatus === 'success' && (
+                <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm flex items-center gap-2 mb-2">
+                   <CheckCircle size={16} />
+                   Solicitação enviada com sucesso! Entraremos em contato em breve.
+                </div>
+              )}
+              
+              {submitStatus === 'error' && (
+                <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm flex items-center gap-2 mb-2">
+                   <AlertCircle size={16} />
+                   {errorMessage}
+                </div>
+              )}
+
               <button 
                 type="submit" 
-                className="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 hover:-translate-y-0.5 mt-2"
+                disabled={isSubmitting || submitStatus === 'success'}
+                className="w-full bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 hover:-translate-y-0.5 mt-2 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                 Enviar Solicitação
+                 {isSubmitting ? (
+                    <>
+                       <Loader2 size={18} className="animate-spin" />
+                       Enviando...
+                    </>
+                 ) : (
+                    'Enviar Solicitação'
+                 )}
               </button>
            </form>
         </div>

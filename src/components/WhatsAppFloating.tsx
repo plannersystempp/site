@@ -4,8 +4,9 @@ import Image from 'next/image';
 import { MessageCircle, ArrowUp } from 'lucide-react';
 
 const WhatsAppFloating: React.FC = () => {
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -19,7 +20,8 @@ const WhatsAppFloating: React.FC = () => {
   }, []);
 
   const openWhatsApp = () => {
-    window.open("https://wa.me/5521965865470", "_blank");
+    const text = encodeURIComponent(message);
+    window.open(`https://wa.me/5521965865470?text=${text}`, "_blank");
   };
 
   const toggleChat = () => {
@@ -33,18 +35,29 @@ const WhatsAppFloating: React.FC = () => {
       {!isMobile && showChat && (
         <div className="bg-white p-4 rounded-xl shadow-xl max-w-[250px] transform transition-all hover:scale-105 cursor-pointer border border-slate-100 relative group" onClick={openWhatsApp} role="button" aria-label="Abrir conversa no WhatsApp">
             <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white transform rotate-45 border-b border-r border-slate-100"></div> 
-            <p className="font-bold text-slate-800 mb-1">Bem-vindo(a) de volta!</p>
+            <p className="font-bold text-slate-800 mb-1">Bem-vindo(a)!</p>
             <p className="text-slate-500 text-xs">Como podemos ajudar você hoje?</p>
          </div>
        )}
 
-       {/* Fake Input - DESKTOP ONLY */}
+       {/* Input - DESKTOP ONLY */}
       {!isMobile && showChat && (
-        <div className="flex bg-white p-1.5 pl-4 rounded-full shadow-2xl items-center gap-2 w-[280px] cursor-pointer border border-slate-100 hover:shadow-xl transition-shadow" onClick={openWhatsApp} role="button" aria-label="Enviar mensagem no WhatsApp">
-            <span className="text-sm text-slate-400 flex-1 select-none">Escreva uma mensagem...</span>
-            <div className="bg-blue-600 p-2 rounded-full text-white hover:bg-blue-700 transition-colors shadow-md">
+        <div className="flex bg-white p-1.5 pl-4 rounded-full shadow-2xl items-center gap-2 w-[280px] border border-slate-100 hover:shadow-xl transition-shadow">
+            <input 
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Escreva uma mensagem..."
+              className="text-sm text-slate-600 flex-1 outline-none bg-transparent placeholder:text-slate-400"
+              onKeyDown={(e) => e.key === 'Enter' && openWhatsApp()}
+            />
+            <button 
+               onClick={openWhatsApp}
+               className="bg-blue-600 p-2 rounded-full text-white hover:bg-blue-700 transition-colors shadow-md"
+               aria-label="Enviar mensagem no WhatsApp"
+            >
                <ArrowUp size={16} /> 
-            </div>
+            </button>
          </div>
        )}
 
