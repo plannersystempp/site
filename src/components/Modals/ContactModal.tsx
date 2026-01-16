@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, MessageSquare, Phone, Mail, User, Building, MessageCircle, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface ContactModalProps {
@@ -19,6 +19,17 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -62,8 +73,9 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2rem] w-full max-w-4xl overflow-hidden relative shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col md:flex-row h-auto md:h-[600px]">
+    <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="bg-white rounded-[2rem] w-full max-w-4xl overflow-hidden relative shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col md:flex-row h-auto md:h-[600px]">
         
         <button 
           onClick={onClose}
@@ -231,6 +243,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
            </form>
         </div>
 
+      </div>
       </div>
     </div>
   );

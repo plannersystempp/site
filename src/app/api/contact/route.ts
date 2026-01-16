@@ -17,7 +17,13 @@ export async function POST(request: Request) {
     // Em produção, usar variáveis de ambiente
     // Caso não estejam configuradas, simulamos um sucesso para não quebrar a UX em dev (mas logamos o erro)
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn("Configurações de SMTP ausentes. O email não será enviado realmente.");
+        const missingVars = [];
+        if (!process.env.SMTP_HOST) missingVars.push('SMTP_HOST');
+        if (!process.env.SMTP_USER) missingVars.push('SMTP_USER');
+        if (!process.env.SMTP_PASS) missingVars.push('SMTP_PASS');
+        
+        console.error("Configurações de SMTP ausentes:", missingVars.join(', '));
+        console.warn("ENV ATUAL:", process.env.NODE_ENV);
         
         // Se estiver em desenvolvimento, retornamos sucesso simulado
         if (process.env.NODE_ENV === 'development') {
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(
-            { error: 'Erro de configuração no servidor de email' },
+            { error: `Erro de configuração no servidor de email. Faltando: ${missingVars.join(', ')}` },
             { status: 500 }
         );
     }
