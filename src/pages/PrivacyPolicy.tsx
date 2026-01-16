@@ -167,7 +167,7 @@ const PrivacyPolicy: React.FC = () => {
               <li><strong>Razão Social:</strong> PLANNERPRO SOLUÇÕES TECNOLOGICAS LTDA</li>
               <li><strong>CNPJ:</strong> 62.979.264/0001-96</li>
               <li><strong>WhatsApp:</strong> (21) 96586-5470</li>
-              <li><strong>Assunto:</strong> "Privacidade - Planner System"</li>
+              <li><strong>Assunto:</strong> "Privacidade - PlannerSystem"</li>
             </ul>
             <p className="mt-4 text-sm text-slate-500 italic">
               Nota: Esta Política de Privacidade está em conformidade com a Lei Geral de Proteção de Dados (LGPD) e outras leis aplicáveis de proteção de dados.
