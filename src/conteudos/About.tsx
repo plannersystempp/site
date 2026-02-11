@@ -45,7 +45,6 @@ const About: React.FC = () => {
       )}
     >
       <div className="space-y-20">
-        {/* Nossa História */}
         <section className="text-center max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Nossa História</h2>
           <p className="text-lg text-gray-600 leading-relaxed">
@@ -55,7 +54,6 @@ const About: React.FC = () => {
           </p>
         </section>
 
-        {/* Missão, Visão, Valores */}
         <div className="grid grid-cols-1 gap-8">
           <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-6 text-blue-600">
@@ -114,3 +112,4 @@ const About: React.FC = () => {
 };
 
 export default About;
+

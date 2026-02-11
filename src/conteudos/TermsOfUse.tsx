@@ -7,17 +7,17 @@ import WhatsAppFloating from '../components/WhatsAppFloating';
 import PrivacyWidget from '../components/PrivacyWidget';
 import PlansModal from '../components/Modals/PlansModal';
 import ContactModal from '../components/Modals/ContactModal';
-import { useState } from 'react';
+import useUIStore from '../store/ui';
 
 const TermsOfUse: React.FC = () => {
-  const [showPlansModal, setShowPlansModal] = useState(false);
-  const [showContactModal, setShowContactModal] = useState(false);
-
-  const openPlansModal = () => setShowPlansModal(true);
-  const closePlansModal = () => setShowPlansModal(false);
-  
-  const openContactModal = () => setShowContactModal(true);
-  const closeContactModal = () => setShowContactModal(false);
+  const {
+    showPlansModal,
+    showContactModal,
+    openPlansModal,
+    closePlansModal,
+    openContactModal,
+    closeContactModal,
+  } = useUIStore();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -169,8 +169,17 @@ const TermsOfUse: React.FC = () => {
       <WhatsAppFloating />
       <PrivacyWidget />
 
-      <PlansModal isOpen={showPlansModal} onClose={closePlansModal} />
-      <ContactModal isOpen={showContactModal} onClose={closeContactModal} />
+      {showPlansModal && (
+        <PlansModal
+          isOpen={true}
+          onClose={closePlansModal}
+          onContactClick={() => {
+            closePlansModal();
+            openContactModal();
+          }}
+        />
+      )}
+      {showContactModal && <ContactModal isOpen={true} onClose={closeContactModal} />}
     </div>
   );
 };

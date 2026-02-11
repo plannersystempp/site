@@ -33,11 +33,16 @@ const WhatsAppFloating: React.FC = () => {
        
        {/* Message Bubble - DESKTOP ONLY */}
       {!isMobile && showChat && (
-        <div className="bg-white p-4 rounded-xl shadow-xl max-w-[250px] transform transition-all hover:scale-105 cursor-pointer border border-slate-100 relative group" onClick={openWhatsApp} role="button" aria-label="Abrir conversa no WhatsApp">
+        <button
+          type="button"
+          className="bg-white p-4 rounded-xl shadow-xl max-w-[250px] transform transition-all hover:scale-105 cursor-pointer border border-slate-100 relative group text-left"
+          onClick={openWhatsApp}
+          aria-label="Abrir conversa no WhatsApp"
+        >
             <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white transform rotate-45 border-b border-r border-slate-100"></div> 
             <p className="font-bold text-slate-800 mb-1">Bem-vindo(a)!</p>
             <p className="text-slate-500 text-xs">Como podemos ajudar você hoje?</p>
-         </div>
+         </button>
        )}
 
        {/* Input - DESKTOP ONLY */}
@@ -63,7 +68,13 @@ const WhatsAppFloating: React.FC = () => {
 
        {/* Avatar - DESKTOP ONLY */}
       {!isMobile && (
-        <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-2xl cursor-pointer hover:scale-110 transition-transform relative group" onClick={toggleChat} role="button" aria-label="Abrir chat de atendimento">
+        <button
+          type="button"
+          className="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-2xl cursor-pointer hover:scale-110 transition-transform relative group"
+          onClick={toggleChat}
+          aria-label="Abrir chat de atendimento"
+          aria-expanded={showChat}
+        >
             <Image 
               src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" 
               alt="Atendente" 
@@ -72,7 +83,7 @@ const WhatsAppFloating: React.FC = () => {
               className="w-full h-full object-cover"
             />
             <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
-         </div>
+         </button>
        )}
 
        {/* MOBILE ONLY: Simple Blue Chat Icon */}

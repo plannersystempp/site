@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { DollarSign, FileText, Calculator, CreditCard, Receipt } from 'lucide-react';
+import { DollarSign, FileText, Calculator, Receipt } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
 import BenefitSection from '../../components/solutions/BenefitSection';
@@ -46,7 +46,6 @@ const Payroll: React.FC = () => {
       {({ openPlansModal }) => (
         <div className="space-y-24 mb-20">
           
-          {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard 
               icon={Calculator}
@@ -65,7 +64,6 @@ const Payroll: React.FC = () => {
             />
           </div>
 
-          {/* Benefit 1 */}
           <BenefitSection
             title="Fechamento financeiro sem erros"
             description="Automatize o processo de fechamento de folha. O sistema consolida horas, cachês e despesas para gerar o valor exato a ser pago, eliminando erros manuais e recálculos. Folha individualizada por evento, com todas as pessoas que trabalharam no evento."
@@ -77,7 +75,6 @@ const Payroll: React.FC = () => {
             imageAlt="Tela de fechamento de folha de pagamento do PlannerSystem"
           />
 
-          {/* CTA */}
           <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
             <h2 className="text-3xl font-bold mb-6">Simplifique seu financeiro</h2>
             <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Calendar, CheckCircle, Clock, MapPin, Layout, Users, Sliders } from 'lucide-react';
+import { Calendar, Layout, Sliders } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
 import BenefitSection from '../../components/solutions/BenefitSection';
@@ -47,7 +47,6 @@ const EventManagement: React.FC = () => {
     >
       <div className="space-y-24 mb-20">
         
-        {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8 -mt-16 relative z-10">
           <FeatureCard 
             icon={Layout}
@@ -66,7 +65,6 @@ const EventManagement: React.FC = () => {
           />
         </div>
 
-        {/* Benefit 1 */}
         <BenefitSection
           title="Controle total do cronograma"
           description="Chega de planilhas descentralizadas. Com o PlannerSystem, você centraliza todas as datas, horários e locais dos seus eventos em um único dashboard intuitivo."
@@ -80,7 +78,6 @@ const EventManagement: React.FC = () => {
           cleanImage
         />
 
-        {/* CTA */}
         <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
           <h2 className="text-3xl font-bold mb-6">Pronto para organizar seus eventos?</h2>
           <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Users, Star, Folder, History } from 'lucide-react';
+import { Star, Folder, History } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
 import BenefitSection from '../../components/solutions/BenefitSection';
@@ -43,7 +43,6 @@ const PersonnelControl: React.FC = () => {
     >
       <div className="space-y-24 mb-20">
         
-        {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-8 -mt-16 relative z-10">
           <FeatureCard 
             icon={Folder}
@@ -62,7 +61,6 @@ const PersonnelControl: React.FC = () => {
           />
         </div>
 
-        {/* Benefit Section */}
         <BenefitSection
           title="Alocação Inteligente"
           description="Evite conflitos de agenda e garanta que os melhores profissionais estejam nos projetos certos. O sistema alerta sobre indisponibilidades e choques de horário."
@@ -77,7 +75,6 @@ const PersonnelControl: React.FC = () => {
           ]}
         />
 
-        {/* CTA */}
         <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
           <h2 className="text-3xl font-bold mb-6">Monte o time dos sonhos</h2>
           <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">

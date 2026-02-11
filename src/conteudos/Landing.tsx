@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React from 'react';
 import Image from 'next/image';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
@@ -13,16 +12,17 @@ import PlansModal from '../components/Modals/PlansModal';
 import ContactModal from '../components/Modals/ContactModal';
 import WhatsAppFloating from '../components/WhatsAppFloating';
 import PrivacyWidget from '../components/PrivacyWidget';
+import useUIStore from '../store/ui';
 
 function Landing() {
-  const [showPlansModal, setShowPlansModal] = useState(false);
-  const [showContactModal, setShowContactModal] = useState(false);
-
-  const openPlansModal = () => setShowPlansModal(true);
-  const closePlansModal = () => setShowPlansModal(false);
-  
-  const openContactModal = () => setShowContactModal(true);
-  const closeContactModal = () => setShowContactModal(false);
+  const {
+    showPlansModal,
+    showContactModal,
+    openPlansModal,
+    closePlansModal,
+    openContactModal,
+    closeContactModal,
+  } = useUIStore();
 
   return (
     <div className="font-sans text-slate-600 bg-white selection:bg-blue-900 selection:text-white overflow-x-hidden relative">
@@ -33,23 +33,26 @@ function Landing() {
 
       <HeroSection onContactClick={openContactModal} />
 
-      {/* Logo Strip */}
       <div className="border-y border-slate-100 bg-white py-12">
         <div className="container mx-auto px-6 text-center">
           <p className="text-sm font-medium text-slate-500 mb-8">Empresas líderes confiam na PlannerSystem</p>
           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-            <Image src="https://placehold.co/200x80/ffffff/000000?text=LAFTECH" alt="LAFTECH" width={200} height={80} className="h-10 md:h-12 w-auto object-contain" unoptimized />
+            <Image
+              src="/images/laftech3.png"
+              alt="LAFTECH"
+              width={200}
+              height={80}
+              className="h-10 md:h-12 w-auto object-contain"
+              sizes="(min-width: 768px) 200px, 160px"
+            />
           </div>
         </div>
       </div>
 
       <BentoGrid />
 
-      {/* Details Section */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6 space-y-32">
-          
-          {/* Feature Block 1 */}
           <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
              <div className="mb-12 max-w-2xl">
                 <h3 className="text-3xl font-bold text-slate-900 mb-4">Gestão de Talentos Unificada</h3>
@@ -90,7 +93,6 @@ function Landing() {
              </div>
           </div>
 
-          {/* Feature Block 2 */}
           <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
              <div className="mb-12 max-w-2xl">
                 <h3 className="text-3xl font-bold text-slate-900 mb-4">Inteligência Financeira em Tempo Real</h3>
@@ -136,8 +138,17 @@ function Landing() {
       <WhatsAppFloating />
       <PrivacyWidget />
 
-      <PlansModal isOpen={showPlansModal} onClose={closePlansModal} />
-      <ContactModal isOpen={showContactModal} onClose={closeContactModal} />
+      {showPlansModal && (
+        <PlansModal
+          isOpen={true}
+          onClose={closePlansModal}
+          onContactClick={() => {
+            closePlansModal();
+            openContactModal();
+          }}
+        />
+      )}
+      {showContactModal && <ContactModal isOpen={true} onClose={closeContactModal} />}
     </div>
   );
 }

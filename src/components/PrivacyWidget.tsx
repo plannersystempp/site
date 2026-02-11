@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Lock, X } from 'lucide-react';
 
 const PrivacyWidget: React.FC = () => {
@@ -53,10 +54,17 @@ const PrivacyWidget: React.FC = () => {
            </div>
 
            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-blue-600 font-medium mb-6 underline-offset-2">
-              <a href="#" className="hover:underline">Política de Privacidade</a>
-              <a href="#" className="hover:underline">Política de Cookies</a>
-              <a href="#" className="hover:underline">Termos de uso</a>
-              <a href="#" className="hover:underline">Opt-out</a>
+              <Link href="/privacidade" className="hover:underline">Política de Privacidade</Link>
+              <Link href="/privacidade" className="hover:underline">Política de Cookies</Link>
+              <Link href="/termos-de-uso" className="hover:underline">Termos de uso</Link>
+              <a
+                href="https://tools.google.com/dlpage/gaoptout"
+                className="hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Opt-out
+              </a>
            </div>
 
            <div className="flex items-center justify-between gap-3">

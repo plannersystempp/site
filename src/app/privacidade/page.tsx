@@ -1,10 +1,11 @@
-import { Metadata } from 'next';
-import PrivacyPolicy from '../../pages/PrivacyPolicy';
+import { criarMetadataPagina } from "../../lib/seo";
+import PrivacyPolicy from "../../conteudos/PrivacyPolicy";
 
-export const metadata: Metadata = {
-  title: "Política de Privacidade | PlannerSystem",
-  description: "Saiba como o PlannerSystem coleta, usa e protege seus dados pessoais.",
-};
+export const metadata = criarMetadataPagina({
+  titulo: "Política de Privacidade",
+  descricao: "Saiba como o PlannerSystem coleta, usa e protege seus dados pessoais.",
+  caminhoCanonico: "/privacidade",
+});
 
 export default function Page() {
   return <PrivacyPolicy />;

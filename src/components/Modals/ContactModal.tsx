@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageSquare, Phone, Mail, User, Building, MessageCircle, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface ContactModalProps {
@@ -8,6 +8,7 @@ interface ContactModalProps {
 }
 
 const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
+  const primeiroCampoRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -30,6 +31,29 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const focar = () => {
+      primeiroCampoRef.current?.focus();
+    };
+
+    const timeout = window.setTimeout(focar, 0);
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -75,10 +99,18 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-300">
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="bg-white rounded-[2rem] w-full max-w-4xl overflow-hidden relative shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col md:flex-row h-auto md:h-[600px]">
+        <div
+          className="bg-white rounded-[2rem] w-full max-w-4xl overflow-hidden relative shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col md:flex-row h-auto md:h-[600px]"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="contato-titulo"
+          aria-describedby="contato-descricao"
+        >
         
         <button 
           onClick={onClose}
+          type="button"
+          aria-label="Fechar modal de contato"
           className="absolute top-3 right-3 p-1.5 bg-white/50 backdrop-blur rounded-full hover:bg-slate-100 transition-colors z-20 shadow-sm"
         >
           <X size={18} className="text-slate-600" />
@@ -93,8 +125,8 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-6 md:mb-8">
                 <MessageSquare size={12} /> Contato Comercial
              </div>
-             <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 leading-tight">Vamos levar seu evento para o próximo nível?</h2>
-             <p className="text-blue-100 text-xs md:text-sm leading-relaxed">
+             <h2 id="contato-titulo" className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 leading-tight">Vamos levar seu evento para o próximo nível?</h2>
+             <p id="contato-descricao" className="text-blue-100 text-xs md:text-sm leading-relaxed">
                 Nossa equipe de especialistas está pronta para entender seus desafios e apresentar a solução ideal para sua operação.
              </p>
            </div>
@@ -130,6 +162,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
                        <input 
                          type="text" 
                          name="name"
+                         ref={primeiroCampoRef}
                          value={formData.name}
                          onChange={handleInputChange}
                          className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300" 

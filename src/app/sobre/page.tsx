@@ -1,10 +1,11 @@
-import { Metadata } from 'next';
-import About from '../../pages/About';
+import { criarMetadataPagina } from "../../lib/seo";
+import About from "../../conteudos/About";
 
-export const metadata: Metadata = {
-  title: "Sobre Nós | PlannerSystem",
-  description: "Conheça a história e missão do PlannerSystem. Transformando a gestão de eventos.",
-};
+export const metadata = criarMetadataPagina({
+  titulo: "Sobre Nós",
+  descricao: "Conheça a história e missão do PlannerSystem. Transformando a gestão de eventos.",
+  caminhoCanonico: "/sobre",
+});
 
 export default function Page() {
   return <About />;

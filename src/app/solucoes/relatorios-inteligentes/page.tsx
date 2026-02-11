@@ -1,10 +1,11 @@
-import { Metadata } from 'next';
-import SmartReports from '../../../pages/solutions/SmartReports';
+import { criarMetadataPagina } from "../../../lib/seo";
+import SmartReports from "../../../conteudos/solutions/SmartReports";
 
-export const metadata: Metadata = {
-  title: "Relatórios Inteligentes | PlannerSystem",
-  description: "Gere relatórios completos de pagamentos com filtros avançados.",
-};
+export const metadata = criarMetadataPagina({
+  titulo: "Relatórios Inteligentes",
+  descricao: "Gere relatórios completos de pagamentos com filtros avançados.",
+  caminhoCanonico: "/solucoes/relatorios-inteligentes",
+});
 
 export default function Page() {
   return <SmartReports />;

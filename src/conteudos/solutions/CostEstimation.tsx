@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { BarChart, TrendingUp, PieChart, AlertTriangle, Target } from 'lucide-react';
+import { BarChart, TrendingUp, PieChart } from 'lucide-react';
 import SolutionLayout from '../../components/SolutionLayout';
 import FeatureCard from '../../components/solutions/FeatureCard';
 import BenefitSection from '../../components/solutions/BenefitSection';
@@ -46,7 +46,6 @@ const CostEstimation: React.FC = () => {
       {({ openContactModal }) => (
         <div className="space-y-24 mb-20">
           
-          {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard 
               icon={BarChart}
@@ -65,7 +64,6 @@ const CostEstimation: React.FC = () => {
             />
           </div>
 
-          {/* Benefit 1 */}
           <BenefitSection
             title="Previsibilidade Financeira"
             description="Não espere o fechamento para entender seus custos. Monitore a saúde financeira do seu evento em tempo real, com dados precisos sobre alocação de equipe e recursos."
@@ -79,7 +77,6 @@ const CostEstimation: React.FC = () => {
             imageAlt="Gráficos Financeiros"
           />
 
-          {/* CTA */}
           <div className="bg-slate-900 rounded-3xl p-12 text-center text-white">
             <h2 className="text-3xl font-bold mb-6">Maximize seus lucros</h2>
             <p className="text-slate-300 text-lg mb-8 max-w-2xl mx-auto">

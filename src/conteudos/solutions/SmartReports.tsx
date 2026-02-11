@@ -80,3 +80,4 @@ const SmartReports: React.FC = () => {
 };
 
 export default SmartReports;
+
